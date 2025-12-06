@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LineLux Variante ${N}</title>
+<link rel="stylesheet" href="../LineLuxSharedStyles.css">
+<style>
+  :root{ --h: ${H}; }
+  body{background: hsl(var(--h), 35%, 8%); color:#eef6ff; font-family:system-ui,Segoe UI,Roboto,Arial}
+  .wrap{max-width:980px;margin:0 auto;padding:18px}
+  h1{font-size:24px;margin:8px 0 12px;background:linear-gradient(90deg,hsl(var(--h),90%,60%),#00ccff);-webkit-background-clip:text;color:transparent}
+  .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+  a{color:hsl(var(--h),80%,70%)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LineLux – Variante ${N}</h1>
+  <div class="card">
+    <p>Dies ist eine minimalistische HTML‑Variante Nr. ${N}. Farbschema basiert auf Hue=${H}°. Nutze diese Seite als
+    Startpunkt für Design‑Experimente, Komponenten‑Tests oder Landing‑Pages.</p>
+    <ul>
+      <li><a href="../linelux-style.html">Zur Haupt‑UI (linelux‑style.html)</a></li>
+      <li><a href="variants-index.html">Zur Varianten‑Übersicht</a></li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

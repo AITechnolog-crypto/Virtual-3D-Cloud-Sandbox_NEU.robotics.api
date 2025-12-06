@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SwaggerSettings">
+    <remoteSpecificationUrls>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/Trimble-Connect/tcps-int/2.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Pack-acces/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Pack-modules/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Agenda/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Pack-dossier-vente/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Pack-leads/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Pack-biens/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Pack-contacts/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Pack-web/1.0.0-oas3/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/Client/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/api-immo_facile-global/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ImmoFacile/User-Partner/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/worldshop/APO/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/OLADELEX4/Yakudi-Zest-Wrapper/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/stealthpuppy/evergreen-api/1.5.2/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/blackkaiserinc/OpenAPI/1.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/own-6ba/GeneratedAPI_2025-10-11-1750/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/byuidaho-080/sample/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ituniversityofcopenh/ITU_Students/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/BSPK/platform-api/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/BSPK/extraction-api/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/BSPK/bspk-api/1.0.1/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/student-5d4/Auth-Service/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/woovie/woovie/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/primev/provider-api/1.2.2/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/amtrak-202/pca-service/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/PROLATNATALA_1/auditor/1.0.0/swagger.yaml" />
+      </UrlInfo>
+      <UrlInfo>
+        <option name="urlString" value="https://api.swaggerhub.com/apis/ffid.ai/api-ffid/1.0-oas3/swagger.yaml" />
+      </UrlInfo>
+    </remoteSpecificationUrls>
+  </component>
+</project>

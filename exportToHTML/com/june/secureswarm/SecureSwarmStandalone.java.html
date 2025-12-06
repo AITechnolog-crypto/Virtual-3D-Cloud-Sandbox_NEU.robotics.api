@@ -1,0 +1,452 @@
+<html>
+<head>
+<title>SecureSwarmStandalone.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #808080;}
+.s3 { color: #96be78;}
+.s4 { color: #36beff;}
+.s5 { color: #17bbdd;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+SecureSwarmStandalone.java</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">package </span><span class="s1">com.june.secureswarm;</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">java.awt.image.BufferedImage;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">import </span><span class="s1">java.io.File;</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">import </span><span class="s1">java.lang.reflect.Method;</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">import </span><span class="s1">java.text.NumberFormat;</span>
+<a name="l7"><span class="ln">7    </span></a><span class="s0">import </span><span class="s1">java.util.*;</span>
+<a name="l8"><span class="ln">8    </span></a><span class="s0">import </span><span class="s1">java.util.concurrent.atomic.AtomicLong;</span>
+<a name="l9"><span class="ln">9    </span></a><span class="s0">import </span><span class="s1">javax.imageio.ImageIO;</span>
+<a name="l10"><span class="ln">10   </span></a>
+<a name="l11"><span class="ln">11   </span></a><span class="s2">/**</span>
+<a name="l12"><span class="ln">12   </span></a> <span class="s2">* NurSeal v3R — Hirsch‑Crest &amp; Finger‑Bundle</span>
+<a name="l13"><span class="ln">13   </span></a> <span class="s2">* Bundle‑SHA‑256 (Finger‑Fotos): b8d0d1ff1e0d0a207ed2f3eb0f1f2af33138997934796c6850c650f8d4339526</span>
+<a name="l14"><span class="ln">14   </span></a> <span class="s2">*</span>
+<a name="l15"><span class="ln">15   </span></a> <span class="s2">* SecureSwarmStandalone – kompakte, eigenständige Demo</span>
+<a name="l16"><span class="ln">16   </span></a> <span class="s2">* - BTC/ETH/SEPA QR-Generator (mit PNG, falls ZXing im Classpath)</span>
+<a name="l17"><span class="ln">17   </span></a> <span class="s2">* - Erkennung der Zahlungsart (IBAN/BTC/ETH)</span>
+<a name="l18"><span class="ln">18   </span></a> <span class="s2">* - Maskierte Wallet-UI (BTC/ETH)</span>
+<a name="l19"><span class="ln">19   </span></a> <span class="s2">* - Humanitäre Aktion wird beim Start sofort ausgelöst (defensiv)</span>
+<a name="l20"><span class="ln">20   </span></a> <span class="s2">*</span>
+<a name="l21"><span class="ln">21   </span></a> <span class="s2">* Kompilieren (einfach):</span>
+<a name="l22"><span class="ln">22   </span></a> <span class="s2">*   javac src\main\java\com\june\secureswarm\SecureSwarmStandalone.java</span>
+<a name="l23"><span class="ln">23   </span></a> <span class="s2">* Starten:</span>
+<a name="l24"><span class="ln">24   </span></a> <span class="s2">*   java -cp src\main\java com.june.secureswarm.SecureSwarmStandalone</span>
+<a name="l25"><span class="ln">25   </span></a> <span class="s2">*/</span>
+<a name="l26"><span class="ln">26   </span></a><span class="s0">public class </span><span class="s1">SecureSwarmStandalone {</span>
+<a name="l27"><span class="ln">27   </span></a>
+<a name="l28"><span class="ln">28   </span></a>    <span class="s0">public static void </span><span class="s1">main(String[] args) {</span>
+<a name="l29"><span class="ln">29   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;== SecureSwarm Standalone ==&quot;</span><span class="s1">);</span>
+<a name="l30"><span class="ln">30   </span></a>        <span class="s2">// 1) Wallet-UI (maskiert)</span>
+<a name="l31"><span class="ln">31   </span></a>        <span class="s0">new </span><span class="s1">CryptoArtRegistry().print();</span>
+<a name="l32"><span class="ln">32   </span></a>
+<a name="l33"><span class="ln">33   </span></a>        <span class="s2">// 2) QR-Codes erzeugen (PNG falls ZXing vorhanden)</span>
+<a name="l34"><span class="ln">34   </span></a>        <span class="s1">PaymentsAddon.generateAllQrs(</span><span class="s4">0.001</span><span class="s1">, </span><span class="s4">25.00</span><span class="s1">, </span><span class="s3">&quot;SecureSwarm Support&quot;</span><span class="s1">);</span>
+<a name="l35"><span class="ln">35   </span></a>
+<a name="l36"><span class="ln">36   </span></a>        <span class="s2">// 3) Erkennungs-Demo (womit zahlt jemand?)</span>
+<a name="l37"><span class="ln">37   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[Detect] ETH  → &quot; </span><span class="s1">+ PaymentDetector.detect(PaymentAddressBook.ETH_ADDRESS));</span>
+<a name="l38"><span class="ln">38   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[Detect] BTC  → &quot; </span><span class="s1">+ PaymentDetector.detect(PaymentAddressBook.BTC_ADDRESS));</span>
+<a name="l39"><span class="ln">39   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[Detect] IBAN → &quot; </span><span class="s1">+ PaymentDetector.detect(PaymentAddressBook.IBAN_EUR));</span>
+<a name="l40"><span class="ln">40   </span></a>        <span class="s1">System.out.println();</span>
+<a name="l41"><span class="ln">41   </span></a>
+<a name="l42"><span class="ln">42   </span></a>        <span class="s2">// 4) Wallets/Spenden-Routing (SIM) + Checkout-Links</span>
+<a name="l43"><span class="ln">43   </span></a>        <span class="s1">Wallet techWallet = </span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;TECH&quot;</span><span class="s1">, PaymentAddressBook.IBAN_EUR);</span>
+<a name="l44"><span class="ln">44   </span></a>        <span class="s1">Wallet aidWallet  = </span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;AID&quot;</span><span class="s1">,  </span><span class="s3">&quot;HumanitarianFund (SIM)&quot;</span><span class="s1">);</span>
+<a name="l45"><span class="ln">45   </span></a>        <span class="s1">DonationLedger ledger = </span><span class="s0">new </span><span class="s1">DonationLedger();</span>
+<a name="l46"><span class="ln">46   </span></a>        <span class="s1">DonationRouter donations = </span><span class="s0">new </span><span class="s1">DonationRouter(techWallet, aidWallet, ledger);</span>
+<a name="l47"><span class="ln">47   </span></a>
+<a name="l48"><span class="ln">48   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[Spendenlinks]&quot;</span><span class="s1">);</span>
+<a name="l49"><span class="ln">49   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot; - Humanitär/PayPal: &quot; </span><span class="s1">+ donations.checkoutLink(</span><span class="s3">&quot;paypal&quot;</span><span class="s1">, Fund.HUMANITAER, </span><span class="s4">50_00</span><span class="s1">, </span><span class="s3">&quot;EUR&quot;</span><span class="s1">));</span>
+<a name="l50"><span class="ln">50   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot; - R&amp;D/Bank:        &quot; </span><span class="s1">+ donations.checkoutLink(</span><span class="s3">&quot;bank&quot;</span><span class="s1">,   Fund.RND_TECH,   </span><span class="s4">120_00</span><span class="s1">,</span><span class="s3">&quot;EUR&quot;</span><span class="s1">));</span>
+<a name="l51"><span class="ln">51   </span></a>        <span class="s1">donations.capture(</span><span class="s3">&quot;paypal&quot;</span><span class="s1">, Fund.HUMANITAER, </span><span class="s4">50_00</span><span class="s1">, </span><span class="s3">&quot;EUR&quot;</span><span class="s1">);</span>
+<a name="l52"><span class="ln">52   </span></a>        <span class="s1">donations.capture(</span><span class="s3">&quot;bank&quot;</span><span class="s1">,   Fund.RND_TECH,   </span><span class="s4">120_00</span><span class="s1">,</span><span class="s3">&quot;EUR&quot;</span><span class="s1">);</span>
+<a name="l53"><span class="ln">53   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">[Transparenz-Ledger]</span><span class="s5">\n</span><span class="s3">&quot; </span><span class="s1">+ ledger.csv() + </span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">&quot;</span><span class="s1">);</span>
+<a name="l54"><span class="ln">54   </span></a>
+<a name="l55"><span class="ln">55   </span></a>        <span class="s2">// 5) Humanitäre Aktion – SOFORT (rein defensiv)</span>
+<a name="l56"><span class="ln">56   </span></a>        <span class="s1">EnergyManager energy = </span><span class="s0">new </span><span class="s1">EnergyManager();</span>
+<a name="l57"><span class="ln">57   </span></a>        <span class="s1">PlasmaShield  shield = </span><span class="s0">new </span><span class="s1">PlasmaShield(energy);</span>
+<a name="l58"><span class="ln">58   </span></a>        <span class="s1">CoolingUnit   cooling= </span><span class="s0">new </span><span class="s1">CoolingUnit();</span>
+<a name="l59"><span class="ln">59   </span></a>        <span class="s1">MagnetfeldKoppler koppler = </span><span class="s0">new </span><span class="s1">MagnetfeldKoppler();</span>
+<a name="l60"><span class="ln">60   </span></a>        <span class="s1">MagnetfeldVerstaerker magnet = </span><span class="s0">new </span><span class="s1">MagnetfeldVerstaerker(energy, koppler);</span>
+<a name="l61"><span class="ln">61   </span></a>        <span class="s1">SwarmController swarm = </span><span class="s0">new </span><span class="s1">SwarmController(</span><span class="s4">10_000</span><span class="s1">);</span>
+<a name="l62"><span class="ln">62   </span></a>
+<a name="l63"><span class="ln">63   </span></a>        <span class="s2">// Orbit/Wallet/Silos (für Restenergie)</span>
+<a name="l64"><span class="ln">64   </span></a>        <span class="s1">SatellitenResonanzVerbindung orbit = </span><span class="s0">new </span><span class="s1">SatellitenResonanzVerbindung();</span>
+<a name="l65"><span class="ln">65   </span></a>        <span class="s1">SiloManager silos = </span><span class="s0">new </span><span class="s1">SiloManager();</span>
+<a name="l66"><span class="ln">66   </span></a>        <span class="s1">PaymentProcessor payments = </span><span class="s0">new </span><span class="s1">PaymentProcessor(</span><span class="s0">new </span><span class="s1">WalletRueckspeisung(PaymentAddressBook.IBAN_EUR), orbit, silos);</span>
+<a name="l67"><span class="ln">67   </span></a>
+<a name="l68"><span class="ln">68   </span></a>        <span class="s2">// Geo/Modus</span>
+<a name="l69"><span class="ln">69   </span></a>        <span class="s1">HumanitarianMode humMode = </span><span class="s0">new </span><span class="s1">HumanitarianMode();</span>
+<a name="l70"><span class="ln">70   </span></a>        <span class="s1">GeoPolicyGuard geo = </span><span class="s0">new </span><span class="s1">GeoPolicyGuard();</span>
+<a name="l71"><span class="ln">71   </span></a>        <span class="s2">// Grobes, beispielhaftes Konflikt-Polygon (Demo)</span>
+<a name="l72"><span class="ln">72   </span></a>        <span class="s1">geo.addConflictZone(</span><span class="s0">new </span><span class="s1">Geofence(</span><span class="s3">&quot;CONFLICT_PALESTINE_STRIP&quot;</span><span class="s1">, </span><span class="s0">true</span><span class="s1">,</span>
+<a name="l73"><span class="ln">73   </span></a>                <span class="s0">new </span><span class="s1">GeoPoint(</span><span class="s4">31.2</span><span class="s1">,</span><span class="s4">34.2</span><span class="s1">), </span><span class="s0">new </span><span class="s1">GeoPoint(</span><span class="s4">31.2</span><span class="s1">,</span><span class="s4">34.8</span><span class="s1">),</span>
+<a name="l74"><span class="ln">74   </span></a>                <span class="s0">new </span><span class="s1">GeoPoint(</span><span class="s4">31.7</span><span class="s1">,</span><span class="s4">34.8</span><span class="s1">), </span><span class="s0">new </span><span class="s1">GeoPoint(</span><span class="s4">31.7</span><span class="s1">,</span><span class="s4">34.2</span><span class="s1">)));</span>
+<a name="l75"><span class="ln">75   </span></a>        <span class="s1">EmergencyOverride emergency = </span><span class="s0">new </span><span class="s1">EmergencyOverride();</span>
+<a name="l76"><span class="ln">76   </span></a>
+<a name="l77"><span class="ln">77   </span></a>        <span class="s2">// Initialisierung &amp; sofortiges Incident</span>
+<a name="l78"><span class="ln">78   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;== Init Schutz/Schwarm ==&quot;</span><span class="s1">);</span>
+<a name="l79"><span class="ln">79   </span></a>        <span class="s1">orbit.aktiviere();</span>
+<a name="l80"><span class="ln">80   </span></a>        <span class="s1">magnet.aktiviere(); magnet.erzeugeFeld(); koppler.koppelnAn();</span>
+<a name="l81"><span class="ln">81   </span></a>        <span class="s1">swarm.deploySwarm();</span>
+<a name="l82"><span class="ln">82   </span></a>
+<a name="l83"><span class="ln">83   </span></a>        <span class="s1">Incident first = </span><span class="s0">new </span><span class="s1">Incident(IncidentType.DISASTER, </span><span class="s0">new </span><span class="s1">GeoPoint(</span><span class="s4">31.5</span><span class="s1">, </span><span class="s4">34.45</span><span class="s1">)); </span><span class="s2">// Beispiel: ziviler Notfall</span>
+<a name="l84"><span class="ln">84   </span></a>        <span class="s1">HumanitarianCoordinator hum = </span><span class="s0">new </span><span class="s1">HumanitarianCoordinator(humMode, geo, </span><span class="s0">new </span><span class="s1">AidKitManager(), donations);</span>
+<a name="l85"><span class="ln">85   </span></a>
+<a name="l86"><span class="ln">86   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">== STARTE HUMANITÄRE AKTION (sofort) ==&quot;</span><span class="s1">);</span>
+<a name="l87"><span class="ln">87   </span></a>        <span class="s1">hum.respond(first, shield, cooling, </span><span class="s0">new </span><span class="s1">SocialEquityEngine()); </span><span class="s2">// reiner Defensiv-/Hilfseinsatz</span>
+<a name="l88"><span class="ln">88   </span></a>
+<a name="l89"><span class="ln">89   </span></a>        <span class="s2">// Kleiner Energie-/Restwert-Flow (simuliert)</span>
+<a name="l90"><span class="ln">90   </span></a>        <span class="s1">swarm.absorbiereCO2();                    </span><span class="s2">// Service-Units unterstützen Umwelt</span>
+<a name="l91"><span class="ln">91   </span></a>        <span class="s1">swarm.energieVerteilung();</span>
+<a name="l92"><span class="ln">92   </span></a>        <span class="s0">double </span><span class="s1">sold = Math.max(</span><span class="s4">0</span><span class="s1">, swarm.getTotalEnergy() * </span><span class="s4">0.03</span><span class="s1">); </span><span class="s2">// 3% als symbolischer Überschuss</span>
+<a name="l93"><span class="ln">93   </span></a>        <span class="s1">payments.routeSoldEnergy(sold, sold * </span><span class="s4">0.15</span><span class="s1">);</span>
+<a name="l94"><span class="ln">94   </span></a>
+<a name="l95"><span class="ln">95   </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">== Ende – Demo abgeschlossen ==&quot;</span><span class="s1">);</span>
+<a name="l96"><span class="ln">96   </span></a>    <span class="s1">}</span>
+<a name="l97"><span class="ln">97   </span></a><span class="s1">}</span>
+<a name="l98"><span class="ln">98   </span></a>
+<a name="l99"><span class="ln">99   </span></a><span class="s2">/* ========================= Wallet &amp; Adressen ========================= */</span>
+<a name="l100"><span class="ln">100  </span></a>
+<a name="l101"><span class="ln">101  </span></a><span class="s0">class </span><span class="s1">PaymentAddressBook {</span>
+<a name="l102"><span class="ln">102  </span></a>    <span class="s2">// &gt;&gt;&gt; Demo‑Zieladressen &lt;&lt;&lt;</span>
+<a name="l103"><span class="ln">103  </span></a>    <span class="s0">public static final </span><span class="s1">String ETH_ADDRESS = </span><span class="s3">&quot;0x40dEa729f32481A707917AcBBD9eaA84AcB66367&quot;</span><span class="s1">;</span>
+<a name="l104"><span class="ln">104  </span></a>    <span class="s0">public static final </span><span class="s1">String BTC_ADDRESS = </span><span class="s3">&quot;bc1qzdg8qjd42rg2sa6t4wqzchx40rjmz0xyh3gccd&quot;</span><span class="s1">;</span>
+<a name="l105"><span class="ln">105  </span></a>    <span class="s0">public static final </span><span class="s1">String IBAN_EUR    = </span><span class="s3">&quot;AT921400057010099023&quot;</span><span class="s1">;</span>
+<a name="l106"><span class="ln">106  </span></a>
+<a name="l107"><span class="ln">107  </span></a>    <span class="s0">public static final </span><span class="s1">String RECEIVER_NAME = </span><span class="s3">&quot;ShariaBoots SecureSwarm&quot;</span><span class="s1">; </span><span class="s2">// Anzeige im EPC-QR</span>
+<a name="l108"><span class="ln">108  </span></a><span class="s1">}</span>
+<a name="l109"><span class="ln">109  </span></a>
+<a name="l110"><span class="ln">110  </span></a><span class="s2">/* ========================= Erkennung der Zahlungsart ========================= */</span>
+<a name="l111"><span class="ln">111  </span></a>
+<a name="l112"><span class="ln">112  </span></a><span class="s0">enum </span><span class="s1">PaymentKind { IBAN_EUR, BITCOIN, ETHEREUM, UNKNOWN }</span>
+<a name="l113"><span class="ln">113  </span></a>
+<a name="l114"><span class="ln">114  </span></a><span class="s0">class </span><span class="s1">PaymentDetector {</span>
+<a name="l115"><span class="ln">115  </span></a>    <span class="s0">private static final </span><span class="s1">String IBAN_RE = </span><span class="s3">&quot;^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$&quot;</span><span class="s1">;</span>
+<a name="l116"><span class="ln">116  </span></a>    <span class="s0">private static final </span><span class="s1">String ETH_RE  = </span><span class="s3">&quot;^0x[0-9a-fA-F]{40}$&quot;</span><span class="s1">;</span>
+<a name="l117"><span class="ln">117  </span></a>    <span class="s0">private static final </span><span class="s1">String BTC_RE  = </span><span class="s3">&quot;^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,90}$&quot;</span><span class="s1">;</span>
+<a name="l118"><span class="ln">118  </span></a>
+<a name="l119"><span class="ln">119  </span></a>    <span class="s0">public static </span><span class="s1">PaymentKind detect(String s) {</span>
+<a name="l120"><span class="ln">120  </span></a>        <span class="s0">if </span><span class="s1">(s == </span><span class="s0">null</span><span class="s1">) </span><span class="s0">return </span><span class="s1">PaymentKind.UNKNOWN;</span>
+<a name="l121"><span class="ln">121  </span></a>        <span class="s1">String x = s.replace(</span><span class="s3">&quot; &quot;</span><span class="s1">, </span><span class="s3">&quot;&quot;</span><span class="s1">);</span>
+<a name="l122"><span class="ln">122  </span></a>        <span class="s0">if </span><span class="s1">(x.matches(ETH_RE)) </span><span class="s0">return </span><span class="s1">PaymentKind.ETHEREUM;</span>
+<a name="l123"><span class="ln">123  </span></a>        <span class="s0">if </span><span class="s1">(x.matches(BTC_RE)) </span><span class="s0">return </span><span class="s1">PaymentKind.BITCOIN;</span>
+<a name="l124"><span class="ln">124  </span></a>        <span class="s0">if </span><span class="s1">(x.matches(IBAN_RE)) </span><span class="s0">return </span><span class="s1">PaymentKind.IBAN_EUR;</span>
+<a name="l125"><span class="ln">125  </span></a>        <span class="s0">return </span><span class="s1">PaymentKind.UNKNOWN;</span>
+<a name="l126"><span class="ln">126  </span></a>    <span class="s1">}</span>
+<a name="l127"><span class="ln">127  </span></a><span class="s1">}</span>
+<a name="l128"><span class="ln">128  </span></a>
+<a name="l129"><span class="ln">129  </span></a><span class="s2">/* ========================= QR-Payloads (URIs / EPC) ========================= */</span>
+<a name="l130"><span class="ln">130  </span></a>
+<a name="l131"><span class="ln">131  </span></a><span class="s0">class </span><span class="s1">QrPayloadFactory {</span>
+<a name="l132"><span class="ln">132  </span></a>    <span class="s2">/** BIP-21 bitcoin URI. amountBtc nullable → ohne Amount. */</span>
+<a name="l133"><span class="ln">133  </span></a>    <span class="s0">public static </span><span class="s1">String bitcoinUri(String address, Double amountBtc) {</span>
+<a name="l134"><span class="ln">134  </span></a>        <span class="s0">if </span><span class="s1">(amountBtc == </span><span class="s0">null</span><span class="s1">) </span><span class="s0">return </span><span class="s3">&quot;bitcoin:&quot; </span><span class="s1">+ address;</span>
+<a name="l135"><span class="ln">135  </span></a>        <span class="s1">NumberFormat nf = NumberFormat.getInstance(Locale.US);</span>
+<a name="l136"><span class="ln">136  </span></a>        <span class="s1">nf.setGroupingUsed(</span><span class="s0">false</span><span class="s1">);</span>
+<a name="l137"><span class="ln">137  </span></a>        <span class="s1">nf.setMaximumFractionDigits(</span><span class="s4">8</span><span class="s1">);</span>
+<a name="l138"><span class="ln">138  </span></a>        <span class="s1">String amt = nf.format(amountBtc);</span>
+<a name="l139"><span class="ln">139  </span></a>        <span class="s0">return </span><span class="s3">&quot;bitcoin:&quot; </span><span class="s1">+ address + </span><span class="s3">&quot;?amount=&quot; </span><span class="s1">+ amt;</span>
+<a name="l140"><span class="ln">140  </span></a>    <span class="s1">}</span>
+<a name="l141"><span class="ln">141  </span></a>    <span class="s2">/** EIP-681 light */</span>
+<a name="l142"><span class="ln">142  </span></a>    <span class="s0">public static </span><span class="s1">String ethereumUri(String address) { </span><span class="s0">return </span><span class="s3">&quot;ethereum:&quot; </span><span class="s1">+ address; }</span>
+<a name="l143"><span class="ln">143  </span></a>
+<a name="l144"><span class="ln">144  </span></a>    <span class="s2">/** EPC/SEPA-QR (BCD, minimal). amountEUR nullable → ohne Betrag. */</span>
+<a name="l145"><span class="ln">145  </span></a>    <span class="s0">public static </span><span class="s1">String epcSepaPayload(String name, String iban, Double amountEUR, String remittanceUnstructured) {</span>
+<a name="l146"><span class="ln">146  </span></a>        <span class="s1">String version = </span><span class="s3">&quot;001&quot;</span><span class="s1">;     </span><span class="s2">// EPC069-12</span>
+<a name="l147"><span class="ln">147  </span></a>        <span class="s1">String encoding = </span><span class="s3">&quot;1&quot;</span><span class="s1">;      </span><span class="s2">// UTF-8</span>
+<a name="l148"><span class="ln">148  </span></a>        <span class="s1">String service  = </span><span class="s3">&quot;SCT&quot;</span><span class="s1">;</span>
+<a name="l149"><span class="ln">149  </span></a>        <span class="s1">String bic      = </span><span class="s3">&quot;&quot;</span><span class="s1">;       </span><span class="s2">// optional leer</span>
+<a name="l150"><span class="ln">150  </span></a>        <span class="s1">String amount   = (amountEUR == </span><span class="s0">null</span><span class="s1">) ? </span><span class="s3">&quot;&quot; </span><span class="s1">:</span>
+<a name="l151"><span class="ln">151  </span></a>                <span class="s3">&quot;EUR&quot; </span><span class="s1">+ String.format(Locale.US, </span><span class="s3">&quot;%.2f&quot;</span><span class="s1">, Math.max(</span><span class="s4">0.01</span><span class="s1">, amountEUR));</span>
+<a name="l152"><span class="ln">152  </span></a>        <span class="s1">String rem      = (remittanceUnstructured == </span><span class="s0">null</span><span class="s1">) ? </span><span class="s3">&quot;&quot; </span><span class="s1">: remittanceUnstructured;</span>
+<a name="l153"><span class="ln">153  </span></a>
+<a name="l154"><span class="ln">154  </span></a>        <span class="s0">return </span><span class="s1">String.join(</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">&quot;</span><span class="s1">, Arrays.asList(</span>
+<a name="l155"><span class="ln">155  </span></a>                <span class="s3">&quot;BCD&quot;</span><span class="s1">, version, encoding, service,</span>
+<a name="l156"><span class="ln">156  </span></a>                <span class="s1">bic, name, iban.replace(</span><span class="s3">&quot; &quot;</span><span class="s1">, </span><span class="s3">&quot;&quot;</span><span class="s1">),</span>
+<a name="l157"><span class="ln">157  </span></a>                <span class="s1">amount, </span><span class="s3">&quot;&quot;</span><span class="s1">, rem, </span><span class="s3">&quot;&quot;</span><span class="s1">, </span><span class="s3">&quot;&quot;   </span><span class="s2">// Purpose/Ref optional</span>
+<a name="l158"><span class="ln">158  </span></a>        <span class="s1">));</span>
+<a name="l159"><span class="ln">159  </span></a>    <span class="s1">}</span>
+<a name="l160"><span class="ln">160  </span></a><span class="s1">}</span>
+<a name="l161"><span class="ln">161  </span></a>
+<a name="l162"><span class="ln">162  </span></a><span class="s2">/* ========================= QR-Writer (optional PNG) ========================= */</span>
+<a name="l163"><span class="ln">163  </span></a>
+<a name="l164"><span class="ln">164  </span></a><span class="s0">class </span><span class="s1">QrPngWriter {</span>
+<a name="l165"><span class="ln">165  </span></a>    <span class="s2">/**</span>
+<a name="l166"><span class="ln">166  </span></a>     <span class="s2">* Schreibt PNG, wenn ZXing (com.google.zxing:core) im Classpath ist.</span>
+<a name="l167"><span class="ln">167  </span></a>     <span class="s2">* Gibt true bei Erfolg, sonst false (Fallback: Payload in Konsole).</span>
+<a name="l168"><span class="ln">168  </span></a>     <span class="s2">*/</span>
+<a name="l169"><span class="ln">169  </span></a>    <span class="s1">@SuppressWarnings(</span><span class="s3">&quot;unchecked&quot;</span><span class="s1">)</span>
+<a name="l170"><span class="ln">170  </span></a>    <span class="s0">public static boolean </span><span class="s1">writePngIfZXing(String payload, File out, </span><span class="s0">int </span><span class="s1">size) {</span>
+<a name="l171"><span class="ln">171  </span></a>        <span class="s0">try </span><span class="s1">{</span>
+<a name="l172"><span class="ln">172  </span></a>            <span class="s1">Class&lt;?&gt; bfClass   = Class.forName(</span><span class="s3">&quot;com.google.zxing.BarcodeFormat&quot;</span><span class="s1">);</span>
+<a name="l173"><span class="ln">173  </span></a>            <span class="s1">Object qrFormat    = Enum.valueOf((Class&lt;Enum&gt;) bfClass.asSubclass(Enum.</span><span class="s0">class</span><span class="s1">), </span><span class="s3">&quot;QR_CODE&quot;</span><span class="s1">);</span>
+<a name="l174"><span class="ln">174  </span></a>            <span class="s1">Class&lt;?&gt; writerCls = Class.forName(</span><span class="s3">&quot;com.google.zxing.qrcode.QRCodeWriter&quot;</span><span class="s1">);</span>
+<a name="l175"><span class="ln">175  </span></a>            <span class="s1">Object writer      = writerCls.getDeclaredConstructor().newInstance();</span>
+<a name="l176"><span class="ln">176  </span></a>            <span class="s1">Method encode      = writerCls.getMethod(</span><span class="s3">&quot;encode&quot;</span><span class="s1">, String.</span><span class="s0">class</span><span class="s1">, bfClass, </span><span class="s0">int</span><span class="s1">.</span><span class="s0">class</span><span class="s1">, </span><span class="s0">int</span><span class="s1">.</span><span class="s0">class</span><span class="s1">, Map.</span><span class="s0">class</span><span class="s1">);</span>
+<a name="l177"><span class="ln">177  </span></a>            <span class="s1">Object bitMatrix   = encode.invoke(writer, payload, qrFormat, size, size, </span><span class="s0">null</span><span class="s1">);</span>
+<a name="l178"><span class="ln">178  </span></a>
+<a name="l179"><span class="ln">179  </span></a>            <span class="s1">Class&lt;?&gt; bmClass = Class.forName(</span><span class="s3">&quot;com.google.zxing.common.BitMatrix&quot;</span><span class="s1">);</span>
+<a name="l180"><span class="ln">180  </span></a>            <span class="s0">int </span><span class="s1">w = (</span><span class="s0">int</span><span class="s1">) bmClass.getMethod(</span><span class="s3">&quot;getWidth&quot;</span><span class="s1">).invoke(bitMatrix);</span>
+<a name="l181"><span class="ln">181  </span></a>            <span class="s0">int </span><span class="s1">h = (</span><span class="s0">int</span><span class="s1">) bmClass.getMethod(</span><span class="s3">&quot;getHeight&quot;</span><span class="s1">).invoke(bitMatrix);</span>
+<a name="l182"><span class="ln">182  </span></a>
+<a name="l183"><span class="ln">183  </span></a>            <span class="s1">BufferedImage img = </span><span class="s0">new </span><span class="s1">BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);</span>
+<a name="l184"><span class="ln">184  </span></a>            <span class="s1">Method get = bmClass.getMethod(</span><span class="s3">&quot;get&quot;</span><span class="s1">, </span><span class="s0">int</span><span class="s1">.</span><span class="s0">class</span><span class="s1">, </span><span class="s0">int</span><span class="s1">.</span><span class="s0">class</span><span class="s1">);</span>
+<a name="l185"><span class="ln">185  </span></a>            <span class="s0">for </span><span class="s1">(</span><span class="s0">int </span><span class="s1">y=</span><span class="s4">0</span><span class="s1">; y&lt;h; y++) </span><span class="s0">for </span><span class="s1">(</span><span class="s0">int </span><span class="s1">x=</span><span class="s4">0</span><span class="s1">; x&lt;w; x++) {</span>
+<a name="l186"><span class="ln">186  </span></a>                <span class="s0">boolean </span><span class="s1">on = (</span><span class="s0">boolean</span><span class="s1">) get.invoke(bitMatrix, x, y);</span>
+<a name="l187"><span class="ln">187  </span></a>                <span class="s1">img.setRGB(x, y, on ? </span><span class="s4">0x000000 </span><span class="s1">: </span><span class="s4">0xFFFFFF</span><span class="s1">);</span>
+<a name="l188"><span class="ln">188  </span></a>            <span class="s1">}</span>
+<a name="l189"><span class="ln">189  </span></a>            <span class="s1">ImageIO.write(img, </span><span class="s3">&quot;png&quot;</span><span class="s1">, out);</span>
+<a name="l190"><span class="ln">190  </span></a>            <span class="s1">System.out.println(</span><span class="s3">&quot;[QR] PNG geschrieben → &quot; </span><span class="s1">+ out.getAbsolutePath());</span>
+<a name="l191"><span class="ln">191  </span></a>            <span class="s0">return true</span><span class="s1">;</span>
+<a name="l192"><span class="ln">192  </span></a>        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(ClassNotFoundException e) {</span>
+<a name="l193"><span class="ln">193  </span></a>            <span class="s1">System.out.println(</span><span class="s3">&quot;[QR] ZXing nicht gefunden – PNG-Export übersprungen. Payload unten.&quot;</span><span class="s1">);</span>
+<a name="l194"><span class="ln">194  </span></a>            <span class="s0">return false</span><span class="s1">;</span>
+<a name="l195"><span class="ln">195  </span></a>        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(Throwable t) {</span>
+<a name="l196"><span class="ln">196  </span></a>            <span class="s1">System.out.println(</span><span class="s3">&quot;[QR] Fehler beim PNG-Schreiben: &quot; </span><span class="s1">+ t.getMessage());</span>
+<a name="l197"><span class="ln">197  </span></a>            <span class="s0">return false</span><span class="s1">;</span>
+<a name="l198"><span class="ln">198  </span></a>        <span class="s1">}</span>
+<a name="l199"><span class="ln">199  </span></a>    <span class="s1">}</span>
+<a name="l200"><span class="ln">200  </span></a>
+<a name="l201"><span class="ln">201  </span></a>    <span class="s0">public static void </span><span class="s1">printFallback(String title, String payload) {</span>
+<a name="l202"><span class="ln">202  </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[&quot; </span><span class="s1">+ title + </span><span class="s3">&quot;]</span><span class="s5">\n</span><span class="s3">&quot; </span><span class="s1">+ payload + </span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">&quot;</span><span class="s1">);</span>
+<a name="l203"><span class="ln">203  </span></a>    <span class="s1">}</span>
+<a name="l204"><span class="ln">204  </span></a><span class="s1">}</span>
+<a name="l205"><span class="ln">205  </span></a>
+<a name="l206"><span class="ln">206  </span></a><span class="s2">/* ========================= Maskierte Wallet-„Card-Art“ ========================= */</span>
+<a name="l207"><span class="ln">207  </span></a>
+<a name="l208"><span class="ln">208  </span></a><span class="s0">class </span><span class="s1">MaskedCrypto {</span>
+<a name="l209"><span class="ln">209  </span></a>    <span class="s0">public final </span><span class="s1">String brand;  </span><span class="s2">// &quot;BTC&quot; / &quot;ETH&quot;</span>
+<a name="l210"><span class="ln">210  </span></a>    <span class="s0">public final </span><span class="s1">String last6;  </span><span class="s2">// letzte 6 Zeichen</span>
+<a name="l211"><span class="ln">211  </span></a>    <span class="s0">public final </span><span class="s1">String note;   </span><span class="s2">// z.B. Netzwerk</span>
+<a name="l212"><span class="ln">212  </span></a>    <span class="s1">MaskedCrypto(String brand, String last6, String note){ </span><span class="s0">this</span><span class="s1">.brand=brand; </span><span class="s0">this</span><span class="s1">.last6=last6; </span><span class="s0">this</span><span class="s1">.note=note; }</span>
+<a name="l213"><span class="ln">213  </span></a>    <span class="s0">public </span><span class="s1">String label(){ </span><span class="s0">return </span><span class="s1">brand + </span><span class="s3">&quot; ••••&quot; </span><span class="s1">+ last6 + (note.isEmpty()?</span><span class="s3">&quot;&quot;</span><span class="s1">:</span><span class="s3">&quot; (&quot;</span><span class="s1">+note+</span><span class="s3">&quot;)&quot;</span><span class="s1">); }</span>
+<a name="l214"><span class="ln">214  </span></a><span class="s1">}</span>
+<a name="l215"><span class="ln">215  </span></a>
+<a name="l216"><span class="ln">216  </span></a><span class="s0">class </span><span class="s1">CryptoArtRegistry {</span>
+<a name="l217"><span class="ln">217  </span></a>    <span class="s0">private final </span><span class="s1">List&lt;MaskedCrypto&gt; items = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;();</span>
+<a name="l218"><span class="ln">218  </span></a>    <span class="s0">public </span><span class="s1">CryptoArtRegistry() {</span>
+<a name="l219"><span class="ln">219  </span></a>        <span class="s1">items.add(</span><span class="s0">new </span><span class="s1">MaskedCrypto(</span><span class="s3">&quot;BTC&quot;</span><span class="s1">,</span>
+<a name="l220"><span class="ln">220  </span></a>                <span class="s1">PaymentAddressBook.BTC_ADDRESS.substring(PaymentAddressBook.BTC_ADDRESS.length()-</span><span class="s4">6</span><span class="s1">), </span><span class="s3">&quot;Bitcoin&quot;</span><span class="s1">));</span>
+<a name="l221"><span class="ln">221  </span></a>        <span class="s1">items.add(</span><span class="s0">new </span><span class="s1">MaskedCrypto(</span><span class="s3">&quot;ETH&quot;</span><span class="s1">,</span>
+<a name="l222"><span class="ln">222  </span></a>                <span class="s1">PaymentAddressBook.ETH_ADDRESS.substring(PaymentAddressBook.ETH_ADDRESS.length()-</span><span class="s4">6</span><span class="s1">), </span><span class="s3">&quot;Ethereum&quot;</span><span class="s1">));</span>
+<a name="l223"><span class="ln">223  </span></a>    <span class="s1">}</span>
+<a name="l224"><span class="ln">224  </span></a>    <span class="s0">public void </span><span class="s1">print(){</span>
+<a name="l225"><span class="ln">225  </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[CRYPTO-ART]&quot;</span><span class="s1">);</span>
+<a name="l226"><span class="ln">226  </span></a>        <span class="s0">for </span><span class="s1">(MaskedCrypto c : items) System.out.println(</span><span class="s3">&quot; - &quot; </span><span class="s1">+ c.label());</span>
+<a name="l227"><span class="ln">227  </span></a>        <span class="s1">System.out.println();</span>
+<a name="l228"><span class="ln">228  </span></a>    <span class="s1">}</span>
+<a name="l229"><span class="ln">229  </span></a><span class="s1">}</span>
+<a name="l230"><span class="ln">230  </span></a>
+<a name="l231"><span class="ln">231  </span></a><span class="s2">/* ========================= Spenden/Wallet-Routing (SIM) ========================= */</span>
+<a name="l232"><span class="ln">232  </span></a>
+<a name="l233"><span class="ln">233  </span></a><span class="s0">enum </span><span class="s1">Fund { HUMANITAER, RND_TECH }</span>
+<a name="l234"><span class="ln">234  </span></a>
+<a name="l235"><span class="ln">235  </span></a><span class="s0">interface </span><span class="s1">PaymentGateway { String createCheckout(Fund fund, </span><span class="s0">long </span><span class="s1">amountCents, String currency); }</span>
+<a name="l236"><span class="ln">236  </span></a>
+<a name="l237"><span class="ln">237  </span></a><span class="s0">class </span><span class="s1">PayPalGateway </span><span class="s0">implements </span><span class="s1">PaymentGateway {</span>
+<a name="l238"><span class="ln">238  </span></a>    <span class="s0">public </span><span class="s1">String rndLink=</span><span class="s3">&quot;https://www.paypal.me/SanelCrnkic&quot;</span><span class="s1">;</span>
+<a name="l239"><span class="ln">239  </span></a>    <span class="s0">public </span><span class="s1">String ngoLink=</span><span class="s3">&quot;https://www.paypal.me/SanelCrnkic&quot;</span><span class="s1">;</span>
+<a name="l240"><span class="ln">240  </span></a>    <span class="s0">public </span><span class="s1">String createCheckout(Fund fund,</span><span class="s0">long </span><span class="s1">cents,String cur){</span>
+<a name="l241"><span class="ln">241  </span></a>        <span class="s1">String base = (fund==Fund.RND_TECH? rndLink: ngoLink);</span>
+<a name="l242"><span class="ln">242  </span></a>        <span class="s0">return </span><span class="s1">base + </span><span class="s3">&quot;?amount=&quot; </span><span class="s1">+ String.format(Locale.US,</span><span class="s3">&quot;%.2f&quot;</span><span class="s1">, cents/</span><span class="s4">100.0</span><span class="s1">) + </span><span class="s3">&quot;&amp;currency_code=&quot; </span><span class="s1">+ cur;</span>
+<a name="l243"><span class="ln">243  </span></a>    <span class="s1">}</span>
+<a name="l244"><span class="ln">244  </span></a><span class="s1">}</span>
+<a name="l245"><span class="ln">245  </span></a>
+<a name="l246"><span class="ln">246  </span></a><span class="s0">class </span><span class="s1">BankGateway </span><span class="s0">implements </span><span class="s1">PaymentGateway {</span>
+<a name="l247"><span class="ln">247  </span></a>    <span class="s0">private final </span><span class="s1">String ibanRND = PaymentAddressBook.IBAN_EUR;          </span><span class="s2">// Tech/R&amp;D</span>
+<a name="l248"><span class="ln">248  </span></a>    <span class="s0">private final </span><span class="s1">String ibanNGO = </span><span class="s3">&quot;LT723250010548966150&quot;</span><span class="s1">;                </span><span class="s2">// Humanitär-Topf (Beispiel)</span>
+<a name="l249"><span class="ln">249  </span></a>    <span class="s0">public </span><span class="s1">String createCheckout(Fund fund,</span><span class="s0">long </span><span class="s1">cents,String cur){</span>
+<a name="l250"><span class="ln">250  </span></a>        <span class="s1">String iban   = (fund==Fund.RND_TECH?ibanRND:ibanNGO);</span>
+<a name="l251"><span class="ln">251  </span></a>        <span class="s1">String purpose= </span><span class="s3">&quot;DON-&quot; </span><span class="s1">+ fund + </span><span class="s3">&quot;-&quot; </span><span class="s1">+ UUID.randomUUID().toString().substring(</span><span class="s4">0</span><span class="s1">,</span><span class="s4">8</span><span class="s1">);</span>
+<a name="l252"><span class="ln">252  </span></a>        <span class="s0">return </span><span class="s3">&quot;bank://SEPA?iban=&quot;</span><span class="s1">+iban.replace(</span><span class="s3">&quot; &quot;</span><span class="s1">,</span><span class="s3">&quot;&quot;</span><span class="s1">)+</span><span class="s3">&quot;&amp;amount=&quot;</span><span class="s1">+(cents/</span><span class="s4">100.0</span><span class="s1">)+</span><span class="s3">&quot;&amp;currency=&quot;</span><span class="s1">+cur+</span><span class="s3">&quot;&amp;purpose=&quot;</span><span class="s1">+purpose;</span>
+<a name="l253"><span class="ln">253  </span></a>    <span class="s1">}</span>
+<a name="l254"><span class="ln">254  </span></a><span class="s1">}</span>
+<a name="l255"><span class="ln">255  </span></a>
+<a name="l256"><span class="ln">256  </span></a><span class="s0">class </span><span class="s1">DonationLedger {</span>
+<a name="l257"><span class="ln">257  </span></a>    <span class="s0">private final </span><span class="s1">List&lt;String&gt; rows = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;();</span>
+<a name="l258"><span class="ln">258  </span></a>    <span class="s0">public </span><span class="s1">DonationLedger(){ rows.add(</span><span class="s3">&quot;time,provider,ref,fund,amount,currency&quot;</span><span class="s1">); }</span>
+<a name="l259"><span class="ln">259  </span></a>    <span class="s0">public synchronized void </span><span class="s1">record(String provider, String ref, Fund fund, </span><span class="s0">long </span><span class="s1">cents, String cur){</span>
+<a name="l260"><span class="ln">260  </span></a>        <span class="s1">rows.add(</span><span class="s0">new </span><span class="s1">Date()+</span><span class="s3">&quot;,&quot;</span><span class="s1">+provider+</span><span class="s3">&quot;,&quot;</span><span class="s1">+ref+</span><span class="s3">&quot;,&quot;</span><span class="s1">+fund+</span><span class="s3">&quot;,&quot;</span><span class="s1">+(cents/</span><span class="s4">100.0</span><span class="s1">)+</span><span class="s3">&quot;,&quot;</span><span class="s1">+cur);</span>
+<a name="l261"><span class="ln">261  </span></a>    <span class="s1">}</span>
+<a name="l262"><span class="ln">262  </span></a>    <span class="s0">public </span><span class="s1">String csv(){ </span><span class="s0">return </span><span class="s1">String.join(</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">&quot;</span><span class="s1">, rows); }</span>
+<a name="l263"><span class="ln">263  </span></a><span class="s1">}</span>
+<a name="l264"><span class="ln">264  </span></a>
+<a name="l265"><span class="ln">265  </span></a><span class="s0">class </span><span class="s1">DonationRouter {</span>
+<a name="l266"><span class="ln">266  </span></a>    <span class="s0">private final </span><span class="s1">Wallet tech, aid; </span><span class="s0">private final </span><span class="s1">DonationLedger ledger;</span>
+<a name="l267"><span class="ln">267  </span></a>    <span class="s0">private final </span><span class="s1">PayPalGateway pp = </span><span class="s0">new </span><span class="s1">PayPalGateway(); </span><span class="s0">private final </span><span class="s1">BankGateway bank = </span><span class="s0">new </span><span class="s1">BankGateway();</span>
+<a name="l268"><span class="ln">268  </span></a>    <span class="s0">private final </span><span class="s1">AtomicLong seq = </span><span class="s0">new </span><span class="s1">AtomicLong(</span><span class="s4">1</span><span class="s1">);</span>
+<a name="l269"><span class="ln">269  </span></a>    <span class="s1">DonationRouter(Wallet tech, Wallet aid, DonationLedger ledger){ </span><span class="s0">this</span><span class="s1">.tech=tech; </span><span class="s0">this</span><span class="s1">.aid=aid; </span><span class="s0">this</span><span class="s1">.ledger=ledger; }</span>
+<a name="l270"><span class="ln">270  </span></a>    <span class="s0">public </span><span class="s1">String checkoutLink(String provider, Fund fund, </span><span class="s0">long </span><span class="s1">cents, String cur){</span>
+<a name="l271"><span class="ln">271  </span></a>        <span class="s0">if</span><span class="s1">(</span><span class="s3">&quot;paypal&quot;</span><span class="s1">.equalsIgnoreCase(provider)) </span><span class="s0">return </span><span class="s1">pp.createCheckout(fund,cents,cur);</span>
+<a name="l272"><span class="ln">272  </span></a>        <span class="s0">if</span><span class="s1">(</span><span class="s3">&quot;bank&quot;</span><span class="s1">.equalsIgnoreCase(provider))   </span><span class="s0">return </span><span class="s1">bank.createCheckout(fund,cents,cur);</span>
+<a name="l273"><span class="ln">273  </span></a>        <span class="s0">throw new </span><span class="s1">IllegalArgumentException(</span><span class="s3">&quot;Provider unbekannt: &quot;</span><span class="s1">+provider);</span>
+<a name="l274"><span class="ln">274  </span></a>    <span class="s1">}</span>
+<a name="l275"><span class="ln">275  </span></a>    <span class="s0">public void </span><span class="s1">capture(String provider, Fund fund, </span><span class="s0">long </span><span class="s1">cents, String cur){</span>
+<a name="l276"><span class="ln">276  </span></a>        <span class="s1">String ref = provider.toUpperCase(Locale.ROOT)+</span><span class="s3">&quot;-&quot;</span><span class="s1">+seq.getAndIncrement();</span>
+<a name="l277"><span class="ln">277  </span></a>        <span class="s0">if</span><span class="s1">(fund==Fund.RND_TECH) tech.credit(cents/</span><span class="s4">100.0</span><span class="s1">); </span><span class="s0">else </span><span class="s1">aid.credit(cents/</span><span class="s4">100.0</span><span class="s1">);</span>
+<a name="l278"><span class="ln">278  </span></a>        <span class="s1">ledger.record(provider, ref, fund, cents, cur);</span>
+<a name="l279"><span class="ln">279  </span></a>    <span class="s1">}</span>
+<a name="l280"><span class="ln">280  </span></a><span class="s1">}</span>
+<a name="l281"><span class="ln">281  </span></a>
+<a name="l282"><span class="ln">282  </span></a><span class="s0">class </span><span class="s1">Wallet { </span><span class="s0">public final </span><span class="s1">String label; </span><span class="s0">public final </span><span class="s1">String target; </span><span class="s0">private double </span><span class="s1">credited=</span><span class="s4">0</span><span class="s1">;</span>
+<a name="l283"><span class="ln">283  </span></a>    <span class="s1">Wallet(String label,String target){</span><span class="s0">this</span><span class="s1">.label=label;</span><span class="s0">this</span><span class="s1">.target=target;}</span>
+<a name="l284"><span class="ln">284  </span></a>    <span class="s0">public void </span><span class="s1">credit(</span><span class="s0">double </span><span class="s1">amount){ credited+=amount; System.out.println(</span><span class="s3">&quot;[WALLET] &quot; </span><span class="s1">+ label + </span><span class="s3">&quot; +&quot; </span><span class="s1">+ String.format(Locale.US,</span><span class="s3">&quot;%.2f&quot;</span><span class="s1">,amount) + </span><span class="s3">&quot; -&gt; &quot; </span><span class="s1">+ target); }</span>
+<a name="l285"><span class="ln">285  </span></a>    <span class="s0">public double </span><span class="s1">getTotal(){</span><span class="s0">return </span><span class="s1">credited;}</span>
+<a name="l286"><span class="ln">286  </span></a><span class="s1">}</span>
+<a name="l287"><span class="ln">287  </span></a>
+<a name="l288"><span class="ln">288  </span></a><span class="s2">/* ========================= Schutz/Energie (defensiv) ========================= */</span>
+<a name="l289"><span class="ln">289  </span></a>
+<a name="l290"><span class="ln">290  </span></a><span class="s0">class </span><span class="s1">EnergyManager { </span><span class="s0">private double </span><span class="s1">total=</span><span class="s4">0</span><span class="s1">; </span><span class="s0">public void </span><span class="s1">add(</span><span class="s0">double </span><span class="s1">e){ total+=Math.max(</span><span class="s4">0</span><span class="s1">,e);} </span><span class="s0">public void </span><span class="s1">consume(</span><span class="s0">double </span><span class="s1">e){ total-=Math.max(</span><span class="s4">0</span><span class="s1">,e); </span><span class="s0">if</span><span class="s1">(total&lt;</span><span class="s4">0</span><span class="s1">) total=</span><span class="s4">0</span><span class="s1">;} </span><span class="s0">public double </span><span class="s1">getTotal(){</span><span class="s0">return </span><span class="s1">total;} }</span>
+<a name="l291"><span class="ln">291  </span></a>
+<a name="l292"><span class="ln">292  </span></a><span class="s0">class </span><span class="s1">PlasmaShield {</span>
+<a name="l293"><span class="ln">293  </span></a>    <span class="s0">private final </span><span class="s1">EnergyManager em; PlasmaShield(EnergyManager em){</span><span class="s0">this</span><span class="s1">.em=em;}</span>
+<a name="l294"><span class="ln">294  </span></a>    <span class="s0">public </span><span class="s1">EnergyManager getEnergyManager(){</span><span class="s0">return </span><span class="s1">em;}</span>
+<a name="l295"><span class="ln">295  </span></a>    <span class="s0">public void </span><span class="s1">activate(String cause){ em.consume(</span><span class="s4">100</span><span class="s1">); System.out.println(</span><span class="s3">&quot;Plasma-Schild aktiv (defensiv) – Ursache: &quot;</span><span class="s1">+cause); }</span>
+<a name="l296"><span class="ln">296  </span></a>    <span class="s0">public void </span><span class="s1">boostKurz(</span><span class="s0">double </span><span class="s1">e){ em.consume(Math.min(e*</span><span class="s4">0.1</span><span class="s1">, em.getTotal())); System.out.println(</span><span class="s3">&quot;Plasma-Schild kurz verstärkt&quot;</span><span class="s1">); }</span>
+<a name="l297"><span class="ln">297  </span></a><span class="s1">}</span>
+<a name="l298"><span class="ln">298  </span></a>
+<a name="l299"><span class="ln">299  </span></a><span class="s0">class </span><span class="s1">CoolingUnit { </span><span class="s0">private double </span><span class="s1">t=</span><span class="s4">24.0</span><span class="s1">; </span><span class="s0">public void </span><span class="s1">coolDown(){ t=Math.max(</span><span class="s4">14.0</span><span class="s1">,t-</span><span class="s4">4.0</span><span class="s1">); System.out.println(</span><span class="s3">&quot;Kühlung aktiv T=&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,t));} }</span>
+<a name="l300"><span class="ln">300  </span></a>
+<a name="l301"><span class="ln">301  </span></a><span class="s0">class </span><span class="s1">MagnetfeldKoppler {</span>
+<a name="l302"><span class="ln">302  </span></a>    <span class="s0">private enum </span><span class="s1">Z{GEK,ENT} </span><span class="s0">private </span><span class="s1">Z z=Z.GEK;</span>
+<a name="l303"><span class="ln">303  </span></a>    <span class="s0">public void </span><span class="s1">koppelnAn(){ z=Z.GEK; System.out.println(</span><span class="s3">&quot;Magnetfeld gekoppelt&quot;</span><span class="s1">); }</span>
+<a name="l304"><span class="ln">304  </span></a>    <span class="s0">public void </span><span class="s1">entkoppelnFeld(){ z=Z.ENT; System.out.println(</span><span class="s3">&quot;Magnetfeld entkoppelt&quot;</span><span class="s1">); }</span>
+<a name="l305"><span class="ln">305  </span></a>    <span class="s0">public boolean </span><span class="s1">istGekoppelt(){ </span><span class="s0">return </span><span class="s1">z==Z.GEK; }</span>
+<a name="l306"><span class="ln">306  </span></a><span class="s1">}</span>
+<a name="l307"><span class="ln">307  </span></a>
+<a name="l308"><span class="ln">308  </span></a><span class="s0">class </span><span class="s1">MagnetfeldVerstaerker {</span>
+<a name="l309"><span class="ln">309  </span></a>    <span class="s0">private boolean </span><span class="s1">aktiv; </span><span class="s0">private double </span><span class="s1">feld=</span><span class="s4">0</span><span class="s1">; </span><span class="s0">private final </span><span class="s1">EnergyManager em; </span><span class="s0">private final </span><span class="s1">MagnetfeldKoppler k;</span>
+<a name="l310"><span class="ln">310  </span></a>    <span class="s1">MagnetfeldVerstaerker(EnergyManager em, MagnetfeldKoppler k){ </span><span class="s0">this</span><span class="s1">.em=em; </span><span class="s0">this</span><span class="s1">.k=k; }</span>
+<a name="l311"><span class="ln">311  </span></a>    <span class="s0">public void </span><span class="s1">aktiviere(){ aktiv=</span><span class="s0">true</span><span class="s1">; System.out.println(</span><span class="s3">&quot;MagnetfeldVerstärker aktiv&quot;</span><span class="s1">); }</span>
+<a name="l312"><span class="ln">312  </span></a>    <span class="s0">public void </span><span class="s1">erzeugeFeld(){ </span><span class="s0">if</span><span class="s1">(!aktiv) </span><span class="s0">return</span><span class="s1">; feld=</span><span class="s4">110</span><span class="s1">; System.out.println(</span><span class="s3">&quot;Magnetfeld aufgebaut Stärke=&quot;</span><span class="s1">+feld); }</span>
+<a name="l313"><span class="ln">313  </span></a>    <span class="s0">public void </span><span class="s1">verstaerkeMitEnergie(</span><span class="s0">double </span><span class="s1">e){ </span><span class="s0">if</span><span class="s1">(!aktiv||!k.istGekoppelt()) </span><span class="s0">return</span><span class="s1">; feld+=e*</span><span class="s4">0.22</span><span class="s1">; em.consume(Math.min(e*</span><span class="s4">0.05</span><span class="s1">, em.getTotal())); System.out.println(</span><span class="s3">&quot;Magnetfeld verstärkt Stärke=&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,feld)); }</span>
+<a name="l314"><span class="ln">314  </span></a>    <span class="s0">public boolean </span><span class="s1">neutralisiereGravitation(</span><span class="s0">double </span><span class="s1">e){ </span><span class="s0">boolean </span><span class="s1">ok=aktiv&amp;&amp;e&gt;</span><span class="s4">520</span><span class="s1">; System.out.println(ok?</span><span class="s3">&quot;Gravitation neutralisiert (sim)&quot;</span><span class="s1">:</span><span class="s3">&quot;Gravitation nicht neutralisiert&quot;</span><span class="s1">); </span><span class="s0">return </span><span class="s1">ok; }</span>
+<a name="l315"><span class="ln">315  </span></a><span class="s1">}</span>
+<a name="l316"><span class="ln">316  </span></a>
+<a name="l317"><span class="ln">317  </span></a><span class="s0">class </span><span class="s1">SwarmController {</span>
+<a name="l318"><span class="ln">318  </span></a>    <span class="s0">private final int </span><span class="s1">size; </span><span class="s0">private double </span><span class="s1">totalE=</span><span class="s4">0</span><span class="s1">;</span>
+<a name="l319"><span class="ln">319  </span></a>    <span class="s1">SwarmController(</span><span class="s0">int </span><span class="s1">bots){ size=bots; }</span>
+<a name="l320"><span class="ln">320  </span></a>    <span class="s0">public void </span><span class="s1">deploySwarm(){ System.out.println(</span><span class="s3">&quot;Deployment &quot;</span><span class="s1">+size+</span><span class="s3">&quot; Service-Mikrobots&quot;</span><span class="s1">); }</span>
+<a name="l321"><span class="ln">321  </span></a>    <span class="s0">public void </span><span class="s1">energieVerteilung(){ totalE+=</span><span class="s4">140</span><span class="s1">; }</span>
+<a name="l322"><span class="ln">322  </span></a>    <span class="s0">public void </span><span class="s1">absorbiereCO2(){ totalE+=</span><span class="s4">90</span><span class="s1">; System.out.println(</span><span class="s3">&quot;Schwarm CO2-Absorption durchgeführt&quot;</span><span class="s1">); }</span>
+<a name="l323"><span class="ln">323  </span></a>    <span class="s0">public double </span><span class="s1">getTotalEnergy(){ </span><span class="s0">return </span><span class="s1">totalE; }</span>
+<a name="l324"><span class="ln">324  </span></a>    <span class="s0">public void </span><span class="s1">ensurePlatform(){ System.out.println(</span><span class="s3">&quot;Schwarm formt tragende Plattform (Stabilisierung)&quot;</span><span class="s1">); }</span>
+<a name="l325"><span class="ln">325  </span></a><span class="s1">}</span>
+<a name="l326"><span class="ln">326  </span></a>
+<a name="l327"><span class="ln">327  </span></a><span class="s0">class </span><span class="s1">SatellitenResonanzVerbindung { </span><span class="s0">public void </span><span class="s1">aktiviere(){ System.out.println(</span><span class="s3">&quot;Satelliten-Resonanz aktiv&quot;</span><span class="s1">); } </span><span class="s0">public void </span><span class="s1">rueckspeisenOrbit(</span><span class="s0">double </span><span class="s1">e){ System.out.println(</span><span class="s3">&quot;Orbit-Rückspeisung +&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,e)); } }</span>
+<a name="l328"><span class="ln">328  </span></a>
+<a name="l329"><span class="ln">329  </span></a><span class="s0">class </span><span class="s1">SiloManager { </span><span class="s0">private double </span><span class="s1">cloud=</span><span class="s4">0</span><span class="s1">,wallet=</span><span class="s4">0</span><span class="s1">; </span><span class="s0">public void </span><span class="s1">speichereInCloud(</span><span class="s0">double </span><span class="s1">e){ cloud+=e; System.out.println(</span><span class="s3">&quot;Cloud-Silo +&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,e));} </span><span class="s0">public void </span><span class="s1">speichereInWallet(</span><span class="s0">double </span><span class="s1">e){ wallet+=e; System.out.println(</span><span class="s3">&quot;Wallet-Silo +&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,e));} }</span>
+<a name="l330"><span class="ln">330  </span></a>
+<a name="l331"><span class="ln">331  </span></a><span class="s0">class </span><span class="s1">WalletRueckspeisung { </span><span class="s0">private final </span><span class="s1">String iban; </span><span class="s0">private double </span><span class="s1">saldo=</span><span class="s4">0</span><span class="s1">; WalletRueckspeisung(String iban){ </span><span class="s0">this</span><span class="s1">.iban=iban; }</span>
+<a name="l332"><span class="ln">332  </span></a>    <span class="s0">public void </span><span class="s1">gutschreiben(</span><span class="s0">double </span><span class="s1">e){ saldo+=e; System.out.println(</span><span class="s3">&quot;Rückspeisung an IBAN &quot;</span><span class="s1">+iban+</span><span class="s3">&quot; +&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,e)); } </span><span class="s0">public double </span><span class="s1">saldo(){</span><span class="s0">return </span><span class="s1">saldo;}</span>
+<a name="l333"><span class="ln">333  </span></a><span class="s1">}</span>
+<a name="l334"><span class="ln">334  </span></a>
+<a name="l335"><span class="ln">335  </span></a><span class="s0">class </span><span class="s1">PaymentProcessor {</span>
+<a name="l336"><span class="ln">336  </span></a>    <span class="s0">private final </span><span class="s1">WalletRueckspeisung wallet; </span><span class="s0">private final </span><span class="s1">SatellitenResonanzVerbindung orbit; </span><span class="s0">private final </span><span class="s1">SiloManager silos;</span>
+<a name="l337"><span class="ln">337  </span></a>    <span class="s1">PaymentProcessor(WalletRueckspeisung w, SatellitenResonanzVerbindung o, SiloManager s){ wallet=w; orbit=o; silos=s; }</span>
+<a name="l338"><span class="ln">338  </span></a>    <span class="s0">public void </span><span class="s1">routeSoldEnergy(</span><span class="s0">double </span><span class="s1">sold, </span><span class="s0">double </span><span class="s1">opCost){</span>
+<a name="l339"><span class="ln">339  </span></a>        <span class="s0">double </span><span class="s1">rest=Math.max(</span><span class="s4">0</span><span class="s1">, sold-opCost);</span>
+<a name="l340"><span class="ln">340  </span></a>        <span class="s0">if</span><span class="s1">(rest&lt;=</span><span class="s4">0</span><span class="s1">){ System.out.println(</span><span class="s3">&quot;Kein Rest nach Kosten für Rückspeisung&quot;</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l341"><span class="ln">341  </span></a>        <span class="s0">double </span><span class="s1">toWallet=rest*</span><span class="s4">0.6</span><span class="s1">, toOrbit=rest*</span><span class="s4">0.4</span><span class="s1">;</span>
+<a name="l342"><span class="ln">342  </span></a>        <span class="s1">wallet.gutschreiben(toWallet); orbit.rueckspeisenOrbit(toOrbit);</span>
+<a name="l343"><span class="ln">343  </span></a>        <span class="s1">silos.speichereInWallet(toWallet); silos.speichereInCloud(toOrbit);</span>
+<a name="l344"><span class="ln">344  </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;Restenergie verteilt Wallet &quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,toWallet)+</span><span class="s3">&quot; Orbit &quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,toOrbit));</span>
+<a name="l345"><span class="ln">345  </span></a>    <span class="s1">}</span>
+<a name="l346"><span class="ln">346  </span></a><span class="s1">}</span>
+<a name="l347"><span class="ln">347  </span></a>
+<a name="l348"><span class="ln">348  </span></a><span class="s2">/* ========================= Geo/Notfälle/Koordination ========================= */</span>
+<a name="l349"><span class="ln">349  </span></a>
+<a name="l350"><span class="ln">350  </span></a><span class="s0">class </span><span class="s1">HumanitarianMode { </span><span class="s0">private boolean </span><span class="s1">on=</span><span class="s0">true</span><span class="s1">; </span><span class="s0">public boolean </span><span class="s1">isEnabled(){</span><span class="s0">return </span><span class="s1">on;} </span><span class="s0">public void </span><span class="s1">setEnabled(</span><span class="s0">boolean </span><span class="s1">v){on=v;} }</span>
+<a name="l351"><span class="ln">351  </span></a>
+<a name="l352"><span class="ln">352  </span></a><span class="s0">class </span><span class="s1">EmergencyOverride {</span>
+<a name="l353"><span class="ln">353  </span></a>    <span class="s0">private </span><span class="s1">Date until = </span><span class="s0">new </span><span class="s1">Date(</span><span class="s4">0</span><span class="s1">);</span>
+<a name="l354"><span class="ln">354  </span></a>    <span class="s0">public void </span><span class="s1">openWindowMinutes(</span><span class="s0">int </span><span class="s1">minutes){</span>
+<a name="l355"><span class="ln">355  </span></a>        <span class="s1">until = </span><span class="s0">new </span><span class="s1">Date(System.currentTimeMillis() + minutes*</span><span class="s4">60L</span><span class="s1">*</span><span class="s4">1000L</span><span class="s1">);</span>
+<a name="l356"><span class="ln">356  </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[EMERGENCY] Override &quot;</span><span class="s1">+minutes+</span><span class="s3">&quot; min geöffnet (bis &quot;</span><span class="s1">+until+</span><span class="s3">&quot;)&quot;</span><span class="s1">);</span>
+<a name="l357"><span class="ln">357  </span></a>    <span class="s1">}</span>
+<a name="l358"><span class="ln">358  </span></a>    <span class="s0">public boolean </span><span class="s1">isActive(){ </span><span class="s0">return new </span><span class="s1">Date().before(until); }</span>
+<a name="l359"><span class="ln">359  </span></a><span class="s1">}</span>
+<a name="l360"><span class="ln">360  </span></a>
+<a name="l361"><span class="ln">361  </span></a><span class="s0">class </span><span class="s1">GeoPoint { </span><span class="s0">public final double </span><span class="s1">lat, lon; GeoPoint(</span><span class="s0">double </span><span class="s1">lat,</span><span class="s0">double </span><span class="s1">lon){</span><span class="s0">this</span><span class="s1">.lat=lat;</span><span class="s0">this</span><span class="s1">.lon=lon;} }</span>
+<a name="l362"><span class="ln">362  </span></a>
+<a name="l363"><span class="ln">363  </span></a><span class="s0">class </span><span class="s1">Geofence {</span>
+<a name="l364"><span class="ln">364  </span></a>    <span class="s0">public final </span><span class="s1">String id; </span><span class="s0">public final boolean </span><span class="s1">conflict; </span><span class="s0">public final </span><span class="s1">List&lt;GeoPoint&gt; poly = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;();</span>
+<a name="l365"><span class="ln">365  </span></a>    <span class="s1">Geofence(String id, </span><span class="s0">boolean </span><span class="s1">conflict, GeoPoint...pts){ </span><span class="s0">this</span><span class="s1">.id=id; </span><span class="s0">this</span><span class="s1">.conflict=conflict; poly.addAll(Arrays.asList(pts)); }</span>
+<a name="l366"><span class="ln">366  </span></a>    <span class="s0">public boolean </span><span class="s1">contains(GeoPoint p){</span>
+<a name="l367"><span class="ln">367  </span></a>        <span class="s0">boolean </span><span class="s1">c=</span><span class="s0">false</span><span class="s1">; </span><span class="s0">for</span><span class="s1">(</span><span class="s0">int </span><span class="s1">i=</span><span class="s4">0</span><span class="s1">,j=poly.size()-</span><span class="s4">1</span><span class="s1">;i&lt;poly.size();j=i++){</span>
+<a name="l368"><span class="ln">368  </span></a>            <span class="s1">GeoPoint a=poly.get(i), b=poly.get(j);</span>
+<a name="l369"><span class="ln">369  </span></a>            <span class="s0">if</span><span class="s1">(((a.lon&gt;p.lon)!=(b.lon&gt;p.lon)) &amp;&amp; (p.lat &lt; (b.lat-a.lat)*(p.lon-a.lon)/(b.lon-a.lon)+a.lat)) c=!c;</span>
+<a name="l370"><span class="ln">370  </span></a>        <span class="s1">} </span><span class="s0">return </span><span class="s1">c;</span>
+<a name="l371"><span class="ln">371  </span></a>    <span class="s1">}</span>
+<a name="l372"><span class="ln">372  </span></a><span class="s1">}</span>
+<a name="l373"><span class="ln">373  </span></a>
+<a name="l374"><span class="ln">374  </span></a><span class="s0">class </span><span class="s1">GeoPolicyGuard {</span>
+<a name="l375"><span class="ln">375  </span></a>    <span class="s0">private final </span><span class="s1">List&lt;Geofence&gt; fences = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;();</span>
+<a name="l376"><span class="ln">376  </span></a>    <span class="s0">public void </span><span class="s1">addConflictZone(Geofence g){ fences.add(g); }</span>
+<a name="l377"><span class="ln">377  </span></a>    <span class="s0">public boolean </span><span class="s1">isInConflictZone(GeoPoint p){ </span><span class="s0">for</span><span class="s1">(Geofence g: fences) </span><span class="s0">if</span><span class="s1">(g.conflict &amp;&amp; g.contains(p)) </span><span class="s0">return true</span><span class="s1">; </span><span class="s0">return false</span><span class="s1">; }</span>
+<a name="l378"><span class="ln">378  </span></a><span class="s1">}</span>
+<a name="l379"><span class="ln">379  </span></a>
+<a name="l380"><span class="ln">380  </span></a><span class="s0">enum </span><span class="s1">IncidentType { ROCKET, LASER, ACCIDENT, DISASTER }</span>
+<a name="l381"><span class="ln">381  </span></a>
+<a name="l382"><span class="ln">382  </span></a><span class="s0">class </span><span class="s1">Incident { </span><span class="s0">public final </span><span class="s1">IncidentType type; </span><span class="s0">public final </span><span class="s1">GeoPoint location; </span><span class="s0">public </span><span class="s1">Incident(IncidentType t,GeoPoint p){type=t;location=p;} }</span>
+<a name="l383"><span class="ln">383  </span></a>
+<a name="l384"><span class="ln">384  </span></a><span class="s0">class </span><span class="s1">AidKitManager { </span><span class="s0">public void </span><span class="s1">dropBasicAid(GeoPoint p){ System.out.println(</span><span class="s3">&quot;AidKit abgeworfen @ &quot;</span><span class="s1">+p.lat+</span><span class="s3">&quot;,&quot;</span><span class="s1">+p.lon); } }</span>
+<a name="l385"><span class="ln">385  </span></a>
+<a name="l386"><span class="ln">386  </span></a><span class="s0">class </span><span class="s1">SocialEquityEngine { </span><span class="s2">/* Platzhalter für künftige Tarife – hier rein humanitär gratis */ </span><span class="s1">}</span>
+<a name="l387"><span class="ln">387  </span></a>
+<a name="l388"><span class="ln">388  </span></a><span class="s0">class </span><span class="s1">HumanitarianCoordinator {</span>
+<a name="l389"><span class="ln">389  </span></a>    <span class="s0">private final </span><span class="s1">HumanitarianMode mode; </span><span class="s0">private final </span><span class="s1">GeoPolicyGuard guard;</span>
+<a name="l390"><span class="ln">390  </span></a>    <span class="s0">private final </span><span class="s1">AidKitManager kits; </span><span class="s0">private final </span><span class="s1">DonationRouter donations;</span>
+<a name="l391"><span class="ln">391  </span></a>    <span class="s1">HumanitarianCoordinator(HumanitarianMode m, GeoPolicyGuard g, AidKitManager k, DonationRouter d){</span>
+<a name="l392"><span class="ln">392  </span></a>        <span class="s0">this</span><span class="s1">.mode=m; </span><span class="s0">this</span><span class="s1">.guard=g; </span><span class="s0">this</span><span class="s1">.kits=k; </span><span class="s0">this</span><span class="s1">.donations=d;</span>
+<a name="l393"><span class="ln">393  </span></a>    <span class="s1">}</span>
+<a name="l394"><span class="ln">394  </span></a>    <span class="s0">public void </span><span class="s1">respond(Incident inc, PlasmaShield shield, CoolingUnit cooling, SocialEquityEngine equity){</span>
+<a name="l395"><span class="ln">395  </span></a>        <span class="s1">System.out.println(</span><span class="s3">&quot;[HUM] Incident: &quot;</span><span class="s1">+inc.type+</span><span class="s3">&quot; @(&quot;</span><span class="s1">+inc.location.lat+</span><span class="s3">&quot;,&quot;</span><span class="s1">+inc.location.lon+</span><span class="s3">&quot;)&quot;</span><span class="s1">);</span>
+<a name="l396"><span class="ln">396  </span></a>        <span class="s0">boolean </span><span class="s1">conflict = guard.isInConflictZone(inc.location);</span>
+<a name="l397"><span class="ln">397  </span></a>        <span class="s0">if </span><span class="s1">(conflict) System.out.println(</span><span class="s3">&quot;[HUM] Konfliktzone erkannt → rein humanitärer Modus, kein Handel.&quot;</span><span class="s1">);</span>
+<a name="l398"><span class="ln">398  </span></a>        <span class="s1">shield.activate(</span><span class="s3">&quot;Humanitäre Hilfe: &quot;</span><span class="s1">+inc.type);</span>
+<a name="l399"><span class="ln">399  </span></a>        <span class="s1">cooling.coolDown();</span>
+<a name="l400"><span class="ln">400  </span></a>        <span class="s1">kits.dropBasicAid(inc.location);</span>
+<a name="l401"><span class="ln">401  </span></a>        <span class="s1">donations.capture(</span><span class="s3">&quot;bank&quot;</span><span class="s1">, Fund.HUMANITAER, </span><span class="s4">1_00</span><span class="s1">, </span><span class="s3">&quot;EUR&quot;</span><span class="s1">); </span><span class="s2">// symbolische Buchung</span>
+<a name="l402"><span class="ln">402  </span></a>    <span class="s1">}</span>
+<a name="l403"><span class="ln">403  </span></a><span class="s1">}</span>
+<a name="l404"><span class="ln">404  </span></a>
+<a name="l405"><span class="ln">405  </span></a><span class="s2">/* ========================= Kleines Payment-Addon API ========================= */</span>
+<a name="l406"><span class="ln">406  </span></a>
+<a name="l407"><span class="ln">407  </span></a><span class="s0">class </span><span class="s1">PaymentsAddon {</span>
+<a name="l408"><span class="ln">408  </span></a>    <span class="s0">public static void </span><span class="s1">generateAllQrs(Double btcAmount, Double sepaAmountEUR, String sepaNote) {</span>
+<a name="l409"><span class="ln">409  </span></a>        <span class="s2">// BTC</span>
+<a name="l410"><span class="ln">410  </span></a>        <span class="s1">String btc = QrPayloadFactory.bitcoinUri(PaymentAddressBook.BTC_ADDRESS, btcAmount);</span>
+<a name="l411"><span class="ln">411  </span></a>        <span class="s0">if </span><span class="s1">(!QrPngWriter.writePngIfZXing(btc, </span><span class="s0">new </span><span class="s1">File(</span><span class="s3">&quot;qr_btc.png&quot;</span><span class="s1">), </span><span class="s4">640</span><span class="s1">)) {</span>
+<a name="l412"><span class="ln">412  </span></a>            <span class="s1">QrPngWriter.printFallback(</span><span class="s3">&quot;BTC (BIP-21)&quot;</span><span class="s1">, btc);</span>
+<a name="l413"><span class="ln">413  </span></a>        <span class="s1">}</span>
+<a name="l414"><span class="ln">414  </span></a>        <span class="s2">// ETH</span>
+<a name="l415"><span class="ln">415  </span></a>        <span class="s1">String eth = QrPayloadFactory.ethereumUri(PaymentAddressBook.ETH_ADDRESS);</span>
+<a name="l416"><span class="ln">416  </span></a>        <span class="s0">if </span><span class="s1">(!QrPngWriter.writePngIfZXing(eth, </span><span class="s0">new </span><span class="s1">File(</span><span class="s3">&quot;qr_eth.png&quot;</span><span class="s1">), </span><span class="s4">640</span><span class="s1">)) {</span>
+<a name="l417"><span class="ln">417  </span></a>            <span class="s1">QrPngWriter.printFallback(</span><span class="s3">&quot;ETH (ethereum:)&quot;</span><span class="s1">, eth);</span>
+<a name="l418"><span class="ln">418  </span></a>        <span class="s1">}</span>
+<a name="l419"><span class="ln">419  </span></a>        <span class="s2">// SEPA/EPC</span>
+<a name="l420"><span class="ln">420  </span></a>        <span class="s1">String epc = QrPayloadFactory.epcSepaPayload(</span>
+<a name="l421"><span class="ln">421  </span></a>                <span class="s1">PaymentAddressBook.RECEIVER_NAME,</span>
+<a name="l422"><span class="ln">422  </span></a>                <span class="s1">PaymentAddressBook.IBAN_EUR,</span>
+<a name="l423"><span class="ln">423  </span></a>                <span class="s1">sepaAmountEUR,</span>
+<a name="l424"><span class="ln">424  </span></a>                <span class="s1">(sepaNote == </span><span class="s0">null </span><span class="s1">? </span><span class="s3">&quot;Donation&quot; </span><span class="s1">: sepaNote)</span>
+<a name="l425"><span class="ln">425  </span></a>        <span class="s1">);</span>
+<a name="l426"><span class="ln">426  </span></a>        <span class="s0">if </span><span class="s1">(!QrPngWriter.writePngIfZXing(epc, </span><span class="s0">new </span><span class="s1">File(</span><span class="s3">&quot;qr_sepa.png&quot;</span><span class="s1">), </span><span class="s4">640</span><span class="s1">)) {</span>
+<a name="l427"><span class="ln">427  </span></a>            <span class="s1">QrPngWriter.printFallback(</span><span class="s3">&quot;SEPA/EPC (BCD)&quot;</span><span class="s1">, epc);</span>
+<a name="l428"><span class="ln">428  </span></a>        <span class="s1">}</span>
+<a name="l429"><span class="ln">429  </span></a>    <span class="s1">}</span>
+<a name="l430"><span class="ln">430  </span></a><span class="s1">}</span></pre>
+</body>
+</html>

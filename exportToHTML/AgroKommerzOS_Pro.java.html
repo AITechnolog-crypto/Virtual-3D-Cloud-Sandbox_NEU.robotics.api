@@ -1,0 +1,509 @@
+<html>
+<head>
+<title>AgroKommerzOS_Pro.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #808080;}
+.s3 { color: #96be78;}
+.s4 { color: #36beff;}
+.s5 { color: #17bbdd;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+AgroKommerzOS_Pro.java</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">import </span><span class="s1">java.util.*;</span>
+<a name="l2"><span class="ln">2    </span></a><span class="s0">import </span><span class="s1">java.util.concurrent.*;</span>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">java.util.concurrent.atomic.AtomicLong;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">import </span><span class="s1">java.util.logging.*;</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">import </span><span class="s1">java.nio.file.*;</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">import </span><span class="s1">java.nio.charset.StandardCharsets;</span>
+<a name="l7"><span class="ln">7    </span></a><span class="s0">import </span><span class="s1">java.security.MessageDigest;</span>
+<a name="l8"><span class="ln">8    </span></a><span class="s0">import </span><span class="s1">java.text.NumberFormat;</span>
+<a name="l9"><span class="ln">9    </span></a><span class="s0">import </span><span class="s1">java.time.*;</span>
+<a name="l10"><span class="ln">10   </span></a>
+<a name="l11"><span class="ln">11   </span></a><span class="s2">/* 
+<a name="l12"><span class="ln">12   </span></a> * AgroKommerzOS_Pro (offline, single file) 
+<a name="l13"><span class="ln">13   </span></a> * ---------------------------------------- 
+<a name="l14"><span class="ln">14   </span></a> * - Biometrie (SHA-256 Hash) als Start-Gate – keine echte DNA 
+<a name="l15"><span class="ln">15   </span></a> * - Sensoren → KI → Bewässerung/Energie/Handel/Finanzen 
+<a name="l16"><span class="ln">16   </span></a> * - Social Equity + AidRouter (Wasserhilfe) 
+<a name="l17"><span class="ln">17   </span></a> * - Mehrere Wallets (Owner/Ops/Aid) + RevenueRouter (konfigurierbar) 
+<a name="l18"><span class="ln">18   </span></a> * - Feature-Flags: cloud / marketing / kopplung / walletbackfeed 
+<a name="l19"><span class="ln">19   </span></a> * - Compliance/Regulator: Whitelist, Preis-Floor, Tageslimit, KYC-Gate 
+<a name="l20"><span class="ln">20   </span></a> * - Entrepreneur-Verkaufsloop (Dauerschleife) zusätzlich zum Sensor-Tick 
+<a name="l21"><span class="ln">21   </span></a> * - Snapshots: ./data/state.json (inkl. Flags/Wallets/Compliance/Contacts) 
+<a name="l22"><span class="ln">22   </span></a> * 
+<a name="l23"><span class="ln">23   </span></a> * Build: 
+<a name="l24"><span class="ln">24   </span></a> *   javac AgroKommerzOS_Pro.java 
+<a name="l25"><span class="ln">25   </span></a> * 
+<a name="l26"><span class="ln">26   </span></a> * Biometrie einmalig: 
+<a name="l27"><span class="ln">27   </span></a> *   java AgroKommerzOS_Pro enroll &lt;DEIN_SHA256_HEX&gt; 
+<a name="l28"><span class="ln">28   </span></a> * 
+<a name="l29"><span class="ln">29   </span></a> * Start (Beispiel, komplett offline): 
+<a name="l30"><span class="ln">30   </span></a> *   java AgroKommerzOS_Pro run &lt;DEIN_SHA256_HEX&gt; zone=FARMLAND units=10000000000 \ 
+<a name="l31"><span class="ln">31   </span></a> *     flags=cloud:off,marketing:on,kopplung:on,walletback:on \ 
+<a name="l32"><span class="ln">32   </span></a> *     split=owner:0.6,ops:0.35,aid:0.05 phone=&quot;+43-000-0000000&quot; 
+<a name="l33"><span class="ln">33   </span></a> */</span>
+<a name="l34"><span class="ln">34   </span></a><span class="s0">public class </span><span class="s1">AgroKommerzOS_Pro {</span>
+<a name="l35"><span class="ln">35   </span></a>
+<a name="l36"><span class="ln">36   </span></a>    <span class="s2">/* ================= ENV/UTIL ================= */</span>
+<a name="l37"><span class="ln">37   </span></a>    <span class="s0">static final </span><span class="s1">Logger LOG = Logger.getLogger(</span><span class="s3">&quot;AgroKommerzOS_Pro&quot;</span><span class="s1">);</span>
+<a name="l38"><span class="ln">38   </span></a>    <span class="s0">static final </span><span class="s1">Path   DATA = Paths.get(</span><span class="s3">&quot;data&quot;</span><span class="s1">);</span>
+<a name="l39"><span class="ln">39   </span></a>    <span class="s0">static void </span><span class="s1">ensure(){ </span><span class="s0">try</span><span class="s1">{ Files.createDirectories(DATA);}</span><span class="s0">catch</span><span class="s1">(Exception e){ </span><span class="s0">throw new </span><span class="s1">RuntimeException(e); } }</span>
+<a name="l40"><span class="ln">40   </span></a>    <span class="s0">static </span><span class="s1">String now(){ </span><span class="s0">return </span><span class="s1">LocalDateTime.now().toString(); }</span>
+<a name="l41"><span class="ln">41   </span></a>    <span class="s0">static </span><span class="s1">String round(</span><span class="s0">double </span><span class="s1">v){ </span><span class="s0">return </span><span class="s1">String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">, v); }</span>
+<a name="l42"><span class="ln">42   </span></a>    <span class="s0">static </span><span class="s1">String money(</span><span class="s0">double </span><span class="s1">v){ </span><span class="s0">return </span><span class="s1">String.format(Locale.US,</span><span class="s3">&quot;%.2f&quot;</span><span class="s1">, v); }</span>
+<a name="l43"><span class="ln">43   </span></a>
+<a name="l44"><span class="ln">44   </span></a>    <span class="s0">static </span><span class="s1">Map&lt;String,String&gt; parseArgs(String[] a){ Map&lt;String,String&gt; m=</span><span class="s0">new </span><span class="s1">HashMap&lt;&gt;();</span>
+<a name="l45"><span class="ln">45   </span></a>        <span class="s0">for</span><span class="s1">(String s:a){ </span><span class="s0">if</span><span class="s1">(s.contains(</span><span class="s3">&quot;=&quot;</span><span class="s1">)){ </span><span class="s0">int </span><span class="s1">i=s.indexOf(</span><span class="s3">'='</span><span class="s1">); m.put(s.substring(</span><span class="s4">0</span><span class="s1">,i), s.substring(i+</span><span class="s4">1</span><span class="s1">)); } </span><span class="s0">else </span><span class="s1">{ m.put(</span><span class="s3">&quot;mode&quot;</span><span class="s1">, s);} } </span><span class="s0">return </span><span class="s1">m; }</span>
+<a name="l46"><span class="ln">46   </span></a>    <span class="s0">static long </span><span class="s1">parseLong(String s,</span><span class="s0">long </span><span class="s1">d){ </span><span class="s0">try</span><span class="s1">{ </span><span class="s0">return </span><span class="s1">Long.parseLong(s);}</span><span class="s0">catch</span><span class="s1">(Exception e){ </span><span class="s0">return </span><span class="s1">d;} }</span>
+<a name="l47"><span class="ln">47   </span></a>    <span class="s0">static double </span><span class="s1">clamp(</span><span class="s0">double </span><span class="s1">v,</span><span class="s0">double </span><span class="s1">lo,</span><span class="s0">double </span><span class="s1">hi){ </span><span class="s0">return </span><span class="s1">Math.max(lo, Math.min(hi,v)); }</span>
+<a name="l48"><span class="ln">48   </span></a>
+<a name="l49"><span class="ln">49   </span></a>    <span class="s0">static </span><span class="s1">String sha256(String s){</span>
+<a name="l50"><span class="ln">50   </span></a>        <span class="s0">try</span><span class="s1">{</span>
+<a name="l51"><span class="ln">51   </span></a>            <span class="s1">MessageDigest md = MessageDigest.getInstance(</span><span class="s3">&quot;SHA-256&quot;</span><span class="s1">);</span>
+<a name="l52"><span class="ln">52   </span></a>            <span class="s0">byte</span><span class="s1">[] d = md.digest(s.getBytes(StandardCharsets.UTF_8));</span>
+<a name="l53"><span class="ln">53   </span></a>            <span class="s1">StringBuilder sb=</span><span class="s0">new </span><span class="s1">StringBuilder(); </span><span class="s0">for</span><span class="s1">(</span><span class="s0">byte </span><span class="s1">b:d) sb.append(String.format(</span><span class="s3">&quot;%02x&quot;</span><span class="s1">, b));</span>
+<a name="l54"><span class="ln">54   </span></a>            <span class="s0">return </span><span class="s1">sb.toString();</span>
+<a name="l55"><span class="ln">55   </span></a>        <span class="s1">}</span><span class="s0">catch</span><span class="s1">(Exception e){ </span><span class="s0">throw new </span><span class="s1">RuntimeException(e); }</span>
+<a name="l56"><span class="ln">56   </span></a>    <span class="s1">}</span>
+<a name="l57"><span class="ln">57   </span></a>
+<a name="l58"><span class="ln">58   </span></a>    <span class="s2">/* ================= Feature-Flags/Config ================= */</span>
+<a name="l59"><span class="ln">59   </span></a>    <span class="s0">static final class </span><span class="s1">FeatureFlags {</span>
+<a name="l60"><span class="ln">60   </span></a>        <span class="s0">boolean </span><span class="s1">cloud=</span><span class="s0">false</span><span class="s1">;</span>
+<a name="l61"><span class="ln">61   </span></a>        <span class="s0">boolean </span><span class="s1">marketing=</span><span class="s0">true</span><span class="s1">;</span>
+<a name="l62"><span class="ln">62   </span></a>        <span class="s0">boolean </span><span class="s1">kopplung=</span><span class="s0">true</span><span class="s1">;        </span><span class="s2">// „Technik-Kopplung“ (Effizienz-Boosts)</span>
+<a name="l63"><span class="ln">63   </span></a>        <span class="s0">boolean </span><span class="s1">walletBackfeed=</span><span class="s0">true</span><span class="s1">;  </span><span class="s2">// Reinvest/Backfeed aktiv</span>
+<a name="l64"><span class="ln">64   </span></a>        <span class="s0">static </span><span class="s1">FeatureFlags from(String s){</span>
+<a name="l65"><span class="ln">65   </span></a>            <span class="s1">FeatureFlags f=</span><span class="s0">new </span><span class="s1">FeatureFlags(); </span><span class="s0">if</span><span class="s1">(s==</span><span class="s0">null</span><span class="s1">||s.isBlank()) </span><span class="s0">return </span><span class="s1">f;</span>
+<a name="l66"><span class="ln">66   </span></a>            <span class="s0">for</span><span class="s1">(String p:s.split(</span><span class="s3">&quot;,&quot;</span><span class="s1">)){</span>
+<a name="l67"><span class="ln">67   </span></a>                <span class="s1">String[] kv=p.split(</span><span class="s3">&quot;:&quot;</span><span class="s1">); </span><span class="s0">if</span><span class="s1">(kv.length!=</span><span class="s4">2</span><span class="s1">) </span><span class="s0">continue</span><span class="s1">;</span>
+<a name="l68"><span class="ln">68   </span></a>                <span class="s1">String k=kv[</span><span class="s4">0</span><span class="s1">].trim().toLowerCase(), v=kv[</span><span class="s4">1</span><span class="s1">].trim().toLowerCase();</span>
+<a name="l69"><span class="ln">69   </span></a>                <span class="s0">boolean </span><span class="s1">on = v.equals(</span><span class="s3">&quot;on&quot;</span><span class="s1">)||v.equals(</span><span class="s3">&quot;true&quot;</span><span class="s1">)||v.equals(</span><span class="s3">&quot;1&quot;</span><span class="s1">);</span>
+<a name="l70"><span class="ln">70   </span></a>                <span class="s0">switch</span><span class="s1">(k){</span>
+<a name="l71"><span class="ln">71   </span></a>                    <span class="s0">case </span><span class="s3">&quot;cloud&quot; </span><span class="s1">-&gt; f.cloud=on;</span>
+<a name="l72"><span class="ln">72   </span></a>                    <span class="s0">case </span><span class="s3">&quot;marketing&quot; </span><span class="s1">-&gt; f.marketing=on;</span>
+<a name="l73"><span class="ln">73   </span></a>                    <span class="s0">case </span><span class="s3">&quot;kopplung&quot; </span><span class="s1">-&gt; f.kopplung=on;</span>
+<a name="l74"><span class="ln">74   </span></a>                    <span class="s0">case </span><span class="s3">&quot;walletback&quot; </span><span class="s1">-&gt; f.walletBackfeed=on;</span>
+<a name="l75"><span class="ln">75   </span></a>                <span class="s1">}</span>
+<a name="l76"><span class="ln">76   </span></a>            <span class="s1">}</span>
+<a name="l77"><span class="ln">77   </span></a>            <span class="s0">return </span><span class="s1">f;</span>
+<a name="l78"><span class="ln">78   </span></a>        <span class="s1">}</span>
+<a name="l79"><span class="ln">79   </span></a>    <span class="s1">}</span>
+<a name="l80"><span class="ln">80   </span></a>
+<a name="l81"><span class="ln">81   </span></a>    <span class="s2">/* ================= Biometrie ================= */</span>
+<a name="l82"><span class="ln">82   </span></a>    <span class="s0">static final class </span><span class="s1">Biometry {</span>
+<a name="l83"><span class="ln">83   </span></a>        <span class="s0">final </span><span class="s1">Path store = DATA.resolve(</span><span class="s3">&quot;biometry.marker&quot;</span><span class="s1">);</span>
+<a name="l84"><span class="ln">84   </span></a>        <span class="s1">String enrolled=</span><span class="s3">&quot;&quot;</span><span class="s1">;</span>
+<a name="l85"><span class="ln">85   </span></a>        <span class="s0">void </span><span class="s1">enroll(String hex){</span>
+<a name="l86"><span class="ln">86   </span></a>            <span class="s0">if</span><span class="s1">(!hex.matches(</span><span class="s3">&quot;^[0-9a-f]{64}$&quot;</span><span class="s1">)) </span><span class="s0">throw new </span><span class="s1">IllegalArgumentException(</span><span class="s3">&quot;Marker muss 64 hex sein&quot;</span><span class="s1">);</span>
+<a name="l87"><span class="ln">87   </span></a>            <span class="s1">enrolled=hex; </span><span class="s0">try</span><span class="s1">{ Files.writeString(store, enrolled, StandardCharsets.UTF_8);}</span><span class="s0">catch</span><span class="s1">(Exception ignored){}</span>
+<a name="l88"><span class="ln">88   </span></a>        <span class="s1">}</span>
+<a name="l89"><span class="ln">89   </span></a>        <span class="s0">boolean </span><span class="s1">load(){ </span><span class="s0">try</span><span class="s1">{ </span><span class="s0">if</span><span class="s1">(Files.exists(store)) enrolled=Files.readString(store, StandardCharsets.UTF_8).trim(); }</span><span class="s0">catch</span><span class="s1">(Exception ignored){} </span><span class="s0">return </span><span class="s1">!enrolled.isBlank(); }</span>
+<a name="l90"><span class="ln">90   </span></a>        <span class="s0">boolean </span><span class="s1">check(String provided){ </span><span class="s0">return </span><span class="s1">provided!=</span><span class="s0">null </span><span class="s1">&amp;&amp; provided.equalsIgnoreCase(enrolled); }</span>
+<a name="l91"><span class="ln">91   </span></a>    <span class="s1">}</span>
+<a name="l92"><span class="ln">92   </span></a>
+<a name="l93"><span class="ln">93   </span></a>    <span class="s2">/* ================= Contacts / BusinessCard ================= */</span>
+<a name="l94"><span class="ln">94   </span></a>    <span class="s0">static final class </span><span class="s1">Contacts {</span>
+<a name="l95"><span class="ln">95   </span></a>        <span class="s1">String ownerName = </span><span class="s3">&quot;Sanel Crnkic&quot;</span><span class="s1">;</span>
+<a name="l96"><span class="ln">96   </span></a>        <span class="s1">String email     = </span><span class="s3">&quot;gpt99@iCloud.com&quot;</span><span class="s1">;</span>
+<a name="l97"><span class="ln">97   </span></a>        <span class="s1">String phone     = </span><span class="s3">&quot;&quot;</span><span class="s1">;              </span><span class="s2">// via CLI phone=&quot;...&quot;</span>
+<a name="l98"><span class="ln">98   </span></a>        <span class="s0">boolean </span><span class="s1">wantsCallback=</span><span class="s0">false</span><span class="s1">;        </span><span class="s2">// „persönliches Gespräch anbieten“ → Flag</span>
+<a name="l99"><span class="ln">99   </span></a>        <span class="s1">Path file(){ </span><span class="s0">return </span><span class="s1">DATA.resolve(</span><span class="s3">&quot;contacts.json&quot;</span><span class="s1">); }</span>
+<a name="l100"><span class="ln">100  </span></a>        <span class="s0">void </span><span class="s1">setPhone(String p){ </span><span class="s0">if</span><span class="s1">(p!=</span><span class="s0">null</span><span class="s1">) phone=p; }</span>
+<a name="l101"><span class="ln">101  </span></a>        <span class="s0">void </span><span class="s1">requestCallback(){ wantsCallback=</span><span class="s0">true</span><span class="s1">; }</span>
+<a name="l102"><span class="ln">102  </span></a>        <span class="s0">void </span><span class="s1">snapshot(){</span>
+<a name="l103"><span class="ln">103  </span></a>            <span class="s1">String js = </span><span class="s3">&quot;{</span><span class="s5">\&quot;</span><span class="s3">owner</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+ownerName+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,</span><span class="s5">\&quot;</span><span class="s3">email</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+email+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,</span><span class="s5">\&quot;</span><span class="s3">phone</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+phone+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,</span><span class="s5">\&quot;</span><span class="s3">callback</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+wantsCallback+</span><span class="s3">&quot;}&quot;</span><span class="s1">;</span>
+<a name="l104"><span class="ln">104  </span></a>            <span class="s0">try</span><span class="s1">{ Files.writeString(file(), js, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);}</span><span class="s0">catch</span><span class="s1">(Exception ignored){}</span>
+<a name="l105"><span class="ln">105  </span></a>        <span class="s1">}</span>
+<a name="l106"><span class="ln">106  </span></a>    <span class="s1">}</span>
+<a name="l107"><span class="ln">107  </span></a>
+<a name="l108"><span class="ln">108  </span></a>    <span class="s2">/* ================= Wallets &amp; Router ================= */</span>
+<a name="l109"><span class="ln">109  </span></a>    <span class="s0">static final class </span><span class="s1">Wallet {</span>
+<a name="l110"><span class="ln">110  </span></a>        <span class="s0">final </span><span class="s1">String name; </span><span class="s0">double </span><span class="s1">balance=</span><span class="s4">0</span><span class="s1">;</span>
+<a name="l111"><span class="ln">111  </span></a>        <span class="s0">final </span><span class="s1">Path ledger;</span>
+<a name="l112"><span class="ln">112  </span></a>        <span class="s1">Wallet(String name){ </span><span class="s0">this</span><span class="s1">.name=name; </span><span class="s0">this</span><span class="s1">.ledger = DATA.resolve(</span><span class="s3">&quot;wallet_&quot;</span><span class="s1">+name.toLowerCase()+</span><span class="s3">&quot;.csv&quot;</span><span class="s1">); }</span>
+<a name="l113"><span class="ln">113  </span></a>        <span class="s0">synchronized void </span><span class="s1">credit(</span><span class="s0">double </span><span class="s1">a,String why){ </span><span class="s0">if</span><span class="s1">(a&gt;</span><span class="s4">0</span><span class="s1">){ balance+=a; log(</span><span class="s3">&quot;CREDIT&quot;</span><span class="s1">,a,why);} }</span>
+<a name="l114"><span class="ln">114  </span></a>        <span class="s0">synchronized boolean </span><span class="s1">debit(</span><span class="s0">double </span><span class="s1">a,String why){ </span><span class="s0">if</span><span class="s1">(a&lt;=</span><span class="s4">0</span><span class="s1">||a&gt;balance) </span><span class="s0">return false</span><span class="s1">; balance-=a; log(</span><span class="s3">&quot;DEBIT&quot;</span><span class="s1">,a,why); </span><span class="s0">return true</span><span class="s1">; }</span>
+<a name="l115"><span class="ln">115  </span></a>        <span class="s0">synchronized double </span><span class="s1">bal(){ </span><span class="s0">return </span><span class="s1">balance; }</span>
+<a name="l116"><span class="ln">116  </span></a>        <span class="s0">void </span><span class="s1">log(String t,</span><span class="s0">double </span><span class="s1">a,String m){</span>
+<a name="l117"><span class="ln">117  </span></a>            <span class="s0">try</span><span class="s1">{ Files.writeString(ledger, now()+</span><span class="s3">&quot;;&quot;</span><span class="s1">+t+</span><span class="s3">&quot;;&quot;</span><span class="s1">+money(a)+</span><span class="s3">&quot;;&quot;</span><span class="s1">+m+</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">&quot;</span><span class="s1">, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);}</span><span class="s0">catch</span><span class="s1">(Exception ignored){}</span>
+<a name="l118"><span class="ln">118  </span></a>        <span class="s1">}</span>
+<a name="l119"><span class="ln">119  </span></a>    <span class="s1">}</span>
+<a name="l120"><span class="ln">120  </span></a>    <span class="s0">static final class </span><span class="s1">RevenueRouter {</span>
+<a name="l121"><span class="ln">121  </span></a>        <span class="s0">final </span><span class="s1">Wallet owner, ops, aid;</span>
+<a name="l122"><span class="ln">122  </span></a>        <span class="s0">double </span><span class="s1">pctOwner=</span><span class="s4">0.60</span><span class="s1">, pctOps=</span><span class="s4">0.35</span><span class="s1">, pctAid=</span><span class="s4">0.05</span><span class="s1">;</span>
+<a name="l123"><span class="ln">123  </span></a>        <span class="s1">RevenueRouter(Wallet owner, Wallet ops, Wallet aid){ </span><span class="s0">this</span><span class="s1">.owner=owner; </span><span class="s0">this</span><span class="s1">.ops=ops; </span><span class="s0">this</span><span class="s1">.aid=aid; }</span>
+<a name="l124"><span class="ln">124  </span></a>        <span class="s0">void </span><span class="s1">setSplits(String s){ </span><span class="s0">if</span><span class="s1">(s==</span><span class="s0">null</span><span class="s1">) </span><span class="s0">return</span><span class="s1">;</span>
+<a name="l125"><span class="ln">125  </span></a>            <span class="s0">for</span><span class="s1">(String p:s.split(</span><span class="s3">&quot;,&quot;</span><span class="s1">)){</span>
+<a name="l126"><span class="ln">126  </span></a>                <span class="s1">String[] kv=p.split(</span><span class="s3">&quot;:&quot;</span><span class="s1">); </span><span class="s0">if</span><span class="s1">(kv.length!=</span><span class="s4">2</span><span class="s1">) </span><span class="s0">continue</span><span class="s1">;</span>
+<a name="l127"><span class="ln">127  </span></a>                <span class="s1">String k=kv[</span><span class="s4">0</span><span class="s1">].trim().toLowerCase(); </span><span class="s0">double </span><span class="s1">v=Double.parseDouble(kv[</span><span class="s4">1</span><span class="s1">]);</span>
+<a name="l128"><span class="ln">128  </span></a>                <span class="s0">if</span><span class="s1">(</span><span class="s3">&quot;owner&quot;</span><span class="s1">.equals(k)) pctOwner=v; </span><span class="s0">else if</span><span class="s1">(</span><span class="s3">&quot;ops&quot;</span><span class="s1">.equals(k)) pctOps=v; </span><span class="s0">else if</span><span class="s1">(</span><span class="s3">&quot;aid&quot;</span><span class="s1">.equals(k)) pctAid=v;</span>
+<a name="l129"><span class="ln">129  </span></a>            <span class="s1">}</span>
+<a name="l130"><span class="ln">130  </span></a>            <span class="s0">double </span><span class="s1">sum=pctOwner+pctOps+pctAid; </span><span class="s0">if</span><span class="s1">(Math.abs(sum-</span><span class="s4">1.0</span><span class="s1">)&gt;</span><span class="s4">1e-6</span><span class="s1">){ </span><span class="s2">// normalisieren</span>
+<a name="l131"><span class="ln">131  </span></a>                <span class="s1">pctOwner/=sum; pctOps/=sum; pctAid/=sum;</span>
+<a name="l132"><span class="ln">132  </span></a>            <span class="s1">}</span>
+<a name="l133"><span class="ln">133  </span></a>        <span class="s1">}</span>
+<a name="l134"><span class="ln">134  </span></a>        <span class="s0">void </span><span class="s1">route(</span><span class="s0">double </span><span class="s1">revenue){</span>
+<a name="l135"><span class="ln">135  </span></a>            <span class="s0">if</span><span class="s1">(revenue&lt;=</span><span class="s4">0</span><span class="s1">) </span><span class="s0">return</span><span class="s1">;</span>
+<a name="l136"><span class="ln">136  </span></a>            <span class="s1">owner.credit(revenue*pctOwner, </span><span class="s3">&quot;revenue split&quot;</span><span class="s1">);</span>
+<a name="l137"><span class="ln">137  </span></a>            <span class="s1">ops.credit(revenue*pctOps, </span><span class="s3">&quot;revenue split&quot;</span><span class="s1">);</span>
+<a name="l138"><span class="ln">138  </span></a>            <span class="s1">aid.credit(revenue*pctAid, </span><span class="s3">&quot;revenue split&quot;</span><span class="s1">);</span>
+<a name="l139"><span class="ln">139  </span></a>        <span class="s1">}</span>
+<a name="l140"><span class="ln">140  </span></a>    <span class="s1">}</span>
+<a name="l141"><span class="ln">141  </span></a>
+<a name="l142"><span class="ln">142  </span></a>    <span class="s2">/* ================= Silos / Store ================= */</span>
+<a name="l143"><span class="ln">143  </span></a>    <span class="s0">static final class </span><span class="s1">Silos {</span>
+<a name="l144"><span class="ln">144  </span></a>        <span class="s0">double </span><span class="s1">waterLiters=</span><span class="s4">2500</span><span class="s1">, energyUnits=</span><span class="s4">1200</span><span class="s1">, grainKg=</span><span class="s4">800</span><span class="s1">;</span>
+<a name="l145"><span class="ln">145  </span></a>        <span class="s0">synchronized void </span><span class="s1">addWater(</span><span class="s0">double </span><span class="s1">l){ waterLiters+=Math.max(</span><span class="s4">0</span><span class="s1">,l); }</span>
+<a name="l146"><span class="ln">146  </span></a>        <span class="s0">synchronized boolean </span><span class="s1">useWater(</span><span class="s0">double </span><span class="s1">l){ </span><span class="s0">if</span><span class="s1">(l&lt;=</span><span class="s4">0</span><span class="s1">||l&gt;waterLiters) </span><span class="s0">return false</span><span class="s1">; waterLiters-=l; </span><span class="s0">return true</span><span class="s1">; }</span>
+<a name="l147"><span class="ln">147  </span></a>        <span class="s0">synchronized void </span><span class="s1">addEnergy(</span><span class="s0">double </span><span class="s1">e){ energyUnits+=Math.max(</span><span class="s4">0</span><span class="s1">,e); }</span>
+<a name="l148"><span class="ln">148  </span></a>        <span class="s0">synchronized boolean </span><span class="s1">useEnergy(</span><span class="s0">double </span><span class="s1">e){ </span><span class="s0">if</span><span class="s1">(e&lt;=</span><span class="s4">0</span><span class="s1">||e&gt;energyUnits) </span><span class="s0">return false</span><span class="s1">; energyUnits-=e; </span><span class="s0">return true</span><span class="s1">; }</span>
+<a name="l149"><span class="ln">149  </span></a>        <span class="s0">synchronized void </span><span class="s1">addGrain(</span><span class="s0">double </span><span class="s1">kg){ grainKg+=Math.max(</span><span class="s4">0</span><span class="s1">,kg); }</span>
+<a name="l150"><span class="ln">150  </span></a>        <span class="s0">synchronized boolean </span><span class="s1">useGrain(</span><span class="s0">double </span><span class="s1">kg){ </span><span class="s0">if</span><span class="s1">(kg&lt;=</span><span class="s4">0</span><span class="s1">||kg&gt;grainKg) </span><span class="s0">return false</span><span class="s1">; grainKg-=kg; </span><span class="s0">return true</span><span class="s1">; }</span>
+<a name="l151"><span class="ln">151  </span></a>    <span class="s1">}</span>
+<a name="l152"><span class="ln">152  </span></a>
+<a name="l153"><span class="ln">153  </span></a>    <span class="s2">/* ================= Sensorik/Plans ================= */</span>
+<a name="l154"><span class="ln">154  </span></a>    <span class="s0">static final class </span><span class="s1">SensorData { </span><span class="s0">final </span><span class="s1">String type; </span><span class="s0">final double </span><span class="s1">value; SensorData(String t,</span><span class="s0">double </span><span class="s1">v){type=t;value=v;} }</span>
+<a name="l155"><span class="ln">155  </span></a>    <span class="s0">static final class </span><span class="s1">Sensors {</span>
+<a name="l156"><span class="ln">156  </span></a>        <span class="s0">final </span><span class="s1">Random r = </span><span class="s0">new </span><span class="s1">Random();</span>
+<a name="l157"><span class="ln">157  </span></a>        <span class="s1">List&lt;SensorData&gt; read(){</span>
+<a name="l158"><span class="ln">158  </span></a>            <span class="s0">return </span><span class="s1">List.of(</span>
+<a name="l159"><span class="ln">159  </span></a>                <span class="s0">new </span><span class="s1">SensorData(</span><span class="s3">&quot;soil_moisture&quot;</span><span class="s1">,   </span><span class="s4">30 </span><span class="s1">+ r.nextGaussian()*</span><span class="s4">7</span><span class="s1">),</span>
+<a name="l160"><span class="ln">160  </span></a>                <span class="s0">new </span><span class="s1">SensorData(</span><span class="s3">&quot;air_temp_c&quot;</span><span class="s1">,      </span><span class="s4">20 </span><span class="s1">+ r.nextGaussian()*</span><span class="s4">5</span><span class="s1">),</span>
+<a name="l161"><span class="ln">161  </span></a>                <span class="s0">new </span><span class="s1">SensorData(</span><span class="s3">&quot;sun_intensity&quot;</span><span class="s1">,   clamp(</span><span class="s4">0.7 </span><span class="s1">+ r.nextGaussian()*</span><span class="s4">0.15</span><span class="s1">, </span><span class="s4">0</span><span class="s1">, </span><span class="s4">1</span><span class="s1">)),</span>
+<a name="l162"><span class="ln">162  </span></a>                <span class="s0">new </span><span class="s1">SensorData(</span><span class="s3">&quot;cistern_liters&quot;</span><span class="s1">,  </span><span class="s4">2000 </span><span class="s1">+ r.nextGaussian()*</span><span class="s4">400</span><span class="s1">),</span>
+<a name="l163"><span class="ln">163  </span></a>                <span class="s0">new </span><span class="s1">SensorData(</span><span class="s3">&quot;rain_forecast_mm&quot;</span><span class="s1">,Math.max(</span><span class="s4">0</span><span class="s1">, r.nextGaussian()*</span><span class="s4">3 </span><span class="s1">+ </span><span class="s4">1</span><span class="s1">))</span>
+<a name="l164"><span class="ln">164  </span></a>            <span class="s1">);</span>
+<a name="l165"><span class="ln">165  </span></a>        <span class="s1">}</span>
+<a name="l166"><span class="ln">166  </span></a>    <span class="s1">}</span>
+<a name="l167"><span class="ln">167  </span></a>    <span class="s0">static final class </span><span class="s1">IrrigationPlan { </span><span class="s0">final double </span><span class="s1">liters; </span><span class="s0">final </span><span class="s1">String field; IrrigationPlan(String f,</span><span class="s0">double </span><span class="s1">l){field=f;liters=l;} }</span>
+<a name="l168"><span class="ln">168  </span></a>    <span class="s0">static final class </span><span class="s1">EnergyPlan { </span><span class="s0">final double </span><span class="s1">demandUnits; </span><span class="s0">final boolean </span><span class="s1">turboSolar; EnergyPlan(</span><span class="s0">double </span><span class="s1">d,</span><span class="s0">boolean </span><span class="s1">t){demandUnits=d;turboSolar=t;} }</span>
+<a name="l169"><span class="ln">169  </span></a>    <span class="s0">static final class </span><span class="s1">TradePlan { </span><span class="s0">final boolean </span><span class="s1">sellGrain; </span><span class="s0">final double </span><span class="s1">kg; </span><span class="s0">final </span><span class="s1">String product; TradePlan(</span><span class="s0">boolean </span><span class="s1">s,</span><span class="s0">double </span><span class="s1">k,String p){sellGrain=s;kg=k;product=p;} }</span>
+<a name="l170"><span class="ln">170  </span></a>    <span class="s0">static final class </span><span class="s1">FinancePlan { </span><span class="s0">final double </span><span class="s1">pumpCost, maintenance; FinancePlan(</span><span class="s0">double </span><span class="s1">p,</span><span class="s0">double </span><span class="s1">m){pumpCost=p;maintenance=m;} }</span>
+<a name="l171"><span class="ln">171  </span></a>    <span class="s0">static final class </span><span class="s1">Decision {</span>
+<a name="l172"><span class="ln">172  </span></a>        <span class="s0">final </span><span class="s1">IrrigationPlan irrigation; </span><span class="s0">final </span><span class="s1">EnergyPlan energy; </span><span class="s0">final </span><span class="s1">TradePlan trade; </span><span class="s0">final </span><span class="s1">FinancePlan finance;</span>
+<a name="l173"><span class="ln">173  </span></a>        <span class="s1">Decision(IrrigationPlan i, EnergyPlan e, TradePlan t, FinancePlan f){ irrigation=i; energy=e; trade=t; finance=f; }</span>
+<a name="l174"><span class="ln">174  </span></a>    <span class="s1">}</span>
+<a name="l175"><span class="ln">175  </span></a>
+<a name="l176"><span class="ln">176  </span></a>    <span class="s2">/* ================= Social Equity / Aid ================= */</span>
+<a name="l177"><span class="ln">177  </span></a>    <span class="s0">enum </span><span class="s1">EquityTier { NEEDY, STANDARD, WEALTHY }</span>
+<a name="l178"><span class="ln">178  </span></a>    <span class="s0">static final class </span><span class="s1">SocialEquity {</span>
+<a name="l179"><span class="ln">179  </span></a>        <span class="s1">EquityTier classify(</span><span class="s0">double </span><span class="s1">incomeIdx){ </span><span class="s0">if</span><span class="s1">(incomeIdx&gt;=</span><span class="s4">0.75</span><span class="s1">) </span><span class="s0">return </span><span class="s1">EquityTier.WEALTHY; </span><span class="s0">if</span><span class="s1">(incomeIdx&lt;=</span><span class="s4">0.35</span><span class="s1">) </span><span class="s0">return </span><span class="s1">EquityTier.NEEDY; </span><span class="s0">return </span><span class="s1">EquityTier.STANDARD; }</span>
+<a name="l180"><span class="ln">180  </span></a>        <span class="s0">double </span><span class="s1">buyerPrice(EquityTier t,</span><span class="s0">double </span><span class="s1">p){ </span><span class="s0">return switch</span><span class="s1">(t){ </span><span class="s0">case </span><span class="s1">NEEDY-&gt;Math.max(</span><span class="s4">0</span><span class="s1">,p*</span><span class="s4">0.9</span><span class="s1">); </span><span class="s0">case </span><span class="s1">WEALTHY-&gt;p*</span><span class="s4">1.2</span><span class="s1">; </span><span class="s0">default</span><span class="s1">-&gt;p; }; }</span>
+<a name="l181"><span class="ln">181  </span></a>        <span class="s0">double </span><span class="s1">waterAidPrice(EquityTier t,</span><span class="s0">double </span><span class="s1">liters){ </span><span class="s0">double </span><span class="s1">base=liters*</span><span class="s4">0.02</span><span class="s1">; </span><span class="s0">return </span><span class="s1">(t==EquityTier.NEEDY)?</span><span class="s4">0 </span><span class="s1">: (t==EquityTier.WEALTHY? base*</span><span class="s4">1.6 </span><span class="s1">: base); }</span>
+<a name="l182"><span class="ln">182  </span></a>    <span class="s1">}</span>
+<a name="l183"><span class="ln">183  </span></a>    <span class="s0">static final class </span><span class="s1">AidRouter {</span>
+<a name="l184"><span class="ln">184  </span></a>        <span class="s0">final </span><span class="s1">SocialEquity eq; </span><span class="s0">final </span><span class="s1">Silos silos; </span><span class="s0">final </span><span class="s1">Wallet opsWallet;</span>
+<a name="l185"><span class="ln">185  </span></a>        <span class="s1">AidRouter(SocialEquity e, Silos s, Wallet ops){ </span><span class="s0">this</span><span class="s1">.eq=e; </span><span class="s0">this</span><span class="s1">.silos=s; </span><span class="s0">this</span><span class="s1">.opsWallet=ops; }</span>
+<a name="l186"><span class="ln">186  </span></a>        <span class="s0">void </span><span class="s1">waterAid(</span><span class="s0">double </span><span class="s1">liters, </span><span class="s0">double </span><span class="s1">incomeIdx){</span>
+<a name="l187"><span class="ln">187  </span></a>            <span class="s1">EquityTier t = eq.classify(incomeIdx);</span>
+<a name="l188"><span class="ln">188  </span></a>            <span class="s0">if</span><span class="s1">(silos.waterLiters &lt; liters){ LOG.info(</span><span class="s3">&quot;[AID] nicht genug Wasser&quot;</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l189"><span class="ln">189  </span></a>            <span class="s1">silos.waterLiters -= liters;</span>
+<a name="l190"><span class="ln">190  </span></a>            <span class="s0">double </span><span class="s1">charge = eq.waterAidPrice(t, liters);</span>
+<a name="l191"><span class="ln">191  </span></a>            <span class="s0">if</span><span class="s1">(charge&gt;</span><span class="s4">0</span><span class="s1">) opsWallet.credit(charge, </span><span class="s3">&quot;AID water &quot;</span><span class="s1">+(</span><span class="s0">int</span><span class="s1">)liters+</span><span class="s3">&quot;L tier=&quot;</span><span class="s1">+t);</span>
+<a name="l192"><span class="ln">192  </span></a>            <span class="s1">LOG.info(</span><span class="s3">&quot;[AID] &quot;</span><span class="s1">+(</span><span class="s0">int</span><span class="s1">)liters+</span><span class="s3">&quot;L geliefert tier=&quot;</span><span class="s1">+t+</span><span class="s3">&quot; charge=&quot;</span><span class="s1">+money(charge));</span>
+<a name="l193"><span class="ln">193  </span></a>        <span class="s1">}</span>
+<a name="l194"><span class="ln">194  </span></a>    <span class="s1">}</span>
+<a name="l195"><span class="ln">195  </span></a>
+<a name="l196"><span class="ln">196  </span></a>    <span class="s2">/* ================= Compliance / Regulator ================= */</span>
+<a name="l197"><span class="ln">197  </span></a>    <span class="s0">static final class </span><span class="s1">Regulator {</span>
+<a name="l198"><span class="ln">198  </span></a>        <span class="s0">final </span><span class="s1">Set&lt;String&gt; whitelist = </span><span class="s0">new </span><span class="s1">HashSet&lt;&gt;(List.of(</span><span class="s3">&quot;Wheat&quot;</span><span class="s1">,</span><span class="s3">&quot;Corn&quot;</span><span class="s1">));</span>
+<a name="l199"><span class="ln">199  </span></a>        <span class="s0">final </span><span class="s1">Map&lt;String,Double&gt; floor = Map.of(</span><span class="s3">&quot;Wheat&quot;</span><span class="s1">, </span><span class="s4">0.55</span><span class="s1">, </span><span class="s3">&quot;Corn&quot;</span><span class="s1">, </span><span class="s4">0.40</span><span class="s1">);</span>
+<a name="l200"><span class="ln">200  </span></a>        <span class="s0">final int </span><span class="s1">dailyKgLimit = </span><span class="s4">4000</span><span class="s1">;</span>
+<a name="l201"><span class="ln">201  </span></a>        <span class="s0">final </span><span class="s1">AtomicLong soldTodayKg = </span><span class="s0">new </span><span class="s1">AtomicLong(</span><span class="s4">0</span><span class="s1">);</span>
+<a name="l202"><span class="ln">202  </span></a>        <span class="s1">LocalDate day = LocalDate.now();</span>
+<a name="l203"><span class="ln">203  </span></a>        <span class="s0">boolean </span><span class="s1">kycOk(</span><span class="s0">double </span><span class="s1">reputation){ </span><span class="s0">return </span><span class="s1">reputation&gt;=</span><span class="s4">0.5</span><span class="s1">; }</span>
+<a name="l204"><span class="ln">204  </span></a>        <span class="s0">synchronized boolean </span><span class="s1">allowSell(String product, </span><span class="s0">int </span><span class="s1">kg, </span><span class="s0">double </span><span class="s1">price){</span>
+<a name="l205"><span class="ln">205  </span></a>            <span class="s0">if</span><span class="s1">(!LocalDate.now().equals(day)){ day=LocalDate.now(); soldTodayKg.set(</span><span class="s4">0</span><span class="s1">); }</span>
+<a name="l206"><span class="ln">206  </span></a>            <span class="s0">if</span><span class="s1">(!whitelist.contains(product)) </span><span class="s0">return false</span><span class="s1">;</span>
+<a name="l207"><span class="ln">207  </span></a>            <span class="s0">if</span><span class="s1">(price &lt; floor.getOrDefault(product, </span><span class="s4">0.0</span><span class="s1">)) </span><span class="s0">return false</span><span class="s1">;</span>
+<a name="l208"><span class="ln">208  </span></a>            <span class="s0">if</span><span class="s1">(soldTodayKg.get()+kg &gt; dailyKgLimit) </span><span class="s0">return false</span><span class="s1">;</span>
+<a name="l209"><span class="ln">209  </span></a>            <span class="s1">soldTodayKg.addAndGet(kg); </span><span class="s0">return true</span><span class="s1">;</span>
+<a name="l210"><span class="ln">210  </span></a>        <span class="s1">}</span>
+<a name="l211"><span class="ln">211  </span></a>    <span class="s1">}</span>
+<a name="l212"><span class="ln">212  </span></a>
+<a name="l213"><span class="ln">213  </span></a>    <span class="s2">/* ================= Marketplace ================= */</span>
+<a name="l214"><span class="ln">214  </span></a>    <span class="s0">static final class </span><span class="s1">Offer { </span><span class="s0">final long </span><span class="s1">id; </span><span class="s0">final </span><span class="s1">String name; </span><span class="s0">double </span><span class="s1">base; </span><span class="s0">int </span><span class="s1">stockKg;</span>
+<a name="l215"><span class="ln">215  </span></a>        <span class="s0">static final </span><span class="s1">AtomicLong SEQ=</span><span class="s0">new </span><span class="s1">AtomicLong(</span><span class="s4">1</span><span class="s1">);</span>
+<a name="l216"><span class="ln">216  </span></a>        <span class="s1">Offer(String n,</span><span class="s0">double </span><span class="s1">b,</span><span class="s0">int </span><span class="s1">s){ id=SEQ.getAndIncrement(); name=n;base=b; stockKg=s; } }</span>
+<a name="l217"><span class="ln">217  </span></a>    <span class="s0">static final class </span><span class="s1">Marketplace {</span>
+<a name="l218"><span class="ln">218  </span></a>        <span class="s0">final </span><span class="s1">Map&lt;Long,Offer&gt; offers = </span><span class="s0">new </span><span class="s1">LinkedHashMap&lt;&gt;();</span>
+<a name="l219"><span class="ln">219  </span></a>        <span class="s0">final </span><span class="s1">Map&lt;Long,Integer&gt; demand = </span><span class="s0">new </span><span class="s1">HashMap&lt;&gt;();</span>
+<a name="l220"><span class="ln">220  </span></a>        <span class="s0">final </span><span class="s1">Random r = </span><span class="s0">new </span><span class="s1">Random();</span>
+<a name="l221"><span class="ln">221  </span></a>        <span class="s0">void </span><span class="s1">add(Offer o){ offers.put(o.id, o); }</span>
+<a name="l222"><span class="ln">222  </span></a>        <span class="s0">double </span><span class="s1">demandIndex(</span><span class="s0">long </span><span class="s1">id){ </span><span class="s0">int </span><span class="s1">d=demand.getOrDefault(id,</span><span class="s4">0</span><span class="s1">)+</span><span class="s4">1</span><span class="s1">; demand.put(id,d); </span><span class="s0">return </span><span class="s4">1.0 </span><span class="s1">+ Math.min(</span><span class="s4">1.2</span><span class="s1">, d*</span><span class="s4">0.04</span><span class="s1">); }</span>
+<a name="l223"><span class="ln">223  </span></a>        <span class="s0">double </span><span class="s1">trySell(String product, </span><span class="s0">int </span><span class="s1">kg, SocialEquity eq, Regulator reg, </span><span class="s0">boolean </span><span class="s1">marketingBoost,</span>
+<a name="l224"><span class="ln">224  </span></a>                       <span class="s1">RevenueRouter router, Wallet opsWallet){</span>
+<a name="l225"><span class="ln">225  </span></a>            <span class="s1">Offer o = offers.values().stream().filter(x-&gt;x.name.equals(product) &amp;&amp; x.stockKg&gt;</span><span class="s4">0</span><span class="s1">).findFirst().orElse(</span><span class="s0">null</span><span class="s1">);</span>
+<a name="l226"><span class="ln">226  </span></a>            <span class="s0">if</span><span class="s1">(o==</span><span class="s0">null</span><span class="s1">) </span><span class="s0">return </span><span class="s4">0</span><span class="s1">;</span>
+<a name="l227"><span class="ln">227  </span></a>            <span class="s0">int </span><span class="s1">sell = Math.min(kg, o.stockKg); </span><span class="s0">if</span><span class="s1">(sell&lt;=</span><span class="s4">0</span><span class="s1">) </span><span class="s0">return </span><span class="s4">0</span><span class="s1">;</span>
+<a name="l228"><span class="ln">228  </span></a>
+<a name="l229"><span class="ln">229  </span></a>            <span class="s2">// Käuferprofil (sim)</span>
+<a name="l230"><span class="ln">230  </span></a>            <span class="s0">double </span><span class="s1">incomeIdx = </span><span class="s4">0.30 </span><span class="s1">+ r.nextDouble()*</span><span class="s4">0.70</span><span class="s1">;</span>
+<a name="l231"><span class="ln">231  </span></a>            <span class="s0">double </span><span class="s1">reputation= </span><span class="s4">0.40 </span><span class="s1">+ r.nextDouble()*</span><span class="s4">0.60</span><span class="s1">; </span><span class="s2">// für KYC</span>
+<a name="l232"><span class="ln">232  </span></a>            <span class="s0">if</span><span class="s1">(!reg.kycOk(reputation)){ LOG.info(</span><span class="s3">&quot;[KYC] abgelehnt&quot;</span><span class="s1">); </span><span class="s0">return </span><span class="s4">0</span><span class="s1">; }</span>
+<a name="l233"><span class="ln">233  </span></a>
+<a name="l234"><span class="ln">234  </span></a>            <span class="s0">double </span><span class="s1">dyn = o.base * demandIndex(o.id);</span>
+<a name="l235"><span class="ln">235  </span></a>            <span class="s0">if</span><span class="s1">(marketingBoost) dyn *= </span><span class="s4">1.05</span><span class="s1">; </span><span class="s2">// kleines Plus</span>
+<a name="l236"><span class="ln">236  </span></a>            <span class="s1">EquityTier tier = eq.classify(incomeIdx);</span>
+<a name="l237"><span class="ln">237  </span></a>            <span class="s0">double </span><span class="s1">pricePerKg = clamp(eq.buyerPrice(tier, dyn), o.base*</span><span class="s4">0.7</span><span class="s1">, o.base*</span><span class="s4">1.9</span><span class="s1">);</span>
+<a name="l238"><span class="ln">238  </span></a>
+<a name="l239"><span class="ln">239  </span></a>            <span class="s0">if</span><span class="s1">(!reg.allowSell(product, sell, pricePerKg)){</span>
+<a name="l240"><span class="ln">240  </span></a>                <span class="s1">LOG.info(</span><span class="s3">&quot;[REG] Verkauf blockiert (Whitelist/Floor/Limit)&quot;</span><span class="s1">); </span><span class="s0">return </span><span class="s4">0</span><span class="s1">;</span>
+<a name="l241"><span class="ln">241  </span></a>            <span class="s1">}</span>
+<a name="l242"><span class="ln">242  </span></a>
+<a name="l243"><span class="ln">243  </span></a>            <span class="s0">double </span><span class="s1">revenue = sell * pricePerKg;</span>
+<a name="l244"><span class="ln">244  </span></a>            <span class="s1">o.stockKg -= sell;</span>
+<a name="l245"><span class="ln">245  </span></a>
+<a name="l246"><span class="ln">246  </span></a>            <span class="s2">// Einnahmen verteilen über Router</span>
+<a name="l247"><span class="ln">247  </span></a>            <span class="s1">router.route(revenue);</span>
+<a name="l248"><span class="ln">248  </span></a>            <span class="s1">opsWallet.credit(</span><span class="s4">0</span><span class="s1">, </span><span class="s3">&quot;log&quot;</span><span class="s1">); </span><span class="s2">// nudge ledger rotation</span>
+<a name="l249"><span class="ln">249  </span></a>            <span class="s1">LOG.info(</span><span class="s3">&quot;[SALE] &quot;</span><span class="s1">+sell+</span><span class="s3">&quot;kg &quot;</span><span class="s1">+product+</span><span class="s3">&quot; @&quot;</span><span class="s1">+money(pricePerKg)+</span><span class="s3">&quot;/kg → &quot;</span><span class="s1">+money(revenue)</span>
+<a name="l250"><span class="ln">250  </span></a>                     <span class="s1">+</span><span class="s3">&quot; (tier=&quot;</span><span class="s1">+tier+</span><span class="s3">&quot;) stockLeft=&quot;</span><span class="s1">+o.stockKg);</span>
+<a name="l251"><span class="ln">251  </span></a>            <span class="s0">return </span><span class="s1">revenue;</span>
+<a name="l252"><span class="ln">252  </span></a>        <span class="s1">}</span>
+<a name="l253"><span class="ln">253  </span></a>    <span class="s1">}</span>
+<a name="l254"><span class="ln">254  </span></a>
+<a name="l255"><span class="ln">255  </span></a>    <span class="s2">/* ================= Energy/Cooling/KI ================= */</span>
+<a name="l256"><span class="ln">256  </span></a>    <span class="s0">static final class </span><span class="s1">EnergyManager { </span><span class="s0">private double </span><span class="s1">kJ=</span><span class="s4">0</span><span class="s1">; </span><span class="s0">void </span><span class="s1">add(</span><span class="s0">double </span><span class="s1">e){ kJ+=Math.max(</span><span class="s4">0</span><span class="s1">,e);} </span><span class="s0">void </span><span class="s1">consume(</span><span class="s0">double </span><span class="s1">e){ kJ=Math.max(</span><span class="s4">0</span><span class="s1">,kJ-Math.max(</span><span class="s4">0</span><span class="s1">,e)); } </span><span class="s0">double </span><span class="s1">total(){ </span><span class="s0">return </span><span class="s1">kJ; } }</span>
+<a name="l257"><span class="ln">257  </span></a>    <span class="s0">static final class </span><span class="s1">CoolingUnit { </span><span class="s0">private double </span><span class="s1">t=</span><span class="s4">25.0</span><span class="s1">; </span><span class="s0">void </span><span class="s1">cool(){ t=Math.max(</span><span class="s4">15.0</span><span class="s1">, t-</span><span class="s4">3.0</span><span class="s1">);} </span><span class="s0">double </span><span class="s1">temp(){ </span><span class="s0">return </span><span class="s1">t; } }</span>
+<a name="l258"><span class="ln">258  </span></a>
+<a name="l259"><span class="ln">259  </span></a>    <span class="s0">static final class </span><span class="s1">KI {</span>
+<a name="l260"><span class="ln">260  </span></a>        <span class="s1">Decision decide(List&lt;SensorData&gt; d, Silos s, </span><span class="s0">boolean </span><span class="s1">couplingOn){</span>
+<a name="l261"><span class="ln">261  </span></a>            <span class="s0">double </span><span class="s1">soil = val(d,</span><span class="s3">&quot;soil_moisture&quot;</span><span class="s1">), sun=val(d,</span><span class="s3">&quot;sun_intensity&quot;</span><span class="s1">), tank=val(d,</span><span class="s3">&quot;cistern_liters&quot;</span><span class="s1">), rain=val(d,</span><span class="s3">&quot;rain_forecast_mm&quot;</span><span class="s1">);</span>
+<a name="l262"><span class="ln">262  </span></a>
+<a name="l263"><span class="ln">263  </span></a>            <span class="s0">double </span><span class="s1">need = </span><span class="s4">0</span><span class="s1">;</span>
+<a name="l264"><span class="ln">264  </span></a>            <span class="s0">if</span><span class="s1">(soil&lt;</span><span class="s4">28 </span><span class="s1">&amp;&amp; rain&lt;</span><span class="s4">2</span><span class="s1">) need=</span><span class="s4">600</span><span class="s1">;</span>
+<a name="l265"><span class="ln">265  </span></a>            <span class="s0">else if</span><span class="s1">(soil&lt;</span><span class="s4">35 </span><span class="s1">&amp;&amp; rain&lt;</span><span class="s4">3</span><span class="s1">) need=</span><span class="s4">320</span><span class="s1">;</span>
+<a name="l266"><span class="ln">266  </span></a>            <span class="s0">if</span><span class="s1">(tank&lt;</span><span class="s4">800</span><span class="s1">) need*=</span><span class="s4">0.5</span><span class="s1">;</span>
+<a name="l267"><span class="ln">267  </span></a>            <span class="s0">if</span><span class="s1">(sun&gt;</span><span class="s4">0.8</span><span class="s1">) need*=</span><span class="s4">1.1</span><span class="s1">;</span>
+<a name="l268"><span class="ln">268  </span></a>            <span class="s0">if</span><span class="s1">(!couplingOn) need*=</span><span class="s4">1.06</span><span class="s1">; </span><span class="s2">// ohne Kopplung etwas ineffizienter</span>
+<a name="l269"><span class="ln">269  </span></a>
+<a name="l270"><span class="ln">270  </span></a>            <span class="s1">IrrigationPlan ip = (need&gt;</span><span class="s4">0</span><span class="s1">)? </span><span class="s0">new </span><span class="s1">IrrigationPlan(</span><span class="s3">&quot;Feld A&quot;</span><span class="s1">, Math.round(need)) : </span><span class="s0">null</span><span class="s1">;</span>
+<a name="l271"><span class="ln">271  </span></a>
+<a name="l272"><span class="ln">272  </span></a>            <span class="s0">double </span><span class="s1">demand = </span><span class="s4">40 </span><span class="s1">+ (sun*</span><span class="s4">30</span><span class="s1">);</span>
+<a name="l273"><span class="ln">273  </span></a>            <span class="s0">if</span><span class="s1">(!couplingOn) demand*=</span><span class="s4">0.95</span><span class="s1">; </span><span class="s2">// Kopplung aus → weniger Ambition</span>
+<a name="l274"><span class="ln">274  </span></a>            <span class="s1">EnergyPlan ep = </span><span class="s0">new </span><span class="s1">EnergyPlan(demand, sun&gt;</span><span class="s4">0.75</span><span class="s1">);</span>
+<a name="l275"><span class="ln">275  </span></a>
+<a name="l276"><span class="ln">276  </span></a>            <span class="s0">boolean </span><span class="s1">sell = s.grainKg&gt;</span><span class="s4">600</span><span class="s1">;</span>
+<a name="l277"><span class="ln">277  </span></a>            <span class="s0">double </span><span class="s1">sellKg = sell ? Math.min(</span><span class="s4">300</span><span class="s1">, s.grainKg-</span><span class="s4">500</span><span class="s1">) : </span><span class="s4">0</span><span class="s1">;</span>
+<a name="l278"><span class="ln">278  </span></a>            <span class="s1">TradePlan tp = </span><span class="s0">new </span><span class="s1">TradePlan(sell, sellKg, </span><span class="s3">&quot;Wheat&quot;</span><span class="s1">);</span>
+<a name="l279"><span class="ln">279  </span></a>
+<a name="l280"><span class="ln">280  </span></a>            <span class="s1">FinancePlan fp = </span><span class="s0">new </span><span class="s1">FinancePlan(need&gt;</span><span class="s4">0 </span><span class="s1">? Math.max(</span><span class="s4">2</span><span class="s1">, need*</span><span class="s4">0.01</span><span class="s1">) : </span><span class="s4">0</span><span class="s1">, </span><span class="s4">3</span><span class="s1">);</span>
+<a name="l281"><span class="ln">281  </span></a>            <span class="s0">return new </span><span class="s1">Decision(ip, ep, tp, fp);</span>
+<a name="l282"><span class="ln">282  </span></a>        <span class="s1">}</span>
+<a name="l283"><span class="ln">283  </span></a>        <span class="s0">double </span><span class="s1">val(List&lt;SensorData&gt; d, String k){ </span><span class="s0">return </span><span class="s1">d.stream().filter(x-&gt;x.type.equals(k)).mapToDouble(x-&gt;x.value).findFirst().orElse(</span><span class="s4">0</span><span class="s1">); }</span>
+<a name="l284"><span class="ln">284  </span></a>    <span class="s1">}</span>
+<a name="l285"><span class="ln">285  </span></a>
+<a name="l286"><span class="ln">286  </span></a>    <span class="s0">static final class </span><span class="s1">IrrigationSystem {</span>
+<a name="l287"><span class="ln">287  </span></a>        <span class="s0">final </span><span class="s1">Silos silos;</span>
+<a name="l288"><span class="ln">288  </span></a>        <span class="s1">IrrigationSystem(Silos s){ </span><span class="s0">this</span><span class="s1">.silos=s; }</span>
+<a name="l289"><span class="ln">289  </span></a>        <span class="s0">void </span><span class="s1">execute(IrrigationPlan p){</span>
+<a name="l290"><span class="ln">290  </span></a>            <span class="s0">if</span><span class="s1">(p==</span><span class="s0">null</span><span class="s1">) </span><span class="s0">return</span><span class="s1">;</span>
+<a name="l291"><span class="ln">291  </span></a>            <span class="s0">boolean </span><span class="s1">ok = silos.useWater(p.liters);</span>
+<a name="l292"><span class="ln">292  </span></a>            <span class="s0">if</span><span class="s1">(ok) LOG.info(</span><span class="s3">&quot;Bewässerung &quot;</span><span class="s1">+p.field+</span><span class="s3">&quot; &quot;</span><span class="s1">+(</span><span class="s0">int</span><span class="s1">)p.liters+</span><span class="s3">&quot;L&quot;</span><span class="s1">);</span>
+<a name="l293"><span class="ln">293  </span></a>            <span class="s0">else   </span><span class="s1">LOG.warning(</span><span class="s3">&quot;Zisterne leer (&quot;</span><span class="s1">+(</span><span class="s0">int</span><span class="s1">)p.liters+</span><span class="s3">&quot;L)&quot;</span><span class="s1">);</span>
+<a name="l294"><span class="ln">294  </span></a>        <span class="s1">}</span>
+<a name="l295"><span class="ln">295  </span></a>    <span class="s1">}</span>
+<a name="l296"><span class="ln">296  </span></a>    <span class="s0">static final class </span><span class="s1">SolarSystem {</span>
+<a name="l297"><span class="ln">297  </span></a>        <span class="s0">final </span><span class="s1">Silos silos; SolarSystem(Silos s){ </span><span class="s0">this</span><span class="s1">.silos=s; }</span>
+<a name="l298"><span class="ln">298  </span></a>        <span class="s0">void </span><span class="s1">execute(EnergyPlan e, </span><span class="s0">boolean </span><span class="s1">couplingOn){</span>
+<a name="l299"><span class="ln">299  </span></a>            <span class="s0">if</span><span class="s1">(e==</span><span class="s0">null</span><span class="s1">) </span><span class="s0">return</span><span class="s1">;</span>
+<a name="l300"><span class="ln">300  </span></a>            <span class="s0">double </span><span class="s1">cover = couplingOn? </span><span class="s4">14 </span><span class="s1">: </span><span class="s4">10</span><span class="s1">; </span><span class="s2">// Kopplung bringt etwas mehr Solar-Deckung</span>
+<a name="l301"><span class="ln">301  </span></a>            <span class="s0">boolean </span><span class="s1">ok = silos.useEnergy(Math.max(</span><span class="s4">0</span><span class="s1">, e.demandUnits - cover));</span>
+<a name="l302"><span class="ln">302  </span></a>            <span class="s0">if</span><span class="s1">(!ok) LOG.warning(</span><span class="s3">&quot;Energie knapp – Drossel&quot;</span><span class="s1">);</span>
+<a name="l303"><span class="ln">303  </span></a>            <span class="s1">silos.addEnergy(couplingOn? </span><span class="s4">11 </span><span class="s1">: </span><span class="s4">8</span><span class="s1">); </span><span class="s2">// Recharge</span>
+<a name="l304"><span class="ln">304  </span></a>        <span class="s1">}</span>
+<a name="l305"><span class="ln">305  </span></a>    <span class="s1">}</span>
+<a name="l306"><span class="ln">306  </span></a>
+<a name="l307"><span class="ln">307  </span></a>    <span class="s2">/* ================= CloudSync (deinstalliert = off) ================= */</span>
+<a name="l308"><span class="ln">308  </span></a>    <span class="s0">static final class </span><span class="s1">CloudSync {</span>
+<a name="l309"><span class="ln">309  </span></a>        <span class="s0">final boolean </span><span class="s1">enabled;</span>
+<a name="l310"><span class="ln">310  </span></a>        <span class="s1">CloudSync(</span><span class="s0">boolean </span><span class="s1">enabled){ </span><span class="s0">this</span><span class="s1">.enabled=enabled; }</span>
+<a name="l311"><span class="ln">311  </span></a>        <span class="s0">void </span><span class="s1">maybeSync(){ </span><span class="s0">if</span><span class="s1">(!enabled) </span><span class="s0">return</span><span class="s1">; </span><span class="s2">/* placeholder: NO real network */ </span><span class="s1">}</span>
+<a name="l312"><span class="ln">312  </span></a>    <span class="s1">}</span>
+<a name="l313"><span class="ln">313  </span></a>
+<a name="l314"><span class="ln">314  </span></a>    <span class="s2">/* ================= Snapshot ================= */</span>
+<a name="l315"><span class="ln">315  </span></a>    <span class="s0">static final class </span><span class="s1">Snapshot {</span>
+<a name="l316"><span class="ln">316  </span></a>        <span class="s0">static void </span><span class="s1">write(Engine e, Decision dec){</span>
+<a name="l317"><span class="ln">317  </span></a>            <span class="s1">String js = </span><span class="s3">&quot;{&quot;</span>
+<a name="l318"><span class="ln">318  </span></a>              <span class="s1">+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">ts</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+now()+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,&quot; </span>
+<a name="l319"><span class="ln">319  </span></a>              <span class="s1">+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">flags</span><span class="s5">\&quot;</span><span class="s3">:{</span><span class="s5">\&quot;</span><span class="s3">cloud</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+e.flags.cloud+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">marketing</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+e.flags.marketing+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">kopplung</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+e.flags.kopplung+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">walletBackfeed</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+e.flags.walletBackfeed+</span><span class="s3">&quot;},&quot;</span>
+<a name="l320"><span class="ln">320  </span></a>              <span class="s1">+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">wallets</span><span class="s5">\&quot;</span><span class="s3">:{</span><span class="s5">\&quot;</span><span class="s3">owner</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+money(e.wOwner.bal())+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">ops</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+money(e.wOps.bal())+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">aid</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+money(e.wAid.bal())+</span><span class="s3">&quot;},&quot;</span>
+<a name="l321"><span class="ln">321  </span></a>              <span class="s1">+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">silos</span><span class="s5">\&quot;</span><span class="s3">:{</span><span class="s5">\&quot;</span><span class="s3">water</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+round(e.silos.waterLiters)+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">energy</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+round(e.silos.energyUnits)+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">grain</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+round(e.silos.grainKg)+</span><span class="s3">&quot;},&quot;</span>
+<a name="l322"><span class="ln">322  </span></a>              <span class="s1">+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">reg</span><span class="s5">\&quot;</span><span class="s3">:{</span><span class="s5">\&quot;</span><span class="s3">soldTodayKg</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+e.reg.soldTodayKg.get()+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">dailyLimit</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+e.reg.dailyKgLimit+</span><span class="s3">&quot;},&quot;</span>
+<a name="l323"><span class="ln">323  </span></a>              <span class="s1">+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">contacts</span><span class="s5">\&quot;</span><span class="s3">:{</span><span class="s5">\&quot;</span><span class="s3">name</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+e.contacts.ownerName+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,</span><span class="s5">\&quot;</span><span class="s3">email</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+e.contacts.email+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,</span><span class="s5">\&quot;</span><span class="s3">phone</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+e.contacts.phone+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,</span><span class="s5">\&quot;</span><span class="s3">callback</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+e.contacts.wantsCallback+</span><span class="s3">&quot;},&quot;</span>
+<a name="l324"><span class="ln">324  </span></a>              <span class="s1">+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">decision</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+toJson(dec)</span>
+<a name="l325"><span class="ln">325  </span></a>            <span class="s1">+</span><span class="s3">&quot;}&quot;</span><span class="s1">;</span>
+<a name="l326"><span class="ln">326  </span></a>            <span class="s0">try</span><span class="s1">{ Files.writeString(DATA.resolve(</span><span class="s3">&quot;state.json&quot;</span><span class="s1">), js, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);}</span><span class="s0">catch</span><span class="s1">(Exception ignored){}</span>
+<a name="l327"><span class="ln">327  </span></a>        <span class="s1">}</span>
+<a name="l328"><span class="ln">328  </span></a>        <span class="s0">static </span><span class="s1">String toJson(Decision dc){</span>
+<a name="l329"><span class="ln">329  </span></a>            <span class="s0">if</span><span class="s1">(dc==</span><span class="s0">null</span><span class="s1">) </span><span class="s0">return </span><span class="s3">&quot;null&quot;</span><span class="s1">;</span>
+<a name="l330"><span class="ln">330  </span></a>            <span class="s1">String ip = (dc.irrigation==</span><span class="s0">null</span><span class="s1">)?</span><span class="s3">&quot;null&quot;</span><span class="s1">:(</span><span class="s3">&quot;{</span><span class="s5">\&quot;</span><span class="s3">field</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+dc.irrigation.field+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">,</span><span class="s5">\&quot;</span><span class="s3">liters</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.0f&quot;</span><span class="s1">,dc.irrigation.liters)+</span><span class="s3">&quot;}&quot;</span><span class="s1">);</span>
+<a name="l331"><span class="ln">331  </span></a>            <span class="s1">String ep = (dc.energy==</span><span class="s0">null</span><span class="s1">)?</span><span class="s3">&quot;null&quot;</span><span class="s1">:(</span><span class="s3">&quot;{</span><span class="s5">\&quot;</span><span class="s3">demand</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.1f&quot;</span><span class="s1">,dc.energy.demandUnits)+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">turbo</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+dc.energy.turboSolar+</span><span class="s3">&quot;}&quot;</span><span class="s1">);</span>
+<a name="l332"><span class="ln">332  </span></a>            <span class="s1">String tp = (dc.trade==</span><span class="s0">null</span><span class="s1">)?</span><span class="s3">&quot;null&quot;</span><span class="s1">:(</span><span class="s3">&quot;{</span><span class="s5">\&quot;</span><span class="s3">sell</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+dc.trade.sellGrain+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">kg</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.0f&quot;</span><span class="s1">,dc.trade.kg)+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">product</span><span class="s5">\&quot;</span><span class="s3">:</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">+dc.trade.product+</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">}&quot;</span><span class="s1">);</span>
+<a name="l333"><span class="ln">333  </span></a>            <span class="s1">String fp = (dc.finance==</span><span class="s0">null</span><span class="s1">)?</span><span class="s3">&quot;null&quot;</span><span class="s1">:(</span><span class="s3">&quot;{</span><span class="s5">\&quot;</span><span class="s3">pump</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.2f&quot;</span><span class="s1">,dc.finance.pumpCost)+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">maint</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+String.format(Locale.US,</span><span class="s3">&quot;%.2f&quot;</span><span class="s1">,dc.finance.maintenance)+</span><span class="s3">&quot;}&quot;</span><span class="s1">);</span>
+<a name="l334"><span class="ln">334  </span></a>            <span class="s0">return </span><span class="s3">&quot;{</span><span class="s5">\&quot;</span><span class="s3">irrigation</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+ip+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">energy</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+ep+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">trade</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+tp+</span><span class="s3">&quot;,</span><span class="s5">\&quot;</span><span class="s3">finance</span><span class="s5">\&quot;</span><span class="s3">:&quot;</span><span class="s1">+fp+</span><span class="s3">&quot;}&quot;</span><span class="s1">;</span>
+<a name="l335"><span class="ln">335  </span></a>        <span class="s1">}</span>
+<a name="l336"><span class="ln">336  </span></a>    <span class="s1">}</span>
+<a name="l337"><span class="ln">337  </span></a>
+<a name="l338"><span class="ln">338  </span></a>    <span class="s2">/* ================= Engine ================= */</span>
+<a name="l339"><span class="ln">339  </span></a>    <span class="s0">static final class </span><span class="s1">Engine </span><span class="s0">implements </span><span class="s1">AutoCloseable {</span>
+<a name="l340"><span class="ln">340  </span></a>        <span class="s2">// Config/Flags</span>
+<a name="l341"><span class="ln">341  </span></a>        <span class="s0">final </span><span class="s1">FeatureFlags flags;</span>
+<a name="l342"><span class="ln">342  </span></a>        <span class="s0">final </span><span class="s1">RevenueRouter router;</span>
+<a name="l343"><span class="ln">343  </span></a>        <span class="s0">final </span><span class="s1">Contacts contacts;</span>
+<a name="l344"><span class="ln">344  </span></a>        <span class="s0">final </span><span class="s1">CloudSync cloud;</span>
+<a name="l345"><span class="ln">345  </span></a>
+<a name="l346"><span class="ln">346  </span></a>        <span class="s2">// Core</span>
+<a name="l347"><span class="ln">347  </span></a>        <span class="s0">final </span><span class="s1">Sensors sensors = </span><span class="s0">new </span><span class="s1">Sensors();</span>
+<a name="l348"><span class="ln">348  </span></a>        <span class="s0">final </span><span class="s1">KI ki = </span><span class="s0">new </span><span class="s1">KI();</span>
+<a name="l349"><span class="ln">349  </span></a>        <span class="s0">final </span><span class="s1">Silos silos = </span><span class="s0">new </span><span class="s1">Silos();</span>
+<a name="l350"><span class="ln">350  </span></a>        <span class="s0">final </span><span class="s1">SocialEquity equity = </span><span class="s0">new </span><span class="s1">SocialEquity();</span>
+<a name="l351"><span class="ln">351  </span></a>        <span class="s0">final </span><span class="s1">Regulator reg = </span><span class="s0">new </span><span class="s1">Regulator();</span>
+<a name="l352"><span class="ln">352  </span></a>        <span class="s0">final </span><span class="s1">Marketplace market = </span><span class="s0">new </span><span class="s1">Marketplace();</span>
+<a name="l353"><span class="ln">353  </span></a>
+<a name="l354"><span class="ln">354  </span></a>        <span class="s2">// Wallets</span>
+<a name="l355"><span class="ln">355  </span></a>        <span class="s0">final </span><span class="s1">Wallet wOwner = </span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;OWNER&quot;</span><span class="s1">);</span>
+<a name="l356"><span class="ln">356  </span></a>        <span class="s0">final </span><span class="s1">Wallet wOps   = </span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;OPS&quot;</span><span class="s1">);</span>
+<a name="l357"><span class="ln">357  </span></a>        <span class="s0">final </span><span class="s1">Wallet wAid   = </span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;AID&quot;</span><span class="s1">);</span>
+<a name="l358"><span class="ln">358  </span></a>
+<a name="l359"><span class="ln">359  </span></a>        <span class="s2">// Actuators</span>
+<a name="l360"><span class="ln">360  </span></a>        <span class="s0">final </span><span class="s1">IrrigationSystem irrigation = </span><span class="s0">new </span><span class="s1">IrrigationSystem(silos);</span>
+<a name="l361"><span class="ln">361  </span></a>        <span class="s0">final </span><span class="s1">SolarSystem solar = </span><span class="s0">new </span><span class="s1">SolarSystem(silos);</span>
+<a name="l362"><span class="ln">362  </span></a>
+<a name="l363"><span class="ln">363  </span></a>        <span class="s2">// Schedulers</span>
+<a name="l364"><span class="ln">364  </span></a>        <span class="s0">final </span><span class="s1">ScheduledExecutorService ses = Executors.newScheduledThreadPool(</span><span class="s4">2</span><span class="s1">);</span>
+<a name="l365"><span class="ln">365  </span></a>
+<a name="l366"><span class="ln">366  </span></a>        <span class="s1">Engine(FeatureFlags f, RevenueRouter router, Contacts c){</span>
+<a name="l367"><span class="ln">367  </span></a>            <span class="s0">this</span><span class="s1">.flags=f; </span><span class="s0">this</span><span class="s1">.router=router; </span><span class="s0">this</span><span class="s1">.contacts=c; </span><span class="s0">this</span><span class="s1">.cloud=</span><span class="s0">new </span><span class="s1">CloudSync(f.cloud);</span>
+<a name="l368"><span class="ln">368  </span></a>            <span class="s2">// Seed-Angebote</span>
+<a name="l369"><span class="ln">369  </span></a>            <span class="s1">market.add(</span><span class="s0">new </span><span class="s1">Offer(</span><span class="s3">&quot;Wheat&quot;</span><span class="s1">, </span><span class="s4">0.85</span><span class="s1">, </span><span class="s4">3000</span><span class="s1">));</span>
+<a name="l370"><span class="ln">370  </span></a>            <span class="s1">market.add(</span><span class="s0">new </span><span class="s1">Offer(</span><span class="s3">&quot;Corn&quot;</span><span class="s1">,  </span><span class="s4">0.65</span><span class="s1">, </span><span class="s4">2200</span><span class="s1">));</span>
+<a name="l371"><span class="ln">371  </span></a>            <span class="s2">// Bootstrap</span>
+<a name="l372"><span class="ln">372  </span></a>            <span class="s1">wOps.credit(</span><span class="s4">120</span><span class="s1">, </span><span class="s3">&quot;bootstrap&quot;</span><span class="s1">);</span>
+<a name="l373"><span class="ln">373  </span></a>        <span class="s1">}</span>
+<a name="l374"><span class="ln">374  </span></a>
+<a name="l375"><span class="ln">375  </span></a>        <span class="s0">void </span><span class="s1">start(String zoneArg, </span><span class="s0">long </span><span class="s1">units){</span>
+<a name="l376"><span class="ln">376  </span></a>            <span class="s1">LOG.info(</span><span class="s3">&quot;Deploy &quot;</span><span class="s1">+NumberFormat.getInstance(Locale.US).format(units)+</span><span class="s3">&quot; Units (agg)&quot;</span><span class="s1">);</span>
+<a name="l377"><span class="ln">377  </span></a>            <span class="s2">// Haupt-Tick (Sensors → KI → Aktoren → Aid → Snapshot)</span>
+<a name="l378"><span class="ln">378  </span></a>            <span class="s1">ses.scheduleAtFixedRate(()-&gt;{</span>
+<a name="l379"><span class="ln">379  </span></a>                <span class="s0">try</span><span class="s1">{</span>
+<a name="l380"><span class="ln">380  </span></a>                    <span class="s1">List&lt;SensorData&gt; d = sensors.read();</span>
+<a name="l381"><span class="ln">381  </span></a>                    <span class="s1">Decision dec = ki.decide(d, silos, flags.kopplung);</span>
+<a name="l382"><span class="ln">382  </span></a>
+<a name="l383"><span class="ln">383  </span></a>                    <span class="s1">irrigation.execute(dec.irrigation);</span>
+<a name="l384"><span class="ln">384  </span></a>                    <span class="s1">solar.execute(dec.energy, flags.kopplung);</span>
+<a name="l385"><span class="ln">385  </span></a>
+<a name="l386"><span class="ln">386  </span></a>                    <span class="s2">// On-demand Trade aus KI (kleiner Batch)</span>
+<a name="l387"><span class="ln">387  </span></a>                    <span class="s0">if</span><span class="s1">(dec.trade.sellGrain &amp;&amp; dec.trade.kg&gt;</span><span class="s4">0</span><span class="s1">){</span>
+<a name="l388"><span class="ln">388  </span></a>                        <span class="s0">boolean </span><span class="s1">ok = silos.useGrain(dec.trade.kg);</span>
+<a name="l389"><span class="ln">389  </span></a>                        <span class="s0">if</span><span class="s1">(ok){</span>
+<a name="l390"><span class="ln">390  </span></a>                            <span class="s1">market.trySell(dec.trade.product, (</span><span class="s0">int</span><span class="s1">)dec.trade.kg, equity, reg, flags.marketing, router, wOps);</span>
+<a name="l391"><span class="ln">391  </span></a>                            <span class="s0">if</span><span class="s1">(flags.walletBackfeed){</span>
+<a name="l392"><span class="ln">392  </span></a>                                <span class="s2">// Light Reinvest in Silos</span>
+<a name="l393"><span class="ln">393  </span></a>                                <span class="s0">double </span><span class="s1">fund = dec.trade.kg * </span><span class="s4">0.10</span><span class="s1">; </span><span class="s2">// pseudo-Äquivalent</span>
+<a name="l394"><span class="ln">394  </span></a>                                <span class="s1">silos.addEnergy(fund*</span><span class="s4">0.5</span><span class="s1">); silos.addWater(fund*</span><span class="s4">5</span><span class="s1">);</span>
+<a name="l395"><span class="ln">395  </span></a>                            <span class="s1">}</span>
+<a name="l396"><span class="ln">396  </span></a>                        <span class="s1">}</span>
+<a name="l397"><span class="ln">397  </span></a>                    <span class="s1">}</span>
+<a name="l398"><span class="ln">398  </span></a>
+<a name="l399"><span class="ln">399  </span></a>                    <span class="s2">// Regelmäßige Wasserhilfe-Demo</span>
+<a name="l400"><span class="ln">400  </span></a>                    <span class="s0">if </span><span class="s1">((System.currentTimeMillis()/</span><span class="s4">1000</span><span class="s1">)%</span><span class="s4">7</span><span class="s1">==</span><span class="s4">0</span><span class="s1">) {</span>
+<a name="l401"><span class="ln">401  </span></a>                        <span class="s0">new </span><span class="s1">AidRouter(equity, silos, wOps).waterAid(</span><span class="s4">160</span><span class="s1">, </span><span class="s4">0.28</span><span class="s1">);</span>
+<a name="l402"><span class="ln">402  </span></a>                    <span class="s1">}</span>
+<a name="l403"><span class="ln">403  </span></a>
+<a name="l404"><span class="ln">404  </span></a>                    <span class="s2">// Cloud (inaktiv, wenn cloud=false)</span>
+<a name="l405"><span class="ln">405  </span></a>                    <span class="s1">cloud.maybeSync();</span>
+<a name="l406"><span class="ln">406  </span></a>
+<a name="l407"><span class="ln">407  </span></a>                    <span class="s2">// Snapshot</span>
+<a name="l408"><span class="ln">408  </span></a>                    <span class="s1">Snapshot.write(</span><span class="s0">this</span><span class="s1">, dec);</span>
+<a name="l409"><span class="ln">409  </span></a>
+<a name="l410"><span class="ln">410  </span></a>                    <span class="s1">LOG.info(String.format(Locale.US,</span><span class="s3">&quot;Silos water=%.0fL energy=%.0f grain=%.0fkg | wallets owner=%s ops=%s aid=%s&quot;</span><span class="s1">,</span>
+<a name="l411"><span class="ln">411  </span></a>                        <span class="s1">silos.waterLiters, silos.energyUnits, silos.grainKg,</span>
+<a name="l412"><span class="ln">412  </span></a>                        <span class="s1">money(wOwner.bal()), money(wOps.bal()), money(wAid.bal())));</span>
+<a name="l413"><span class="ln">413  </span></a>                <span class="s1">}</span><span class="s0">catch</span><span class="s1">(Exception e){ LOG.log(Level.SEVERE,</span><span class="s3">&quot;tick error&quot;</span><span class="s1">, e); }</span>
+<a name="l414"><span class="ln">414  </span></a>            <span class="s1">}, </span><span class="s4">0</span><span class="s1">, </span><span class="s4">1200</span><span class="s1">, TimeUnit.MILLISECONDS);</span>
+<a name="l415"><span class="ln">415  </span></a>
+<a name="l416"><span class="ln">416  </span></a>            <span class="s2">// Entrepreneur-Verkaufsloop (Dauerschleife): legt fortlaufend Angebote ab</span>
+<a name="l417"><span class="ln">417  </span></a>            <span class="s1">ses.scheduleAtFixedRate(()-&gt;{</span>
+<a name="l418"><span class="ln">418  </span></a>                <span class="s0">try</span><span class="s1">{</span>
+<a name="l419"><span class="ln">419  </span></a>                    <span class="s2">// Nur wenn Lager &gt; Puffer</span>
+<a name="l420"><span class="ln">420  </span></a>                    <span class="s0">if</span><span class="s1">(silos.grainKg &gt; </span><span class="s4">700</span><span class="s1">){</span>
+<a name="l421"><span class="ln">421  </span></a>                        <span class="s0">int </span><span class="s1">burst = (</span><span class="s0">int</span><span class="s1">)Math.min(</span><span class="s4">500</span><span class="s1">, silos.grainKg - </span><span class="s4">600</span><span class="s1">);</span>
+<a name="l422"><span class="ln">422  </span></a>                        <span class="s0">if</span><span class="s1">(silos.useGrain(burst)){</span>
+<a name="l423"><span class="ln">423  </span></a>                            <span class="s1">market.trySell(</span><span class="s3">&quot;Wheat&quot;</span><span class="s1">, burst, equity, reg, flags.marketing, router, wOps);</span>
+<a name="l424"><span class="ln">424  </span></a>                        <span class="s1">}</span>
+<a name="l425"><span class="ln">425  </span></a>                    <span class="s1">}</span>
+<a name="l426"><span class="ln">426  </span></a>                <span class="s1">}</span><span class="s0">catch</span><span class="s1">(Exception e){ LOG.log(Level.WARNING,</span><span class="s3">&quot;entrepreneur loop error&quot;</span><span class="s1">, e); }</span>
+<a name="l427"><span class="ln">427  </span></a>            <span class="s1">}, </span><span class="s4">1000</span><span class="s1">, </span><span class="s4">2000</span><span class="s1">, TimeUnit.MILLISECONDS);</span>
+<a name="l428"><span class="ln">428  </span></a>        <span class="s1">}</span>
+<a name="l429"><span class="ln">429  </span></a>
+<a name="l430"><span class="ln">430  </span></a>        <span class="s1">@Override </span><span class="s0">public void </span><span class="s1">close(){ ses.shutdownNow(); }</span>
+<a name="l431"><span class="ln">431  </span></a>    <span class="s1">}</span>
+<a name="l432"><span class="ln">432  </span></a>
+<a name="l433"><span class="ln">433  </span></a>    <span class="s2">/* ================= MAIN ================= */</span>
+<a name="l434"><span class="ln">434  </span></a>    <span class="s0">public static void </span><span class="s1">main(String[] args) </span><span class="s0">throws </span><span class="s1">Exception {</span>
+<a name="l435"><span class="ln">435  </span></a>        <span class="s1">ensure();</span>
+<a name="l436"><span class="ln">436  </span></a>        <span class="s1">LOG.info(</span><span class="s3">&quot;AgroKommerzOS_Pro booting…&quot;</span><span class="s1">);</span>
+<a name="l437"><span class="ln">437  </span></a>
+<a name="l438"><span class="ln">438  </span></a>        <span class="s1">Map&lt;String,String&gt; cli = parseArgs(args);</span>
+<a name="l439"><span class="ln">439  </span></a>        <span class="s1">String mode = cli.getOrDefault(</span><span class="s3">&quot;mode&quot;</span><span class="s1">,</span><span class="s3">&quot;run&quot;</span><span class="s1">);</span>
+<a name="l440"><span class="ln">440  </span></a>
+<a name="l441"><span class="ln">441  </span></a>        <span class="s2">// Biometrie</span>
+<a name="l442"><span class="ln">442  </span></a>        <span class="s1">Biometry bio = </span><span class="s0">new </span><span class="s1">Biometry();</span>
+<a name="l443"><span class="ln">443  </span></a>        <span class="s0">if</span><span class="s1">(</span><span class="s3">&quot;enroll&quot;</span><span class="s1">.equalsIgnoreCase(mode)){</span>
+<a name="l444"><span class="ln">444  </span></a>            <span class="s0">if</span><span class="s1">(args.length&lt;</span><span class="s4">2</span><span class="s1">){ System.out.println(</span><span class="s3">&quot;Usage: java AgroKommerzOS_Pro enroll &lt;SHA256_HEX&gt;&quot;</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l445"><span class="ln">445  </span></a>            <span class="s1">bio.enroll(args[</span><span class="s4">1</span><span class="s1">].trim().toLowerCase());</span>
+<a name="l446"><span class="ln">446  </span></a>            <span class="s1">System.out.println(</span><span class="s3">&quot;Enrolled marker = &quot;</span><span class="s1">+args[</span><span class="s4">1</span><span class="s1">]); </span><span class="s0">return</span><span class="s1">;</span>
+<a name="l447"><span class="ln">447  </span></a>        <span class="s1">}</span>
+<a name="l448"><span class="ln">448  </span></a>        <span class="s0">if</span><span class="s1">(!bio.load()){ System.out.println(</span><span class="s3">&quot;Kein Marker registriert. Bitte zuerst:</span><span class="s5">\n  </span><span class="s3">java AgroKommerzOS_Pro enroll &lt;dein_SHA256_hex&gt;&quot;</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l449"><span class="ln">449  </span></a>        <span class="s1">String provided = (args.length&gt;</span><span class="s4">1</span><span class="s1">)? args[</span><span class="s4">1</span><span class="s1">].trim().toLowerCase() : </span><span class="s3">&quot;&quot;</span><span class="s1">;</span>
+<a name="l450"><span class="ln">450  </span></a>        <span class="s0">if</span><span class="s1">(!bio.check(provided)){ System.out.println(</span><span class="s3">&quot;Biometrie: Zugriff verweigert (falscher Marker-Hash).&quot;</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l451"><span class="ln">451  </span></a>
+<a name="l452"><span class="ln">452  </span></a>        <span class="s2">// Flags &amp; Splits</span>
+<a name="l453"><span class="ln">453  </span></a>        <span class="s1">FeatureFlags flags = FeatureFlags.from(cli.get(</span><span class="s3">&quot;flags&quot;</span><span class="s1">));</span>
+<a name="l454"><span class="ln">454  </span></a>        <span class="s1">Wallet wOwner = </span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;OWNER&quot;</span><span class="s1">), wOps=</span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;OPS&quot;</span><span class="s1">), wAid=</span><span class="s0">new </span><span class="s1">Wallet(</span><span class="s3">&quot;AID&quot;</span><span class="s1">);</span>
+<a name="l455"><span class="ln">455  </span></a>        <span class="s1">RevenueRouter router = </span><span class="s0">new </span><span class="s1">RevenueRouter(wOwner, wOps, wAid);</span>
+<a name="l456"><span class="ln">456  </span></a>        <span class="s1">router.setSplits(cli.get(</span><span class="s3">&quot;split&quot;</span><span class="s1">));</span>
+<a name="l457"><span class="ln">457  </span></a>
+<a name="l458"><span class="ln">458  </span></a>        <span class="s2">// Kontakte</span>
+<a name="l459"><span class="ln">459  </span></a>        <span class="s1">Contacts contacts = </span><span class="s0">new </span><span class="s1">Contacts();</span>
+<a name="l460"><span class="ln">460  </span></a>        <span class="s0">if</span><span class="s1">(cli.containsKey(</span><span class="s3">&quot;phone&quot;</span><span class="s1">)) contacts.setPhone(cli.get(</span><span class="s3">&quot;phone&quot;</span><span class="s1">));</span>
+<a name="l461"><span class="ln">461  </span></a>        <span class="s0">if</span><span class="s1">(cli.containsKey(</span><span class="s3">&quot;callback&quot;</span><span class="s1">) &amp;&amp; (</span><span class="s3">&quot;true&quot;</span><span class="s1">.equalsIgnoreCase(cli.get(</span><span class="s3">&quot;callback&quot;</span><span class="s1">)))) contacts.requestCallback();</span>
+<a name="l462"><span class="ln">462  </span></a>        <span class="s1">contacts.snapshot();</span>
+<a name="l463"><span class="ln">463  </span></a>
+<a name="l464"><span class="ln">464  </span></a>        <span class="s2">// Route/Units</span>
+<a name="l465"><span class="ln">465  </span></a>        <span class="s1">String zoneArg = cli.get(</span><span class="s3">&quot;zone&quot;</span><span class="s1">);</span>
+<a name="l466"><span class="ln">466  </span></a>        <span class="s0">long </span><span class="s1">units = parseLong(cli.getOrDefault(</span><span class="s3">&quot;units&quot;</span><span class="s1">,</span><span class="s3">&quot;10000000000&quot;</span><span class="s1">), </span><span class="s4">10_000_000_000L</span><span class="s1">);</span>
+<a name="l467"><span class="ln">467  </span></a>
+<a name="l468"><span class="ln">468  </span></a>        <span class="s0">try</span><span class="s1">(Engine engine = </span><span class="s0">new </span><span class="s1">Engine(flags, router, contacts)){</span>
+<a name="l469"><span class="ln">469  </span></a>            <span class="s2">// Wallets vom Engine ersetzen (Router wurde mit lokalen Wallets erzeugt – hier angleichen)</span>
+<a name="l470"><span class="ln">470  </span></a>            <span class="s1">engine.wOwner.credit(wOwner.bal(), </span><span class="s3">&quot;sync&quot;</span><span class="s1">); </span><span class="s2">// 0 beim Start</span>
+<a name="l471"><span class="ln">471  </span></a>            <span class="s1">engine.wOps.credit(wOps.bal(), </span><span class="s3">&quot;sync&quot;</span><span class="s1">);</span>
+<a name="l472"><span class="ln">472  </span></a>            <span class="s1">engine.wAid.credit(wAid.bal(), </span><span class="s3">&quot;sync&quot;</span><span class="s1">);</span>
+<a name="l473"><span class="ln">473  </span></a>            <span class="s2">// Router zeigt auf Engine-Wallets? (einfachheitshalber belassen – Router nutzt seine eigenen,</span>
+<a name="l474"><span class="ln">474  </span></a>            <span class="s2">// für reale Nutzung könnte man den Router in Engine konstruieren.)</span>
+<a name="l475"><span class="ln">475  </span></a>
+<a name="l476"><span class="ln">476  </span></a>            <span class="s1">engine.start(zoneArg, units);</span>
+<a name="l477"><span class="ln">477  </span></a>            <span class="s1">LOG.info(</span><span class="s3">&quot;Engine läuft. Ctrl+C zum Beenden. Snapshots in ./data/state.json&quot;</span><span class="s1">);</span>
+<a name="l478"><span class="ln">478  </span></a>
+<a name="l479"><span class="ln">479  </span></a>            <span class="s1">Runtime.getRuntime().addShutdownHook(</span><span class="s0">new </span><span class="s1">Thread(()-&gt;{</span>
+<a name="l480"><span class="ln">480  </span></a>                <span class="s0">try</span><span class="s1">{ engine.close(); }</span><span class="s0">catch</span><span class="s1">(Exception ignored){}</span>
+<a name="l481"><span class="ln">481  </span></a>                <span class="s1">System.out.println(</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">Shutdown ok.&quot;</span><span class="s1">);</span>
+<a name="l482"><span class="ln">482  </span></a>            <span class="s1">}));</span>
+<a name="l483"><span class="ln">483  </span></a>            <span class="s1">Thread.currentThread().join();</span>
+<a name="l484"><span class="ln">484  </span></a>        <span class="s1">}</span>
+<a name="l485"><span class="ln">485  </span></a>    <span class="s1">}</span>
+<a name="l486"><span class="ln">486  </span></a><span class="s1">}</span>
+<a name="l487"><span class="ln">487  </span></a></pre>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<html>
+<head>
+<title>nurxr-hub.html</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #afb9c3;}
+.s1 { color: #ffc86e;}
+.s2 { color: #ff9696;}
+.s3 { color: #96be78;}
+.s4 { color: #36beff;}
+.s5 { color: #17bbdd;}
+.s6 { color: #c88cdc;}
+.s7 { color: #61afe1;}
+.s8 { color: #808080;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+nurxr-hub.html</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">&lt;!doctype </span><span class="s1">html</span><span class="s0">&gt;</span>
+<a name="l2"><span class="ln">2    </span></a><span class="s0">&lt;</span><span class="s2">html </span><span class="s1">lang</span><span class="s3">=&quot;de&quot;</span><span class="s0">&gt;</span>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">&lt;</span><span class="s2">head</span><span class="s0">&gt;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">&lt;</span><span class="s2">meta </span><span class="s1">charset</span><span class="s3">=&quot;utf-8&quot;</span><span class="s0">&gt;</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">&lt;</span><span class="s2">meta </span><span class="s1">name</span><span class="s3">=&quot;viewport&quot; </span><span class="s1">content</span><span class="s3">=&quot;width=device-width,initial-scale=1&quot;</span><span class="s0">&gt;</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">&lt;</span><span class="s2">title</span><span class="s0">&gt;NurXR Hub&lt;/</span><span class="s2">title</span><span class="s0">&gt;</span>
+<a name="l7"><span class="ln">7    </span></a><span class="s0">&lt;</span><span class="s2">style</span><span class="s0">&gt;</span>
+<a name="l8"><span class="ln">8    </span></a>  <span class="s2">html</span><span class="s0">,</span><span class="s2">body</span><span class="s0">{</span><span class="s1">margin</span><span class="s0">:</span><span class="s4">0</span><span class="s0">;</span><span class="s1">height</span><span class="s0">:</span><span class="s4">100</span><span class="s0">%;</span><span class="s1">background</span><span class="s0">:</span><span class="s5">#000</span><span class="s0">;</span><span class="s1">color</span><span class="s0">:</span><span class="s5">#eee</span><span class="s0">;</span><span class="s1">font-family</span><span class="s0">:system-ui,Arial}</span>
+<a name="l9"><span class="ln">9    </span></a>  <span class="s2">header</span><span class="s0">{</span><span class="s1">padding</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px </span><span class="s4">12</span><span class="s0">px;</span><span class="s1">background</span><span class="s0">:</span><span class="s5">#111</span><span class="s0">;</span><span class="s1">display</span><span class="s0">:flex;</span><span class="s1">gap</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px;</span><span class="s1">align-items</span><span class="s0">:center;</span><span class="s1">flex-wrap</span><span class="s0">:wrap}</span>
+<a name="l10"><span class="ln">10   </span></a>  <span class="s2">header h1</span><span class="s0">{</span><span class="s1">font-size</span><span class="s0">:</span><span class="s4">16</span><span class="s0">px;</span><span class="s1">margin</span><span class="s0">:</span><span class="s4">0 8</span><span class="s0">px </span><span class="s4">0 0</span><span class="s0">}</span>
+<a name="l11"><span class="ln">11   </span></a>  <span class="s2">header button</span><span class="s0">, </span><span class="s2">header select</span><span class="s0">{</span><span class="s1">background</span><span class="s0">:</span><span class="s5">#181818</span><span class="s0">;</span><span class="s1">color</span><span class="s0">:</span><span class="s5">#eee</span><span class="s0">;</span><span class="s1">border</span><span class="s0">:</span><span class="s4">1</span><span class="s0">px solid </span><span class="s5">#333</span><span class="s0">;</span><span class="s1">border-radius</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px;</span><span class="s1">padding</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px </span><span class="s4">10</span><span class="s0">px}</span>
+<a name="l12"><span class="ln">12   </span></a>  <span class="s2">main</span><span class="s0">{</span><span class="s1">position</span><span class="s0">:fixed;</span><span class="s1">top</span><span class="s0">:</span><span class="s4">48</span><span class="s0">px;</span><span class="s1">left</span><span class="s0">:</span><span class="s4">0</span><span class="s0">;</span><span class="s1">right</span><span class="s0">:</span><span class="s4">0</span><span class="s0">;</span><span class="s1">bottom</span><span class="s0">:</span><span class="s4">0</span><span class="s0">;</span><span class="s1">display</span><span class="s0">:grid;</span><span class="s1">grid-template-columns</span><span class="s0">:</span><span class="s4">1</span><span class="s0">fr </span><span class="s4">1</span><span class="s0">fr;</span><span class="s1">gap</span><span class="s0">:</span><span class="s4">2</span><span class="s0">px}</span>
+<a name="l13"><span class="ln">13   </span></a>  <span class="s2">iframe</span><span class="s0">{</span><span class="s1">width</span><span class="s0">:</span><span class="s4">100</span><span class="s0">%;</span><span class="s1">height</span><span class="s0">:</span><span class="s4">100</span><span class="s0">%;</span><span class="s1">border</span><span class="s0">:</span><span class="s4">0</span><span class="s0">;</span><span class="s1">background</span><span class="s0">:</span><span class="s5">#000</span><span class="s0">}</span>
+<a name="l14"><span class="ln">14   </span></a>  <span class="s6">@media</span><span class="s0">(</span><span class="s1">max-width</span><span class="s0">:</span><span class="s4">900</span><span class="s0">px){ </span><span class="s2">main</span><span class="s0">{</span><span class="s1">grid-template-columns</span><span class="s0">:</span><span class="s4">1</span><span class="s0">fr;</span><span class="s1">grid-template-rows</span><span class="s0">:</span><span class="s4">1</span><span class="s0">fr </span><span class="s4">1</span><span class="s0">fr} }</span>
+<a name="l15"><span class="ln">15   </span></a>  <span class="s7">#log</span><span class="s0">{</span><span class="s1">position</span><span class="s0">:fixed;</span><span class="s1">left</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px;</span><span class="s1">bottom</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px;</span><span class="s1">font-size</span><span class="s0">:</span><span class="s4">12</span><span class="s0">px;</span><span class="s1">opacity</span><span class="s0">:</span><span class="s4">.7</span><span class="s0">;</span><span class="s1">pointer-events</span><span class="s0">:none;</span><span class="s1">max-width</span><span class="s0">:</span><span class="s4">70</span><span class="s0">vw;</span><span class="s1">white-space</span><span class="s0">:pre-line}</span>
+<a name="l16"><span class="ln">16   </span></a><span class="s0">&lt;/</span><span class="s2">style</span><span class="s0">&gt;</span>
+<a name="l17"><span class="ln">17   </span></a><span class="s0">&lt;/</span><span class="s2">head</span><span class="s0">&gt;</span>
+<a name="l18"><span class="ln">18   </span></a><span class="s0">&lt;</span><span class="s2">body</span><span class="s0">&gt;</span>
+<a name="l19"><span class="ln">19   </span></a><span class="s0">&lt;</span><span class="s2">header</span><span class="s0">&gt;</span>
+<a name="l20"><span class="ln">20   </span></a>  <span class="s0">&lt;</span><span class="s2">h1</span><span class="s0">&gt;NurXR Hub&lt;/</span><span class="s2">h1</span><span class="s0">&gt;</span>
+<a name="l21"><span class="ln">21   </span></a>  <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;btnSyncMapToAR&quot;</span><span class="s0">&gt;Ziel von Karte → AR&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l22"><span class="ln">22   </span></a>  <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;btnSyncARToMap&quot;</span><span class="s0">&gt;AR Standort → Karte&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l23"><span class="ln">23   </span></a>  <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;btnEco&quot;</span><span class="s0">&gt;Eco an&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l24"><span class="ln">24   </span></a>  <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;btnVision&quot;</span><span class="s0">&gt;Vision&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l25"><span class="ln">25   </span></a>  <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;btnLog&quot;</span><span class="s0">&gt;Log an&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l26"><span class="ln">26   </span></a>  <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;btnDump&quot;</span><span class="s0">&gt;Dump&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l27"><span class="ln">27   </span></a>  <span class="s0">&lt;</span><span class="s2">select </span><span class="s1">id</span><span class="s3">=&quot;layout&quot;</span><span class="s0">&gt;</span>
+<a name="l28"><span class="ln">28   </span></a>    <span class="s0">&lt;</span><span class="s2">option </span><span class="s1">value</span><span class="s3">=&quot;split&quot;</span><span class="s0">&gt;Split&lt;/</span><span class="s2">option</span><span class="s0">&gt;</span>
+<a name="l29"><span class="ln">29   </span></a>    <span class="s0">&lt;</span><span class="s2">option </span><span class="s1">value</span><span class="s3">=&quot;stack&quot;</span><span class="s0">&gt;Übereinander&lt;/</span><span class="s2">option</span><span class="s0">&gt;</span>
+<a name="l30"><span class="ln">30   </span></a>  <span class="s0">&lt;/</span><span class="s2">select</span><span class="s0">&gt;</span>
+<a name="l31"><span class="ln">31   </span></a>  <span class="s0">&lt;</span><span class="s2">span </span><span class="s1">id</span><span class="s3">=&quot;pf&quot; </span><span class="s1">style</span><span class="s3">=&quot;</span><span class="s1">margin-left</span><span class="s0">:auto;</span><span class="s1">color</span><span class="s0">:</span><span class="s5">#0f0</span><span class="s0">;</span><span class="s1">font</span><span class="s0">:</span><span class="s4">12</span><span class="s0">px monospace</span><span class="s3">&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">span</span><span class="s0">&gt;</span>
+<a name="l32"><span class="ln">32   </span></a><span class="s0">&lt;/</span><span class="s2">header</span><span class="s0">&gt;</span>
+<a name="l33"><span class="ln">33   </span></a><span class="s0">&lt;</span><span class="s2">main </span><span class="s1">id</span><span class="s3">=&quot;layoutRoot&quot;</span><span class="s0">&gt;</span>
+<a name="l34"><span class="ln">34   </span></a>  <span class="s0">&lt;</span><span class="s2">iframe </span><span class="s1">id</span><span class="s3">=&quot;frameAR&quot; </span><span class="s1">src</span><span class="s3">=&quot;ar.html&quot;</span>
+<a name="l35"><span class="ln">35   </span></a>    <span class="s1">allow</span><span class="s3">=&quot;camera; microphone; accelerometer; gyroscope; magnetometer; fullscreen&quot;</span>
+<a name="l36"><span class="ln">36   </span></a>    <span class="s1">referrerpolicy</span><span class="s3">=&quot;no-referrer&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">iframe</span><span class="s0">&gt;</span>
+<a name="l37"><span class="ln">37   </span></a>  <span class="s0">&lt;</span><span class="s2">iframe </span><span class="s1">id</span><span class="s3">=&quot;frameMap&quot; </span><span class="s1">src</span><span class="s3">=&quot;map.html&quot;</span>
+<a name="l38"><span class="ln">38   </span></a>    <span class="s1">allow</span><span class="s3">=&quot;geolocation; fullscreen&quot;</span>
+<a name="l39"><span class="ln">39   </span></a>    <span class="s1">referrerpolicy</span><span class="s3">=&quot;no-referrer&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">iframe</span><span class="s0">&gt;</span>
+<a name="l40"><span class="ln">40   </span></a><span class="s0">&lt;/</span><span class="s2">main</span><span class="s0">&gt;</span>
+<a name="l41"><span class="ln">41   </span></a><span class="s0">&lt;</span><span class="s2">iframe </span><span class="s1">id</span><span class="s3">=&quot;frameVision&quot; </span><span class="s1">src</span><span class="s3">=&quot;vision.html&quot; </span><span class="s1">style</span><span class="s3">=&quot;</span><span class="s1">display</span><span class="s0">:none; </span><span class="s1">position</span><span class="s0">:fixed; </span><span class="s1">right</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px; </span><span class="s1">bottom</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px; </span><span class="s1">width</span><span class="s0">:</span><span class="s4">320</span><span class="s0">px; </span><span class="s1">height</span><span class="s0">:</span><span class="s4">240</span><span class="s0">px; </span><span class="s1">border</span><span class="s0">:</span><span class="s4">0</span><span class="s0">; </span><span class="s1">z-index</span><span class="s0">:</span><span class="s4">9999</span><span class="s3">&quot; </span><span class="s1">allow</span><span class="s3">=&quot;camera; microphone&quot; </span><span class="s1">referrerpolicy</span><span class="s3">=&quot;no-referrer&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">iframe</span><span class="s0">&gt;</span>
+<a name="l42"><span class="ln">42   </span></a><span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;log&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l43"><span class="ln">43   </span></a><span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;pf&quot; </span><span class="s1">style</span><span class="s3">=&quot;</span><span class="s1">position</span><span class="s0">:fixed;</span><span class="s1">right</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px;</span><span class="s1">top</span><span class="s0">:</span><span class="s4">8</span><span class="s0">px;</span><span class="s1">color</span><span class="s0">:</span><span class="s5">#0f0</span><span class="s0">;</span><span class="s1">font</span><span class="s0">:</span><span class="s4">12</span><span class="s0">px monospace</span><span class="s3">&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l44"><span class="ln">44   </span></a>
+<a name="l45"><span class="ln">45   </span></a><span class="s0">&lt;</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l46"><span class="ln">46   </span></a><span class="s0">(</span><span class="s6">function</span><span class="s0">(){</span>
+<a name="l47"><span class="ln">47   </span></a>  <span class="s6">const </span><span class="s0">frameAR  = document.getElementById(</span><span class="s3">'frameAR'</span><span class="s0">);</span>
+<a name="l48"><span class="ln">48   </span></a>  <span class="s6">const </span><span class="s0">frameMap = document.getElementById(</span><span class="s3">'frameMap'</span><span class="s0">);</span>
+<a name="l49"><span class="ln">49   </span></a>  <span class="s6">const </span><span class="s0">logEl    = document.getElementById(</span><span class="s3">'log'</span><span class="s0">);</span>
+<a name="l50"><span class="ln">50   </span></a>
+<a name="l51"><span class="ln">51   </span></a>  <span class="s6">let </span><span class="s0">lastMapTarget = </span><span class="s6">null</span><span class="s0">;   </span><span class="s8">// {lat,lng}</span>
+<a name="l52"><span class="ln">52   </span></a>  <span class="s6">let </span><span class="s0">lastARPosition = </span><span class="s6">null</span><span class="s0">;  </span><span class="s8">// {lat,lng,acc}</span>
+<a name="l53"><span class="ln">53   </span></a>
+<a name="l54"><span class="ln">54   </span></a>  <span class="s6">function </span><span class="s0">log(msg){ logEl.textContent = String(msg) }</span>
+<a name="l55"><span class="ln">55   </span></a>
+<a name="l56"><span class="ln">56   </span></a>  <span class="s8">// Nachrichten von Frames entgegennehmen und puffern</span>
+<a name="l57"><span class="ln">57   </span></a>  <span class="s0">window.addEventListener(</span><span class="s3">'message'</span><span class="s0">, ev =&gt; {</span>
+<a name="l58"><span class="ln">58   </span></a>    <span class="s6">const </span><span class="s0">m = ev.data || {};</span>
+<a name="l59"><span class="ln">59   </span></a>    <span class="s8">// Von map.html: Zielpunkt gewählt</span>
+<a name="l60"><span class="ln">60   </span></a>    <span class="s6">if </span><span class="s0">(m.type === </span><span class="s3">'map:setTarget'</span><span class="s0">){</span>
+<a name="l61"><span class="ln">61   </span></a>      <span class="s0">lastMapTarget = {lat:m.lat, lng:m.lng};</span>
+<a name="l62"><span class="ln">62   </span></a>      <span class="s6">try </span><span class="s0">{ frameAR.contentWindow.postMessage({type:</span><span class="s3">'hub:setTarget'</span><span class="s0">, lat:m.lat, lng:m.lng}, </span><span class="s3">'*'</span><span class="s0">); } </span><span class="s6">catch</span><span class="s0">(_){}</span>
+<a name="l63"><span class="ln">63   </span></a>      <span class="s0">log(</span><span class="s3">'Ziel von Karte empfangen und an AR gesendet'</span><span class="s0">);</span>
+<a name="l64"><span class="ln">64   </span></a>    <span class="s0">}</span>
+<a name="l65"><span class="ln">65   </span></a>    <span class="s8">// Von ar.html: aktuelle Position oder Status</span>
+<a name="l66"><span class="ln">66   </span></a>    <span class="s6">if </span><span class="s0">(m.type === </span><span class="s3">'ar:position'</span><span class="s0">){</span>
+<a name="l67"><span class="ln">67   </span></a>      <span class="s0">lastARPosition = {lat:m.lat, lng:m.lng, acc:m.acc||</span><span class="s6">null</span><span class="s0">};</span>
+<a name="l68"><span class="ln">68   </span></a>    <span class="s0">}</span>
+<a name="l69"><span class="ln">69   </span></a>    <span class="s6">if </span><span class="s0">(m.type === </span><span class="s3">'ar:status'</span><span class="s0">){</span>
+<a name="l70"><span class="ln">70   </span></a>      <span class="s0">log(</span><span class="s3">'AR Status ' </span><span class="s0">+ m.msg);</span>
+<a name="l71"><span class="ln">71   </span></a>    <span class="s0">}</span>
+<a name="l72"><span class="ln">72   </span></a>  <span class="s0">});</span>
+<a name="l73"><span class="ln">73   </span></a>
+<a name="l74"><span class="ln">74   </span></a>  <span class="s0">document.getElementById(</span><span class="s3">'btnSyncMapToAR'</span><span class="s0">).onclick = ()=&gt;{</span>
+<a name="l75"><span class="ln">75   </span></a>    <span class="s6">if </span><span class="s0">(!lastMapTarget){ log(</span><span class="s3">'Kein Kartenziel gesetzt'</span><span class="s0">); </span><span class="s6">return</span><span class="s0">; }</span>
+<a name="l76"><span class="ln">76   </span></a>    <span class="s6">try </span><span class="s0">{ frameAR.contentWindow.postMessage({type:</span><span class="s3">'hub:setTarget'</span><span class="s0">, ...lastMapTarget}, </span><span class="s3">'*'</span><span class="s0">); } </span><span class="s6">catch</span><span class="s0">(_){}</span>
+<a name="l77"><span class="ln">77   </span></a>    <span class="s0">log(</span><span class="s3">'Ziel erneut an AR übergeben'</span><span class="s0">);</span>
+<a name="l78"><span class="ln">78   </span></a>  <span class="s0">};</span>
+<a name="l79"><span class="ln">79   </span></a>
+<a name="l80"><span class="ln">80   </span></a>  <span class="s0">document.getElementById(</span><span class="s3">'btnSyncARToMap'</span><span class="s0">).onclick = ()=&gt;{</span>
+<a name="l81"><span class="ln">81   </span></a>    <span class="s6">if </span><span class="s0">(!lastARPosition){ log(</span><span class="s3">'Keine AR Positionsdaten'</span><span class="s0">); </span><span class="s6">return</span><span class="s0">; }</span>
+<a name="l82"><span class="ln">82   </span></a>    <span class="s6">try </span><span class="s0">{ frameMap.contentWindow.postMessage({type:</span><span class="s3">'hub:centerOn'</span><span class="s0">, lat:lastARPosition.lat, lng:lastARPosition.lng}, </span><span class="s3">'*'</span><span class="s0">); } </span><span class="s6">catch</span><span class="s0">(_){}</span>
+<a name="l83"><span class="ln">83   </span></a>    <span class="s0">log(</span><span class="s3">'AR Position an Karte gesendet'</span><span class="s0">);</span>
+<a name="l84"><span class="ln">84   </span></a>  <span class="s0">};</span>
+<a name="l85"><span class="ln">85   </span></a>
+<a name="l86"><span class="ln">86   </span></a>  <span class="s8">// Layoutumschalter</span>
+<a name="l87"><span class="ln">87   </span></a>  <span class="s6">const </span><span class="s0">root = document.getElementById(</span><span class="s3">'layoutRoot'</span><span class="s0">);</span>
+<a name="l88"><span class="ln">88   </span></a>  <span class="s0">document.getElementById(</span><span class="s3">'layout'</span><span class="s0">).onchange = (e)=&gt;{</span>
+<a name="l89"><span class="ln">89   </span></a>    <span class="s6">const </span><span class="s0">v = e.target.value;</span>
+<a name="l90"><span class="ln">90   </span></a>    <span class="s6">if </span><span class="s0">(v === </span><span class="s3">'split'</span><span class="s0">){</span>
+<a name="l91"><span class="ln">91   </span></a>      <span class="s0">root.style.gridTemplateColumns = </span><span class="s3">'1fr 1fr'</span><span class="s0">;</span>
+<a name="l92"><span class="ln">92   </span></a>      <span class="s0">root.style.gridTemplateRows = </span><span class="s3">'auto'</span><span class="s0">;</span>
+<a name="l93"><span class="ln">93   </span></a>    <span class="s0">} </span><span class="s6">else </span><span class="s0">{</span>
+<a name="l94"><span class="ln">94   </span></a>      <span class="s0">root.style.gridTemplateColumns = </span><span class="s3">'1fr'</span><span class="s0">;</span>
+<a name="l95"><span class="ln">95   </span></a>      <span class="s0">root.style.gridTemplateRows = </span><span class="s3">'1fr 1fr'</span><span class="s0">;</span>
+<a name="l96"><span class="ln">96   </span></a>    <span class="s0">}</span>
+<a name="l97"><span class="ln">97   </span></a>  <span class="s0">};</span>
+<a name="l98"><span class="ln">98   </span></a><span class="s0">})();</span>
+<a name="l99"><span class="ln">99   </span></a><span class="s0">&lt;/</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l100"><span class="ln">100  </span></a><span class="s0">&lt;/</span><span class="s2">body</span><span class="s0">&gt;</span>
+<a name="l101"><span class="ln">101  </span></a><span class="s0">&lt;/</span><span class="s2">html</span><span class="s0">&gt;</span>
+<a name="l102"><span class="ln">102  </span></a>
+<a name="l103"><span class="ln">103  </span></a><span class="s0">&lt;</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l104"><span class="ln">104  </span></a><span class="s8">// Vision toggle, logging, dump, and FPS meter</span>
+<a name="l105"><span class="ln">105  </span></a><span class="s0">(</span><span class="s6">function</span><span class="s0">(){</span>
+<a name="l106"><span class="ln">106  </span></a>  <span class="s6">const </span><span class="s0">frameVision = document.getElementById(</span><span class="s3">'frameVision'</span><span class="s0">);</span>
+<a name="l107"><span class="ln">107  </span></a>  <span class="s6">const </span><span class="s0">btnVision = document.getElementById(</span><span class="s3">'btnVision'</span><span class="s0">);</span>
+<a name="l108"><span class="ln">108  </span></a>  <span class="s6">const </span><span class="s0">btnLog = document.getElementById(</span><span class="s3">'btnLog'</span><span class="s0">);</span>
+<a name="l109"><span class="ln">109  </span></a>  <span class="s6">const </span><span class="s0">btnDump = document.getElementById(</span><span class="s3">'btnDump'</span><span class="s0">);</span>
+<a name="l110"><span class="ln">110  </span></a>  <span class="s6">const </span><span class="s0">pf = document.getElementById(</span><span class="s3">'pf'</span><span class="s0">);</span>
+<a name="l111"><span class="ln">111  </span></a>
+<a name="l112"><span class="ln">112  </span></a>  <span class="s6">let </span><span class="s0">lastVision = </span><span class="s6">null</span><span class="s0">;</span>
+<a name="l113"><span class="ln">113  </span></a>  <span class="s6">let </span><span class="s0">logging = </span><span class="s6">false</span><span class="s0">;</span>
+<a name="l114"><span class="ln">114  </span></a>  <span class="s6">let </span><span class="s0">logBuf = [];</span>
+<a name="l115"><span class="ln">115  </span></a>  <span class="s6">let </span><span class="s0">lastSensorTs = Date.now();</span>
+<a name="l116"><span class="ln">116  </span></a>
+<a name="l117"><span class="ln">117  </span></a>  <span class="s8">// Toggle vision iframe visibility</span>
+<a name="l118"><span class="ln">118  </span></a>  <span class="s6">if </span><span class="s0">(btnVision){</span>
+<a name="l119"><span class="ln">119  </span></a>    <span class="s0">btnVision.onclick = ()=&gt;{</span>
+<a name="l120"><span class="ln">120  </span></a>      <span class="s6">if </span><span class="s0">(!frameVision) </span><span class="s6">return</span><span class="s0">;</span>
+<a name="l121"><span class="ln">121  </span></a>      <span class="s6">const </span><span class="s0">isHidden = frameVision.style.display === </span><span class="s3">'none' </span><span class="s0">|| !frameVision.style.display;</span>
+<a name="l122"><span class="ln">122  </span></a>      <span class="s0">frameVision.style.display = isHidden ? </span><span class="s3">'block' </span><span class="s0">: </span><span class="s3">'none'</span><span class="s0">;</span>
+<a name="l123"><span class="ln">123  </span></a>    <span class="s0">};</span>
+<a name="l124"><span class="ln">124  </span></a>  <span class="s0">}</span>
+<a name="l125"><span class="ln">125  </span></a>
+<a name="l126"><span class="ln">126  </span></a>  <span class="s8">// Logging controls</span>
+<a name="l127"><span class="ln">127  </span></a>  <span class="s6">if </span><span class="s0">(btnLog){</span>
+<a name="l128"><span class="ln">128  </span></a>    <span class="s0">btnLog.onclick = ()=&gt;{</span>
+<a name="l129"><span class="ln">129  </span></a>      <span class="s0">logging = !logging;</span>
+<a name="l130"><span class="ln">130  </span></a>      <span class="s0">logBuf.length = </span><span class="s4">0</span><span class="s0">;</span>
+<a name="l131"><span class="ln">131  </span></a>      <span class="s0">btnLog.textContent = logging ? </span><span class="s3">'Log aus' </span><span class="s0">: </span><span class="s3">'Log an'</span><span class="s0">;</span>
+<a name="l132"><span class="ln">132  </span></a>    <span class="s0">};</span>
+<a name="l133"><span class="ln">133  </span></a>  <span class="s0">}</span>
+<a name="l134"><span class="ln">134  </span></a>  <span class="s6">if </span><span class="s0">(btnDump){</span>
+<a name="l135"><span class="ln">135  </span></a>    <span class="s0">btnDump.onclick = ()=&gt;{</span>
+<a name="l136"><span class="ln">136  </span></a>      <span class="s6">try</span><span class="s0">{</span>
+<a name="l137"><span class="ln">137  </span></a>        <span class="s6">const </span><span class="s0">blob = </span><span class="s6">new </span><span class="s0">Blob([JSON.stringify(logBuf)], { type:</span><span class="s3">'application/json' </span><span class="s0">});</span>
+<a name="l138"><span class="ln">138  </span></a>        <span class="s6">const </span><span class="s0">a = document.createElement(</span><span class="s3">'a'</span><span class="s0">); a.href = URL.createObjectURL(blob); a.download = </span><span class="s3">'telemetry.json'</span><span class="s0">; a.click(); URL.revokeObjectURL(a.href);</span>
+<a name="l139"><span class="ln">139  </span></a>      <span class="s0">}</span><span class="s6">catch</span><span class="s0">(e){ alert(</span><span class="s3">'Dump fehlgeschlagen'</span><span class="s0">); }</span>
+<a name="l140"><span class="ln">140  </span></a>    <span class="s0">};</span>
+<a name="l141"><span class="ln">141  </span></a>  <span class="s0">}</span>
+<a name="l142"><span class="ln">142  </span></a>
+<a name="l143"><span class="ln">143  </span></a>  <span class="s8">// Message handling (vision + optional sensors/learn stats)</span>
+<a name="l144"><span class="ln">144  </span></a>  <span class="s0">window.addEventListener(</span><span class="s3">'message'</span><span class="s0">, (ev)=&gt;{</span>
+<a name="l145"><span class="ln">145  </span></a>    <span class="s6">const </span><span class="s0">m = ev.data || {};</span>
+<a name="l146"><span class="ln">146  </span></a>    <span class="s6">if </span><span class="s0">(m &amp;&amp; m.type === </span><span class="s3">'vision:blob'</span><span class="s0">){</span>
+<a name="l147"><span class="ln">147  </span></a>      <span class="s0">lastVision = m.payload || m; </span><span class="s8">// tolerate {payload:{...}} or flat</span>
+<a name="l148"><span class="ln">148  </span></a>    <span class="s0">}</span>
+<a name="l149"><span class="ln">149  </span></a>    <span class="s6">if </span><span class="s0">(m &amp;&amp; m.type === </span><span class="s3">'hal:sensors'</span><span class="s0">){</span>
+<a name="l150"><span class="ln">150  </span></a>      <span class="s0">lastSensorTs = Date.now();</span>
+<a name="l151"><span class="ln">151  </span></a>    <span class="s0">}</span>
+<a name="l152"><span class="ln">152  </span></a>    <span class="s6">if </span><span class="s0">(logging &amp;&amp; m &amp;&amp; (m.type === </span><span class="s3">'hal:sensors' </span><span class="s0">|| m.type === </span><span class="s3">'learn:stats' </span><span class="s0">|| m.type === </span><span class="s3">'vision:blob'</span><span class="s0">)){</span>
+<a name="l153"><span class="ln">153  </span></a>      <span class="s0">logBuf.push({ t: Date.now(), type: m.type, payload: m.payload ?? m });</span>
+<a name="l154"><span class="ln">154  </span></a>      <span class="s6">if </span><span class="s0">(logBuf.length &gt; </span><span class="s4">10000</span><span class="s0">) logBuf.shift();</span>
+<a name="l155"><span class="ln">155  </span></a>    <span class="s0">}</span>
+<a name="l156"><span class="ln">156  </span></a>  <span class="s0">});</span>
+<a name="l157"><span class="ln">157  </span></a>
+<a name="l158"><span class="ln">158  </span></a>  <span class="s8">// Watchdog (no-op here if no sim frame exists)</span>
+<a name="l159"><span class="ln">159  </span></a>  <span class="s0">setInterval(()=&gt;{</span>
+<a name="l160"><span class="ln">160  </span></a>    <span class="s6">if </span><span class="s0">(Date.now() - lastSensorTs &gt; </span><span class="s4">1500</span><span class="s0">){</span>
+<a name="l161"><span class="ln">161  </span></a>      <span class="s8">// If a simulation iframe/window is available as simWin, you could reset:</span>
+<a name="l162"><span class="ln">162  </span></a>      <span class="s8">// try { bus.post(simWin, 'sim:reset', {}); } catch(_){}</span>
+<a name="l163"><span class="ln">163  </span></a>      <span class="s0">lastSensorTs = Date.now();</span>
+<a name="l164"><span class="ln">164  </span></a>    <span class="s0">}</span>
+<a name="l165"><span class="ln">165  </span></a>  <span class="s0">}, </span><span class="s4">800</span><span class="s0">);</span>
+<a name="l166"><span class="ln">166  </span></a>
+<a name="l167"><span class="ln">167  </span></a>  <span class="s8">// Simple FPS meter (hub-level render loop)</span>
+<a name="l168"><span class="ln">168  </span></a>  <span class="s6">try</span><span class="s0">{</span>
+<a name="l169"><span class="ln">169  </span></a>    <span class="s6">let </span><span class="s0">fCnt = </span><span class="s4">0</span><span class="s0">; </span><span class="s6">let </span><span class="s0">t0 = performance.now();</span>
+<a name="l170"><span class="ln">170  </span></a>    <span class="s0">(</span><span class="s6">function </span><span class="s0">loop(){</span>
+<a name="l171"><span class="ln">171  </span></a>      <span class="s0">fCnt++;</span>
+<a name="l172"><span class="ln">172  </span></a>      <span class="s6">const </span><span class="s0">now = performance.now();</span>
+<a name="l173"><span class="ln">173  </span></a>      <span class="s6">if </span><span class="s0">(now - t0 &gt; </span><span class="s4">1000</span><span class="s0">){</span>
+<a name="l174"><span class="ln">174  </span></a>        <span class="s6">if </span><span class="s0">(pf) pf.textContent = </span><span class="s3">'fps ' </span><span class="s0">+ fCnt;</span>
+<a name="l175"><span class="ln">175  </span></a>        <span class="s0">fCnt = </span><span class="s4">0</span><span class="s0">; t0 = now;</span>
+<a name="l176"><span class="ln">176  </span></a>      <span class="s0">}</span>
+<a name="l177"><span class="ln">177  </span></a>      <span class="s0">requestAnimationFrame(loop);</span>
+<a name="l178"><span class="ln">178  </span></a>    <span class="s0">})();</span>
+<a name="l179"><span class="ln">179  </span></a>  <span class="s0">}</span><span class="s6">catch</span><span class="s0">(_){}</span>
+<a name="l180"><span class="ln">180  </span></a><span class="s0">})();</span>
+<a name="l181"><span class="ln">181  </span></a><span class="s0">&lt;/</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l182"><span class="ln">182  </span></a></pre>
+</body>
+</html>

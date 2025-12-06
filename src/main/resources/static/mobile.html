@@ -1,0 +1,728 @@
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🛡️ NurSystem Mobile</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #fff;
+            overflow-x: hidden;
+            touch-action: pan-y;
+        }
+
+        /* Login Screen */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        #loginScreen.hidden {
+            display: none;
+        }
+
+        .login-logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .login-title {
+            font-size: 2rem;
+            color: #00ff88;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .login-subtitle {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .login-form {
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00ff88, #00cc6e);
+            border: none;
+            border-radius: 10px;
+            color: #0a0e27;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .login-hint {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #888;
+            text-align: center;
+        }
+
+        /* Main App */
+        #app {
+            display: none;
+            padding-bottom: 80px;
+        }
+
+        #app.active {
+            display: block;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #00ff88;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            background: rgba(0, 255, 136, 0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            border: 1px solid #00ff88;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .metric-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            color: #00ff88;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* 3D Canvas */
+        .canvas-container {
+            margin: 15px;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #droneCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        /* Charts */
+        .chart-container {
+            margin: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .chart-title {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .chart-canvas {
+            height: 200px;
+        }
+
+        /* Action Buttons */
+        .action-section {
+            padding: 15px;
+        }
+
+        .action-title {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00ff88, #00cc6e);
+            border: none;
+            border-radius: 10px;
+            color: #0a0e27;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff0044, #cc0033);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #0088ff, #0066cc);
+            color: white;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 14, 39, 0.98);
+            backdrop-filter: blur(10px);
+            border-top: 2px solid #00ff88;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            color: #888;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: #00ff88;
+        }
+
+        .nav-item .icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Log */
+        .log-container {
+            margin: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid #00ff88;
+            padding-left: 10px;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff0044;
+            color: #ff6688;
+        }
+
+        .log-entry.info {
+            border-left-color: #0088ff;
+            color: #66aaff;
+        }
+    </style>
+</head>
+<body>
+<!-- Login Screen -->
+<div id="loginScreen">
+    <div class="login-logo">🛡️</div>
+    <h1 class="login-title">NurSystem Global</h1>
+    <p class="login-subtitle">Defensive AI Command Center</p>
+
+    <form class="login-form" onsubmit="login(event)">
+        <div class="input-group">
+            <input type="text" id="username" placeholder="👤 Benutzername" required>
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="🔒 Passwort" required>
+        </div>
+        <button type="submit" class="btn-login">🚀 Einloggen</button>
+    </form>
+
+    <p class="login-hint">💡 Demo: admin / admin</p>
+</div>
+
+<!-- Main App -->
+<div id="app">
+    <!-- Header -->
+    <header class="header">
+        <h1>🛡️ NurSystem</h1>
+        <div class="status-bar">
+            <div class="status-pill">🟢 Online</div>
+            <div class="status-pill">📍 Bosnia</div>
+            <div class="status-pill">⚡ <span id="headerEnergy">2,847</span> kWh</div>
+        </div>
+    </header>
+
+    <!-- Metrics -->
+    <section class="metrics-grid">
+        <div class="metric-card" onclick="showDetail('swarm')">
+            <div class="metric-icon">🤖</div>
+            <div class="metric-value" id="swarmSize">10.0B</div>
+            <div class="metric-label">Schwarm</div>
+        </div>
+
+        <div class="metric-card" onclick="showDetail('drones')">
+            <div class="metric-icon">🚁</div>
+            <div class="metric-value" id="drones">1,247</div>
+            <div class="metric-label">Drohnen</div>
+        </div>
+
+        <div class="metric-card" onclick="showDetail('threats')">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-value" id="threats">0</div>
+            <div class="metric-label">Bedrohungen</div>
+        </div>
+
+        <div class="metric-card" onclick="showDetail('energy')">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-value" id="energy">2,847</div>
+            <div class="metric-label">kWh</div>
+        </div>
+    </section>
+
+    <!-- 3D Drone Canvas -->
+    <section class="canvas-container">
+        <canvas id="droneCanvas"></canvas>
+        <div class="canvas-overlay">
+            <div>🚁 Live-Drohnen: <span id="liveDrones">12</span></div>
+            <div>📡 Signal: <span style="color: #00ff88;">Stark</span></div>
+        </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="chart-container">
+        <h3 class="chart-title">📊 Energie-Verlauf (Live)</h3>
+        <div class="chart-canvas">
+            <canvas id="energyChart"></canvas>
+        </div>
+    </section>
+
+    <section class="chart-container">
+        <h3 class="chart-title">🛡️ Bedrohungs-Statistik</h3>
+        <div class="chart-canvas">
+            <canvas id="threatChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="action-section">
+        <h3 class="action-title">🎮 Schnell-Aktionen</h3>
+        <button class="btn" onclick="deploySwarm()">🚀 Schwarm deployen</button>
+        <button class="btn btn-info" onclick="collectEnergy()">⚡ Energie sammeln</button>
+        <button class="btn btn-danger" onclick="simulateThreat()">⚠️ Threat simulieren</button>
+    </section>
+
+    <!-- Log -->
+    <section class="log-container" id="log">
+        <div class="log-entry">✅ System gestartet</div>
+        <div class="log-entry info">📡 Satelliten verbunden</div>
+        <div class="log-entry">🤖 Schwarm bereit</div>
+    </section>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('dashboard')">
+            <span class="icon">📊</span>
+            Dashboard
+        </div>
+        <div class="nav-item" onclick="switchTab('map')">
+            <span class="icon">🗺️</span>
+            Karte
+        </div>
+        <div class="nav-item" onclick="switchTab('control')">
+            <span class="icon">🎮</span>
+            Steuerung
+        </div>
+        <div class="nav-item" onclick="switchTab('settings')">
+            <span class="icon">⚙️</span>
+            Einstellungen
+        </div>
+    </nav>
+</div>
+
+<script>
+    // ========================================
+    // GLOBAL STATE
+    // ========================================
+    let user = null;
+    let energyChart, threatChart;
+    let drones = [];
+    let animationFrame;
+
+    // ========================================
+    // LOGIN
+    // ========================================
+    function login(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // Simple auth (Demo only!)
+        if (username === 'admin' && password === 'admin') {
+            user = { username, role: 'admin' };
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('app').classList.add('active');
+            initApp();
+            addLog('✅ Login erfolgreich: ' + username, 'success');
+        } else {
+            alert('❌ Falscher Benutzername oder Passwort!\n\n💡 Demo: admin / admin');
+        }
+    }
+
+    // ========================================
+    // APP INITIALIZATION
+    // ========================================
+    function initApp() {
+        console.log('🛡️ NurSystem wird initialisiert...');
+
+        // Init Charts
+        initCharts();
+
+        // Init 3D Drones
+        init3DDrones();
+
+        // Start Live Updates
+        startLiveUpdates();
+
+        addLog('🚀 System vollständig geladen', 'success');
+    }
+
+    // ========================================
+    // CHARTS
+    // ========================================
+    function initCharts() {
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { display: false },
+                y: {
+                    ticks: { color: '#00ff88', font: { size: 10 } },
+                    grid: { color: 'rgba(0, 255, 136, 0.1)' }
+                }
+            }
+        };
+
+        // Energy Chart
+        energyChart = new Chart(document.getElementById('energyChart'), {
+            type: 'line',
+            data: {
+                labels: Array(15).fill(''),
+                datasets: [{
+                    data: Array(15).fill(0).map(() => Math.random() * 3000 + 2000),
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 2
+                }]
+            },
+            options: commonOptions
+        });
+
+        // Threat Chart
+        threatChart = new Chart(document.getElementById('threatChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Rakete', 'Laser', 'EMP', 'Virus', 'KI'],
+                datasets: [{
+                    data: [12, 5, 8, 23, 15],
+                    backgroundColor: [
+                        'rgba(255, 0, 68, 0.7)',
+                        'rgba(255, 170, 0, 0.7)',
+                        'rgba(0, 136, 255, 0.7)',
+                        'rgba(255, 0, 255, 0.7)',
+                        'rgba(136, 0, 255, 0.7)'
+                    ]
+                }]
+            },
+            options: commonOptions
+        });
+    }
+
+    // ========================================
+    // 3D DRONES ANIMATION
+    // ========================================
+    function init3DDrones() {
+        const canvas = document.getElementById('droneCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        // Generate drones
+        for (let i = 0; i < 12; i++) {
+            drones.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                size: Math.random() * 4 + 2
+            });
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drones.forEach(drone => {
+                // Update position
+                drone.x += drone.vx;
+                drone.y += drone.vy;
+
+                // Bounce off walls
+                if (drone.x < 0 || drone.x > canvas.width) drone.vx *= -1;
+                if (drone.y < 0 || drone.y > canvas.height) drone.vy *= -1;
+
+                // Draw drone
+                ctx.fillStyle = '#00ff88';
+                ctx.beginPath();
+                ctx.arc(drone.x, drone.y, drone.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw trail
+                ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(drone.x, drone.y);
+                ctx.lineTo(drone.x - drone.vx * 5, drone.y - drone.vy * 5);
+                ctx.stroke();
+            });
+
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        animate();
+    }
+
+    // ========================================
+    // LIVE UPDATES
+    // ========================================
+    function startLiveUpdates() {
+        setInterval(() => {
+            // Update energy
+            const energy = parseInt(document.getElementById('energy').textContent.replace(',', ''));
+            const newEnergy = energy + Math.floor((Math.random() - 0.5) * 100);
+            document.getElementById('energy').textContent = newEnergy.toLocaleString('de-DE');
+            document.getElementById('headerEnergy').textContent = newEnergy.toLocaleString('de-DE');
+
+            // Update chart
+            energyChart.data.datasets[0].data.shift();
+            energyChart.data.datasets[0].data.push(newEnergy);
+            energyChart.update('none');
+
+            // Random threat
+            if (Math.random() > 0.97) {
+                const threats = parseInt(document.getElementById('threats').textContent);
+                document.getElementById('threats').textContent = threats + 1;
+                addLog('⚠️ Bedrohung erkannt & blockiert', 'error');
+            }
+        }, 2000);
+    }
+
+    // ========================================
+    // USER ACTIONS
+    // ========================================
+    function deploySwarm() {
+        navigator.vibrate && navigator.vibrate(50);
+        addLog('🚀 Schwarm-Deployment gestartet', 'info');
+        setTimeout(() => {
+            document.getElementById('swarmSize').textContent = '10.1B';
+            addLog('✅ +100 Roboter deployed', 'success');
+        }, 1000);
+    }
+
+    function collectEnergy() {
+        navigator.vibrate && navigator.vibrate(50);
+        addLog('⚡ Energie-Sammlung aktiv', 'info');
+        setTimeout(() => {
+            const energy = parseInt(document.getElementById('energy').textContent.replace(',', ''));
+            document.getElementById('energy').textContent = (energy + 150).toLocaleString('de-DE');
+            addLog('✅ +150 kWh gesammelt', 'success');
+        }, 1000);
+    }
+
+    function simulateThreat() {
+        navigator.vibrate && navigator.vibrate([50, 100, 50]);
+        const threats = ['Rakete 🚀', 'Laser ⚡', 'EMP 📡', 'Virus 🦠'];
+        const threat = threats[Math.floor(Math.random() * threats.length)];
+        addLog(`⚠️ ${threat} simuliert`, 'error');
+        setTimeout(() => {
+            addLog(`🛡️ ${threat} blockiert`, 'success');
+            const count = parseInt(document.getElementById('threats').textContent);
+            document.getElementById('threats').textContent = count + 1;
+        }, 800);
+    }
+
+    function showDetail(type) {
+        navigator.vibrate && navigator.vibrate(30);
+        const messages = {
+            swarm: '🤖 Schwarm-Details:\n\n10 Milliarden Tarngrillen\nStatus: Aktiv\nEnergie: Optimal',
+            drones: '🚁 Drohnen-Details:\n\n1,247 aktive Einheiten\nKommunikation: Stark\nMission: Aufklärung',
+            threats: '🎯 Bedrohungs-Details:\n\nGesamt heute: 157 blockiert\nStatus: Alles sicher\nAbwehrrate: 99.8%',
+            energy: '⚡ Energie-Details:\n\n2,847 kWh verfügbar\nQuellen: Solar, Wind, CO₂\nStatus: Optimal'
+        };
+        alert(messages[type]);
+    }
+
+    function switchTab(tab) {
+        navigator.vibrate && navigator.vibrate(30);
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        event.target.closest('.nav-item').classList.add('active');
+
+        const messages = {
+            dashboard: '📊 Dashboard aktiv',
+            map: '🗺️ Karte wird geladen... (Google Maps Integration erforderlich)',
+            control: '🎮 Steuerung aktiv',
+            settings: '⚙️ Einstellungen: Benutzerprofil, Benachrichtigungen, Theme'
+        };
+        addLog(messages[tab], 'info');
+    }
+
+    // ========================================
+    // LOG
+    // ========================================
+    function addLog(message, type = 'info') {
+        const log = document.getElementById('log');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry ' + type;
+        entry.textContent = `[${new Date().toLocaleTimeString('de-DE')}] ${message}`;
+        log.insertBefore(entry, log.firstChild);
+
+        while (log.children.length > 20) {
+            log.removeChild(log.lastChild);
+        }
+    }
+</script>
+</body>
+</html>

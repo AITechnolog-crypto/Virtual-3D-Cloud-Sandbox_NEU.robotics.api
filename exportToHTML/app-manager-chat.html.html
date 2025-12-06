@@ -1,0 +1,191 @@
+<html>
+<head>
+<title>app-manager-chat.html</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #afb9c3;}
+.s1 { color: #ffc86e;}
+.s2 { color: #ff9696;}
+.s3 { color: #96be78;}
+.s4 { color: #61afe1;}
+.s5 { color: #36beff;}
+.s6 { color: #17bbdd;}
+.s7 { color: #c88cdc;}
+.s8 { color: #808080;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+app-manager-chat.html</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">&lt;!doctype </span><span class="s1">html</span><span class="s0">&gt;</span>
+<a name="l2"><span class="ln">2    </span></a><span class="s0">&lt;</span><span class="s2">html </span><span class="s1">lang</span><span class="s3">=&quot;de&quot;</span><span class="s0">&gt;</span>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">&lt;</span><span class="s2">head</span><span class="s0">&gt;</span>
+<a name="l4"><span class="ln">4    </span></a>  <span class="s0">&lt;</span><span class="s2">meta </span><span class="s1">charset</span><span class="s3">=&quot;utf-8&quot;</span><span class="s0">&gt;</span>
+<a name="l5"><span class="ln">5    </span></a>  <span class="s0">&lt;</span><span class="s2">meta </span><span class="s1">name</span><span class="s3">=&quot;viewport&quot; </span><span class="s1">content</span><span class="s3">=&quot;width=device-width, initial-scale=1&quot;</span><span class="s0">&gt;</span>
+<a name="l6"><span class="ln">6    </span></a>  <span class="s0">&lt;</span><span class="s2">title</span><span class="s0">&gt;App Manager Chat&lt;/</span><span class="s2">title</span><span class="s0">&gt;</span>
+<a name="l7"><span class="ln">7    </span></a>  <span class="s0">&lt;</span><span class="s2">style</span><span class="s0">&gt;</span>
+<a name="l8"><span class="ln">8    </span></a>    <span class="s4">#chatButton </span><span class="s0">{</span>
+<a name="l9"><span class="ln">9    </span></a>      <span class="s1">position</span><span class="s0">: fixed;</span>
+<a name="l10"><span class="ln">10   </span></a>      <span class="s1">right</span><span class="s0">: </span><span class="s5">18</span><span class="s0">px;</span>
+<a name="l11"><span class="ln">11   </span></a>      <span class="s1">bottom</span><span class="s0">: </span><span class="s5">18</span><span class="s0">px;</span>
+<a name="l12"><span class="ln">12   </span></a>      <span class="s1">width</span><span class="s0">: </span><span class="s5">56</span><span class="s0">px;</span>
+<a name="l13"><span class="ln">13   </span></a>      <span class="s1">height</span><span class="s0">: </span><span class="s5">56</span><span class="s0">px;</span>
+<a name="l14"><span class="ln">14   </span></a>      <span class="s1">border-radius</span><span class="s0">: </span><span class="s5">28</span><span class="s0">px;</span>
+<a name="l15"><span class="ln">15   </span></a>      <span class="s1">background</span><span class="s0">: </span><span class="s6">#2c3e50</span><span class="s0">;</span>
+<a name="l16"><span class="ln">16   </span></a>      <span class="s1">color</span><span class="s0">: white;</span>
+<a name="l17"><span class="ln">17   </span></a>      <span class="s1">display</span><span class="s0">: flex;</span>
+<a name="l18"><span class="ln">18   </span></a>      <span class="s1">align-items</span><span class="s0">: center;</span>
+<a name="l19"><span class="ln">19   </span></a>      <span class="s1">justify-content</span><span class="s0">: center;</span>
+<a name="l20"><span class="ln">20   </span></a>      <span class="s1">cursor</span><span class="s0">: pointer;</span>
+<a name="l21"><span class="ln">21   </span></a>      <span class="s1">z-index</span><span class="s0">: </span><span class="s5">9999</span><span class="s0">;</span>
+<a name="l22"><span class="ln">22   </span></a>      <span class="s1">font-weight</span><span class="s0">: </span><span class="s5">700</span><span class="s0">;</span>
+<a name="l23"><span class="ln">23   </span></a>      <span class="s1">user-select</span><span class="s0">: none;</span>
+<a name="l24"><span class="ln">24   </span></a>    <span class="s0">}</span>
+<a name="l25"><span class="ln">25   </span></a>    <span class="s4">#chatPanel </span><span class="s0">{</span>
+<a name="l26"><span class="ln">26   </span></a>      <span class="s1">position</span><span class="s0">: fixed;</span>
+<a name="l27"><span class="ln">27   </span></a>      <span class="s1">right</span><span class="s0">: </span><span class="s5">18</span><span class="s0">px;</span>
+<a name="l28"><span class="ln">28   </span></a>      <span class="s1">bottom</span><span class="s0">: </span><span class="s5">86</span><span class="s0">px;</span>
+<a name="l29"><span class="ln">29   </span></a>      <span class="s1">width</span><span class="s0">: </span><span class="s5">340</span><span class="s0">px;</span>
+<a name="l30"><span class="ln">30   </span></a>      <span class="s1">max-height</span><span class="s0">: </span><span class="s5">60</span><span class="s0">vh;</span>
+<a name="l31"><span class="ln">31   </span></a>      <span class="s1">background</span><span class="s0">: </span><span class="s6">#ffffff</span><span class="s0">;</span>
+<a name="l32"><span class="ln">32   </span></a>      <span class="s1">border</span><span class="s0">: </span><span class="s5">1</span><span class="s0">px solid </span><span class="s6">#ddd</span><span class="s0">;</span>
+<a name="l33"><span class="ln">33   </span></a>      <span class="s1">box-shadow</span><span class="s0">: </span><span class="s5">0 6</span><span class="s0">px </span><span class="s5">24</span><span class="s0">px </span><span class="s4">rgba</span><span class="s0">(</span><span class="s5">0</span><span class="s0">,</span><span class="s5">0</span><span class="s0">,</span><span class="s5">0</span><span class="s0">,</span><span class="s5">0.15</span><span class="s0">);</span>
+<a name="l34"><span class="ln">34   </span></a>      <span class="s1">display</span><span class="s0">: none;</span>
+<a name="l35"><span class="ln">35   </span></a>      <span class="s1">flex-direction</span><span class="s0">: column;</span>
+<a name="l36"><span class="ln">36   </span></a>      <span class="s1">z-index</span><span class="s0">: </span><span class="s5">9999</span><span class="s0">;</span>
+<a name="l37"><span class="ln">37   </span></a>      <span class="s1">font-family</span><span class="s0">: system-ui, -apple-system, Segoe UI, Roboto, Arial;</span>
+<a name="l38"><span class="ln">38   </span></a>    <span class="s0">}</span>
+<a name="l39"><span class="ln">39   </span></a>    <span class="s4">#chatMessages </span><span class="s0">{ </span><span class="s1">flex</span><span class="s0">: </span><span class="s5">1</span><span class="s0">; </span><span class="s1">overflow</span><span class="s0">:auto; </span><span class="s1">padding</span><span class="s0">: </span><span class="s5">10</span><span class="s0">px; </span><span class="s1">font-size</span><span class="s0">: </span><span class="s5">14</span><span class="s0">px; }</span>
+<a name="l40"><span class="ln">40   </span></a>    <span class="s4">#chatInput </span><span class="s0">{ </span><span class="s1">display</span><span class="s0">:flex; </span><span class="s1">gap</span><span class="s0">:</span><span class="s5">8</span><span class="s0">px; </span><span class="s1">padding</span><span class="s0">:</span><span class="s5">8</span><span class="s0">px; </span><span class="s1">border-top</span><span class="s0">:</span><span class="s5">1</span><span class="s0">px solid </span><span class="s6">#eee</span><span class="s0">; }</span>
+<a name="l41"><span class="ln">41   </span></a>    <span class="s4">#chatInput </span><span class="s2">input </span><span class="s0">{ </span><span class="s1">flex</span><span class="s0">:</span><span class="s5">1</span><span class="s0">; </span><span class="s1">padding</span><span class="s0">:</span><span class="s5">8</span><span class="s0">px; </span><span class="s1">border</span><span class="s0">:</span><span class="s5">1</span><span class="s0">px solid </span><span class="s6">#e5e7eb</span><span class="s0">; </span><span class="s1">border-radius</span><span class="s0">:</span><span class="s5">4</span><span class="s0">px }</span>
+<a name="l42"><span class="ln">42   </span></a>    <span class="s4">#chatInput </span><span class="s2">button </span><span class="s0">{ </span><span class="s1">padding</span><span class="s0">:</span><span class="s5">8</span><span class="s0">px </span><span class="s5">12</span><span class="s0">px; </span><span class="s1">border</span><span class="s0">:</span><span class="s5">0</span><span class="s0">; </span><span class="s1">border-radius</span><span class="s0">:</span><span class="s5">4</span><span class="s0">px; </span><span class="s1">background</span><span class="s0">:</span><span class="s6">#111827</span><span class="s0">; </span><span class="s1">color</span><span class="s0">:</span><span class="s6">#fff</span><span class="s0">; </span><span class="s1">cursor</span><span class="s0">:pointer }</span>
+<a name="l43"><span class="ln">43   </span></a>    <span class="s0">.</span><span class="s2">msg-user </span><span class="s0">{ </span><span class="s1">text-align</span><span class="s0">: right; </span><span class="s1">color</span><span class="s0">:</span><span class="s6">#0b69ff</span><span class="s0">; </span><span class="s1">margin</span><span class="s0">:</span><span class="s5">6</span><span class="s0">px </span><span class="s5">0</span><span class="s0">; }</span>
+<a name="l44"><span class="ln">44   </span></a>    <span class="s0">.</span><span class="s2">msg-bot </span><span class="s0">{ </span><span class="s1">text-align</span><span class="s0">: left; </span><span class="s1">color</span><span class="s0">:</span><span class="s6">#222</span><span class="s0">; </span><span class="s1">margin</span><span class="s0">:</span><span class="s5">6</span><span class="s0">px </span><span class="s5">0</span><span class="s0">; }</span>
+<a name="l45"><span class="ln">45   </span></a>    <span class="s4">#consentRow </span><span class="s0">{ </span><span class="s1">border-top</span><span class="s0">: </span><span class="s5">1</span><span class="s0">px solid </span><span class="s6">#eee</span><span class="s0">; </span><span class="s1">padding</span><span class="s0">: </span><span class="s5">8</span><span class="s0">px; </span><span class="s1">font-size</span><span class="s0">: </span><span class="s5">12</span><span class="s0">px; </span><span class="s1">color</span><span class="s0">:</span><span class="s6">#374151</span><span class="s0">; </span><span class="s1">background</span><span class="s0">:</span><span class="s6">#fafafa</span><span class="s0">; </span><span class="s1">display</span><span class="s0">:flex; </span><span class="s1">gap</span><span class="s0">:</span><span class="s5">8</span><span class="s0">px; </span><span class="s1">align-items</span><span class="s0">:center; </span><span class="s1">justify-content</span><span class="s0">:space-between }</span>
+<a name="l46"><span class="ln">46   </span></a>    <span class="s4">#consentRow </span><span class="s2">button </span><span class="s0">{ </span><span class="s1">padding</span><span class="s0">:</span><span class="s5">4</span><span class="s0">px </span><span class="s5">8</span><span class="s0">px; </span><span class="s1">border</span><span class="s0">:</span><span class="s5">1</span><span class="s0">px solid </span><span class="s6">#e5e7eb</span><span class="s0">; </span><span class="s1">background</span><span class="s0">:</span><span class="s6">#fff</span><span class="s0">; </span><span class="s1">border-radius</span><span class="s0">:</span><span class="s5">4</span><span class="s0">px; </span><span class="s1">cursor</span><span class="s0">:pointer }</span>
+<a name="l47"><span class="ln">47   </span></a>  <span class="s0">&lt;/</span><span class="s2">style</span><span class="s0">&gt;</span>
+<a name="l48"><span class="ln">48   </span></a><span class="s0">&lt;/</span><span class="s2">head</span><span class="s0">&gt;</span>
+<a name="l49"><span class="ln">49   </span></a><span class="s0">&lt;</span><span class="s2">body</span><span class="s0">&gt;</span>
+<a name="l50"><span class="ln">50   </span></a>  <span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;chatButton&quot; </span><span class="s1">title</span><span class="s3">=&quot;App Manager Chat&quot;</span><span class="s0">&gt;M&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l51"><span class="ln">51   </span></a>
+<a name="l52"><span class="ln">52   </span></a>  <span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;chatPanel&quot; </span><span class="s1">aria-hidden</span><span class="s3">=&quot;true&quot;</span><span class="s0">&gt;</span>
+<a name="l53"><span class="ln">53   </span></a>    <span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;ctxInfo&quot; </span><span class="s1">style</span><span class="s3">=&quot;</span><span class="s1">padding</span><span class="s0">:</span><span class="s5">6</span><span class="s0">px </span><span class="s5">8</span><span class="s0">px;</span><span class="s1">border-bottom</span><span class="s0">:</span><span class="s5">1</span><span class="s0">px solid </span><span class="s6">#eee</span><span class="s0">;</span><span class="s1">font</span><span class="s0">:</span><span class="s5">12</span><span class="s0">px system-ui;</span><span class="s1">color</span><span class="s0">:</span><span class="s6">#374151</span><span class="s0">;</span><span class="s1">display</span><span class="s0">:none</span><span class="s3">&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l54"><span class="ln">54   </span></a>    <span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;chatMessages&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l55"><span class="ln">55   </span></a>    <span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;chatInput&quot;</span><span class="s0">&gt;</span>
+<a name="l56"><span class="ln">56   </span></a>      <span class="s0">&lt;</span><span class="s2">input </span><span class="s1">id</span><span class="s3">=&quot;inputText&quot; </span><span class="s1">placeholder</span><span class="s3">=&quot;Schreibe etwas...&quot; </span><span class="s0">/&gt;</span>
+<a name="l57"><span class="ln">57   </span></a>      <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;sendBtn&quot;</span><span class="s0">&gt;Senden&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l58"><span class="ln">58   </span></a>    <span class="s0">&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l59"><span class="ln">59   </span></a>    <span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;consentRow&quot;</span><span class="s0">&gt;</span>
+<a name="l60"><span class="ln">60   </span></a>      <span class="s0">&lt;</span><span class="s2">div</span><span class="s0">&gt;Standardkonsent erforderlich.&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l61"><span class="ln">61   </span></a>      <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;acceptBtn&quot;</span><span class="s0">&gt;Akzeptieren&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l62"><span class="ln">62   </span></a>    <span class="s0">&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l63"><span class="ln">63   </span></a>  <span class="s0">&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l64"><span class="ln">64   </span></a>
+<a name="l65"><span class="ln">65   </span></a>  <span class="s0">&lt;</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l66"><span class="ln">66   </span></a>    <span class="s7">const </span><span class="s0">chatButton = document.getElementById(</span><span class="s3">'chatButton'</span><span class="s0">);</span>
+<a name="l67"><span class="ln">67   </span></a>    <span class="s7">const </span><span class="s0">chatPanel = document.getElementById(</span><span class="s3">'chatPanel'</span><span class="s0">);</span>
+<a name="l68"><span class="ln">68   </span></a>    <span class="s7">const </span><span class="s0">chatMessages = document.getElementById(</span><span class="s3">'chatMessages'</span><span class="s0">);</span>
+<a name="l69"><span class="ln">69   </span></a>    <span class="s7">const </span><span class="s0">inputText = document.getElementById(</span><span class="s3">'inputText'</span><span class="s0">);</span>
+<a name="l70"><span class="ln">70   </span></a>    <span class="s7">const </span><span class="s0">sendBtn = document.getElementById(</span><span class="s3">'sendBtn'</span><span class="s0">);</span>
+<a name="l71"><span class="ln">71   </span></a>    <span class="s7">const </span><span class="s0">acceptBtn = document.getElementById(</span><span class="s3">'acceptBtn'</span><span class="s0">);</span>
+<a name="l72"><span class="ln">72   </span></a>    <span class="s7">const </span><span class="s0">consentRow = document.getElementById(</span><span class="s3">'consentRow'</span><span class="s0">);</span>
+<a name="l73"><span class="ln">73   </span></a>    <span class="s7">const </span><span class="s0">ctxInfo = document.getElementById(</span><span class="s3">'ctxInfo'</span><span class="s0">);</span>
+<a name="l74"><span class="ln">74   </span></a>    <span class="s7">let </span><span class="s0">WSCTX = </span><span class="s7">null</span><span class="s0">;</span>
+<a name="l75"><span class="ln">75   </span></a>    <span class="s8">// signal readiness to parent (java-interface)</span>
+<a name="l76"><span class="ln">76   </span></a>    <span class="s7">try </span><span class="s0">{ </span><span class="s7">if </span><span class="s0">(window.parent &amp;&amp; window.parent !== window) { window.parent.postMessage({ ns:</span><span class="s3">'JavaWorkspaceV1'</span><span class="s0">, type:</span><span class="s3">'ready' </span><span class="s0">}, </span><span class="s3">'*'</span><span class="s0">); } } </span><span class="s7">catch</span><span class="s0">(_) {}</span>
+<a name="l77"><span class="ln">77   </span></a>    <span class="s8">// accept context from parent</span>
+<a name="l78"><span class="ln">78   </span></a>    <span class="s0">window.addEventListener(</span><span class="s3">'message'</span><span class="s0">, (ev)=&gt;{</span>
+<a name="l79"><span class="ln">79   </span></a>      <span class="s7">try</span><span class="s0">{</span>
+<a name="l80"><span class="ln">80   </span></a>        <span class="s7">const </span><span class="s0">d = ev.data||{};</span>
+<a name="l81"><span class="ln">81   </span></a>        <span class="s7">if </span><span class="s0">(d &amp;&amp; d.ns===</span><span class="s3">'JavaWorkspaceV1' </span><span class="s0">&amp;&amp; d.type===</span><span class="s3">'context'</span><span class="s0">){</span>
+<a name="l82"><span class="ln">82   </span></a>          <span class="s0">WSCTX = d;</span>
+<a name="l83"><span class="ln">83   </span></a>          <span class="s7">if </span><span class="s0">(ctxInfo){</span>
+<a name="l84"><span class="ln">84   </span></a>            <span class="s7">const </span><span class="s0">n = Array.isArray(d.snippets)? d.snippets.length : </span><span class="s5">0</span><span class="s0">;</span>
+<a name="l85"><span class="ln">85   </span></a>            <span class="s7">const </span><span class="s0">titles = (d.snippets||[]).slice(</span><span class="s5">0</span><span class="s0">,</span><span class="s5">3</span><span class="s0">).map(s=&gt; s.title||</span><span class="s3">''</span><span class="s0">).filter(Boolean).join(</span><span class="s3">' • '</span><span class="s0">);</span>
+<a name="l86"><span class="ln">86   </span></a>            <span class="s0">ctxInfo.textContent = </span><span class="s3">`Workspace: Kontext=</span><span class="s0">${d.context?</span><span class="s3">'an'</span><span class="s0">:</span><span class="s3">'aus'</span><span class="s0">} </span><span class="s3">· Auto‑Ingest=</span><span class="s0">${d.autoIngest?</span><span class="s3">'an'</span><span class="s0">:</span><span class="s3">'aus'</span><span class="s0">} </span><span class="s3">· Snippets=</span><span class="s0">${n}</span><span class="s3">` </span><span class="s0">+ (titles? </span><span class="s3">` (</span><span class="s0">${titles}</span><span class="s3">)` </span><span class="s0">: </span><span class="s3">''</span><span class="s0">);</span>
+<a name="l87"><span class="ln">87   </span></a>            <span class="s0">ctxInfo.style.display = </span><span class="s3">'block'</span><span class="s0">;</span>
+<a name="l88"><span class="ln">88   </span></a>          <span class="s0">}</span>
+<a name="l89"><span class="ln">89   </span></a>        <span class="s0">}</span>
+<a name="l90"><span class="ln">90   </span></a>      <span class="s0">}</span><span class="s7">catch</span><span class="s0">(_){ }</span>
+<a name="l91"><span class="ln">91   </span></a>    <span class="s0">});</span>
+<a name="l92"><span class="ln">92   </span></a>
+<a name="l93"><span class="ln">93   </span></a>    <span class="s8">// einfache Session-ID lokal</span>
+<a name="l94"><span class="ln">94   </span></a>    <span class="s7">let </span><span class="s0">sessionId = localStorage.getItem(</span><span class="s3">'appmgr.session'</span><span class="s0">);</span>
+<a name="l95"><span class="ln">95   </span></a>    <span class="s7">if </span><span class="s0">(!sessionId) {</span>
+<a name="l96"><span class="ln">96   </span></a>      <span class="s0">sessionId = </span><span class="s3">'sess-' </span><span class="s0">+ Math.random().toString(</span><span class="s5">36</span><span class="s0">).slice(</span><span class="s5">2</span><span class="s0">, </span><span class="s5">10</span><span class="s0">);</span>
+<a name="l97"><span class="ln">97   </span></a>      <span class="s0">localStorage.setItem(</span><span class="s3">'appmgr.session'</span><span class="s0">, sessionId);</span>
+<a name="l98"><span class="ln">98   </span></a>    <span class="s0">}</span>
+<a name="l99"><span class="ln">99   </span></a>
+<a name="l100"><span class="ln">100  </span></a>    <span class="s0">chatButton.addEventListener(</span><span class="s3">'click'</span><span class="s0">, () =&gt; {</span>
+<a name="l101"><span class="ln">101  </span></a>      <span class="s7">const </span><span class="s0">visible = chatPanel.style.display === </span><span class="s3">'flex'</span><span class="s0">;</span>
+<a name="l102"><span class="ln">102  </span></a>      <span class="s0">chatPanel.style.display = visible ? </span><span class="s3">'none' </span><span class="s0">: </span><span class="s3">'flex'</span><span class="s0">;</span>
+<a name="l103"><span class="ln">103  </span></a>      <span class="s0">chatPanel.setAttribute(</span><span class="s3">'aria-hidden'</span><span class="s0">, visible ? </span><span class="s3">'true' </span><span class="s0">: </span><span class="s3">'false'</span><span class="s0">);</span>
+<a name="l104"><span class="ln">104  </span></a>      <span class="s7">if </span><span class="s0">(!visible) {</span>
+<a name="l105"><span class="ln">105  </span></a>        <span class="s0">inputText.focus();</span>
+<a name="l106"><span class="ln">106  </span></a>        <span class="s8">// Warmup Ping (best-effort)</span>
+<a name="l107"><span class="ln">107  </span></a>        <span class="s0">fetch(</span><span class="s3">'/api/warmup'</span><span class="s0">, { method:</span><span class="s3">'POST'</span><span class="s0">, headers:{</span><span class="s3">'Content-Type'</span><span class="s0">:</span><span class="s3">'application/json'</span><span class="s0">}, body: JSON.stringify({ sessionId }) }).catch(()=&gt;{});</span>
+<a name="l108"><span class="ln">108  </span></a>      <span class="s0">}</span>
+<a name="l109"><span class="ln">109  </span></a>    <span class="s0">});</span>
+<a name="l110"><span class="ln">110  </span></a>
+<a name="l111"><span class="ln">111  </span></a>    <span class="s7">function </span><span class="s0">appendMessage(text, who) {</span>
+<a name="l112"><span class="ln">112  </span></a>      <span class="s7">const </span><span class="s0">div = document.createElement(</span><span class="s3">'div'</span><span class="s0">);</span>
+<a name="l113"><span class="ln">113  </span></a>      <span class="s0">div.className = who === </span><span class="s3">'user' </span><span class="s0">? </span><span class="s3">'msg-user' </span><span class="s0">: </span><span class="s3">'msg-bot'</span><span class="s0">;</span>
+<a name="l114"><span class="ln">114  </span></a>      <span class="s0">div.textContent = text;</span>
+<a name="l115"><span class="ln">115  </span></a>      <span class="s0">chatMessages.appendChild(div);</span>
+<a name="l116"><span class="ln">116  </span></a>      <span class="s0">chatMessages.scrollTop = chatMessages.scrollHeight;</span>
+<a name="l117"><span class="ln">117  </span></a>    <span class="s0">}</span>
+<a name="l118"><span class="ln">118  </span></a>
+<a name="l119"><span class="ln">119  </span></a>    <span class="s0">async </span><span class="s7">function </span><span class="s0">sendMessage() {</span>
+<a name="l120"><span class="ln">120  </span></a>      <span class="s7">let </span><span class="s0">text = inputText.value.trim();</span>
+<a name="l121"><span class="ln">121  </span></a>      <span class="s7">if </span><span class="s0">(!text) </span><span class="s7">return</span><span class="s0">;</span>
+<a name="l122"><span class="ln">122  </span></a>      <span class="s8">// Workspace‑Kontext ggf. voranstellen</span>
+<a name="l123"><span class="ln">123  </span></a>      <span class="s7">try</span><span class="s0">{</span>
+<a name="l124"><span class="ln">124  </span></a>        <span class="s7">if </span><span class="s0">(WSCTX &amp;&amp; WSCTX.context &amp;&amp; Array.isArray(WSCTX.snippets) &amp;&amp; WSCTX.snippets.length){</span>
+<a name="l125"><span class="ln">125  </span></a>          <span class="s7">const </span><span class="s0">preview = WSCTX.snippets.slice(</span><span class="s5">0</span><span class="s0">,</span><span class="s5">3</span><span class="s0">).map(s=&gt; </span><span class="s3">`• </span><span class="s0">${s.title||</span><span class="s3">''</span><span class="s0">} </span><span class="s3">[</span><span class="s0">${(s.tags||[]).join(</span><span class="s3">', '</span><span class="s0">)}</span><span class="s3">]`</span><span class="s0">).join(</span><span class="s3">'</span><span class="s6">\n</span><span class="s3">'</span><span class="s0">);</span>
+<a name="l126"><span class="ln">126  </span></a>          <span class="s0">text = </span><span class="s3">`Kontext:</span><span class="s6">\n</span><span class="s0">${preview}</span><span class="s6">\n\n</span><span class="s3">` </span><span class="s0">+ text;</span>
+<a name="l127"><span class="ln">127  </span></a>        <span class="s0">}</span>
+<a name="l128"><span class="ln">128  </span></a>      <span class="s0">}</span><span class="s7">catch</span><span class="s0">(_){ }</span>
+<a name="l129"><span class="ln">129  </span></a>      <span class="s0">appendMessage(text, </span><span class="s3">'user'</span><span class="s0">);</span>
+<a name="l130"><span class="ln">130  </span></a>      <span class="s0">inputText.value = </span><span class="s3">''</span><span class="s0">;</span>
+<a name="l131"><span class="ln">131  </span></a>      <span class="s0">appendMessage(</span><span class="s3">'...'</span><span class="s0">, </span><span class="s3">'bot'</span><span class="s0">); </span><span class="s8">// placeholder while waiting</span>
+<a name="l132"><span class="ln">132  </span></a>
+<a name="l133"><span class="ln">133  </span></a>      <span class="s7">try </span><span class="s0">{</span>
+<a name="l134"><span class="ln">134  </span></a>        <span class="s7">const </span><span class="s0">resp = await fetch(</span><span class="s3">'/api/chat/assist'</span><span class="s0">, {</span>
+<a name="l135"><span class="ln">135  </span></a>          <span class="s0">method: </span><span class="s3">'POST'</span><span class="s0">,</span>
+<a name="l136"><span class="ln">136  </span></a>          <span class="s0">headers: { </span><span class="s3">'Content-Type'</span><span class="s0">: </span><span class="s3">'application/json' </span><span class="s0">},</span>
+<a name="l137"><span class="ln">137  </span></a>          <span class="s0">body: JSON.stringify({ channel: </span><span class="s3">'customer'</span><span class="s0">, role: </span><span class="s3">'user'</span><span class="s0">, sender: </span><span class="s3">'user'</span><span class="s0">, message: text })</span>
+<a name="l138"><span class="ln">138  </span></a>        <span class="s0">});</span>
+<a name="l139"><span class="ln">139  </span></a>        <span class="s7">const </span><span class="s0">data = await resp.json();</span>
+<a name="l140"><span class="ln">140  </span></a>        <span class="s7">const </span><span class="s0">last = chatMessages.lastChild;</span>
+<a name="l141"><span class="ln">141  </span></a>        <span class="s7">if </span><span class="s0">(last &amp;&amp; last.textContent === </span><span class="s3">'...'</span><span class="s0">) last.textContent = (data &amp;&amp; data.reply) || </span><span class="s3">'Keine Antwort'</span><span class="s0">;</span>
+<a name="l142"><span class="ln">142  </span></a>        <span class="s7">else </span><span class="s0">appendMessage((data &amp;&amp; data.reply) || </span><span class="s3">'Keine Antwort'</span><span class="s0">, </span><span class="s3">'bot'</span><span class="s0">);</span>
+<a name="l143"><span class="ln">143  </span></a>      <span class="s0">} </span><span class="s7">catch </span><span class="s0">(e) {</span>
+<a name="l144"><span class="ln">144  </span></a>        <span class="s7">const </span><span class="s0">last = chatMessages.lastChild;</span>
+<a name="l145"><span class="ln">145  </span></a>        <span class="s7">const </span><span class="s0">msg = </span><span class="s3">'Fehler: ' </span><span class="s0">+ (e.message || </span><span class="s3">'Netzwerk'</span><span class="s0">);</span>
+<a name="l146"><span class="ln">146  </span></a>        <span class="s7">if </span><span class="s0">(last &amp;&amp; last.textContent === </span><span class="s3">'...'</span><span class="s0">) last.textContent = msg; </span><span class="s7">else </span><span class="s0">appendMessage(msg, </span><span class="s3">'bot'</span><span class="s0">);</span>
+<a name="l147"><span class="ln">147  </span></a>      <span class="s0">}</span>
+<a name="l148"><span class="ln">148  </span></a>    <span class="s0">}</span>
+<a name="l149"><span class="ln">149  </span></a>
+<a name="l150"><span class="ln">150  </span></a>    <span class="s0">sendBtn.addEventListener(</span><span class="s3">'click'</span><span class="s0">, sendMessage);</span>
+<a name="l151"><span class="ln">151  </span></a>    <span class="s0">inputText.addEventListener(</span><span class="s3">'keydown'</span><span class="s0">, (e) =&gt; { </span><span class="s7">if </span><span class="s0">(e.key === </span><span class="s3">'Enter'</span><span class="s0">) sendMessage(); });</span>
+<a name="l152"><span class="ln">152  </span></a>
+<a name="l153"><span class="ln">153  </span></a>    <span class="s8">// Consent speichern</span>
+<a name="l154"><span class="ln">154  </span></a>    <span class="s0">acceptBtn.addEventListener(</span><span class="s3">'click'</span><span class="s0">, async () =&gt; {</span>
+<a name="l155"><span class="ln">155  </span></a>      <span class="s7">try </span><span class="s0">{</span>
+<a name="l156"><span class="ln">156  </span></a>        <span class="s0">await fetch(</span><span class="s3">'/api/consent'</span><span class="s0">, { method:</span><span class="s3">'POST'</span><span class="s0">, headers:{</span><span class="s3">'Content-Type'</span><span class="s0">:</span><span class="s3">'application/json'</span><span class="s0">}, body: JSON.stringify({ sessionId }) });</span>
+<a name="l157"><span class="ln">157  </span></a>        <span class="s0">appendMessage(</span><span class="s3">'Konsent gespeichert. Ich bin bereit als Shop Manager.'</span><span class="s0">, </span><span class="s3">'bot'</span><span class="s0">);</span>
+<a name="l158"><span class="ln">158  </span></a>      <span class="s0">} </span><span class="s7">catch </span><span class="s0">(_) {</span>
+<a name="l159"><span class="ln">159  </span></a>        <span class="s0">appendMessage(</span><span class="s3">'Lokaler Modus aktiv – Konsent wird lokal angenommen.'</span><span class="s0">, </span><span class="s3">'bot'</span><span class="s0">);</span>
+<a name="l160"><span class="ln">160  </span></a>      <span class="s0">} </span><span class="s7">finally </span><span class="s0">{</span>
+<a name="l161"><span class="ln">161  </span></a>        <span class="s7">try</span><span class="s0">{ consentRow.style.display = </span><span class="s3">'none'</span><span class="s0">; }</span><span class="s7">catch</span><span class="s0">(_){ }</span>
+<a name="l162"><span class="ln">162  </span></a>      <span class="s0">}</span>
+<a name="l163"><span class="ln">163  </span></a>    <span class="s0">});</span>
+<a name="l164"><span class="ln">164  </span></a>  <span class="s0">&lt;/</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l165"><span class="ln">165  </span></a><span class="s0">&lt;/</span><span class="s2">body</span><span class="s0">&gt;</span>
+<a name="l166"><span class="ln">166  </span></a><span class="s0">&lt;/</span><span class="s2">html</span><span class="s0">&gt;</span></pre>
+</body>
+</html>

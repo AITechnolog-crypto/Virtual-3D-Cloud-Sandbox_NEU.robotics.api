@@ -1,0 +1,153 @@
+@RestController
+@RequestMapping("/api/sandbox")
+public class SandboxController {
+    @Autowired
+    private SandboxService sandboxService;
+
+    @PostMapping("/object")
+    public ResponseEntity<SandboxObject> addObject(@RequestBody SandboxObject obj) {
+        return ResponseEntity.ok(sandboxService.save(obj));
+    }
+}// Datei vom Dateisystem löschen
+java.io.File file = new java.io.File("Pfad/zur/Datei1.txt");
+if (file.delete()) {
+    System.out.println("Datei erfolgreich gelöscht.");
+} else {
+    System.out.println("Löschen fehlgeschlagen.");
+}// Beispiel: Entfernen einer Datei aus einer Liste
+List<String> dateien = new ArrayList<>();
+dateien.add("Datei1.txt");
+dateien.add("Datei2.txt");
+
+// Entfernen
+dateien.remove("Datei1.txt");<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>🛰️ Aerial View – Demo (Mock/Proxy)</title>
+  <link rel="stylesheet" href="LineLuxSharedStyles.css">
+  <style>
+    :root{ --bg:#0b0f18; --fg:#e8f2ff; --accent:#00ff88; --accent2:#00ccff }
+    body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0}
+    header{position:sticky;top:0;z-index:10;background:rgba(11,15,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1)}
+    .wrap{max-width:1100px;margin:0 auto;padding:12px 16px}
+    h1{margin:0;font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    nav a{color:#a8ffdf;margin-right:12px;text-decoration:none}
+    .grid{display:grid;grid-template-columns:1fr 1.1fr;gap:14px;padding:16px}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .muted{color:#9fb0c6;font-size:12px}
+    label{display:block;margin-bottom:8px}
+    input,select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff}
+    .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001;border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+    .ghost{background:rgba(255,255,255,.06);color:#e8f2ff;border:1px solid rgba(255,255,255,.12)}
+    #viewer{width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    #viewer video,#viewer img{max-width:100%;max-height:100%;display:none}
+    .note{margin-top:8px}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
+    <h1>🛰️ Aerial View – Demo</h1>
+    <nav class="muted">
+      <a href="linelux-style.html">Haupt‑UI</a>
+      <a href="variants/variants-index.html">Varianten</a>
+      <a href="variants/aerial-variants-index.html">Aerial‑Varianten (100)</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <div class="muted" style="margin-bottom:8px">Adresse oder Video‑ID angeben. Format/Orientierung wählen, dann „Abrufen“.
+        Diese Demo nutzt einen lokalen Mock‑Endpoint (/api/aerial/lookup), sodass sie ohne Google‑Schlüssel funktioniert.
+      </div>
+      <label>
+        Adresse oder Video‑ID
+        <input id="inputVal" placeholder="1600 Amphitheatre Parkway, Mountain View, CA">
+      </label>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        <label>Format
+          <select id="format">
+            <option value="image">Bild</option>
+            <option value="mp4_low">MP4_low</option>
+            <option value="mp4_medium" selected>MP4_medium</option>
+            <option value="mp4_high">MP4_high</option>
+          </select>
+        </label>
+        <label>Orientierung
+          <select id="orientation">
+            <option value="landscape" selected>landscape</option>
+            <option value="portrait">portrait</option>
+          </select>
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button id="btnFetch" class="btn">Abrufen</button>
+        <button id="btnPlayPause" class="btn ghost">Play/Pause</button>
+      </div>
+      <div id="msg" class="muted note">Bereit…</div>
+    </div>
+    <div class="card">
+      <div id="viewer" aria-label="Aerial‑Medienanzeige">
+        <video id="vid" class="aerial-view-media" muted loop></video>
+        <img id="img" class="aerial-view-media" />
+      </div>
+      <div class="muted note">Hinweis: In der echten Google Aerial View API wird ein API‑Key benötigt. Diese Demo nutzt Mock‑Daten.</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const API = location.origin + '/api/aerial/lookup';
+  const q = new URLSearchParams(location.search);
+  const elVal = document.getElementById('inputVal');
+  const elFmt = document.getElementById('format');
+  const elOri = document.getElementById('orientation');
+  const elMsg = document.getElementById('msg');
+  const v = document.getElementById('vid');
+  const i = document.getElementById('img');
+
+  // init from query
+  if (q.get('address')) elVal.value = q.get('address');
+  if (q.get('videoId')) elVal.value = q.get('videoId');
+  if (q.get('format')) elFmt.value = q.get('format');
+  if (q.get('orientation')) elOri.value = q.get('orientation');
+
+  async function fetchMedia(){
+    try{
+      elMsg.textContent = 'Lade…';
+      const qp = new URLSearchParams();
+      const val = (elVal.value||'').trim() || '1600 Amphitheatre Parkway, Mountain View, CA';
+      if (/^[0-9a-zA-Z\-_]{22}$/.test(val)) qp.set('videoId', val); else qp.set('address', val);
+      qp.set('format', elFmt.value);
+      qp.set('orientation', elOri.value);
+      const r = await fetch(API + '?' + qp.toString(), { cache: 'no-store' });
+      const j = await r.json();
+      if (!r.ok){ elMsg.textContent = '❌ Fehler: ' + (j && j.error || ('HTTP '+r.status)); return; }
+      const key = (elFmt.value||'mp4_medium').toUpperCase();
+      const pack = j.uris && j.uris[key];
+      if (!pack){ elMsg.textContent = '❌ Keine URIs gefunden.'; return; }
+      const src = elOri.value === 'portrait' ? (pack.portraitUri||pack.landscapeUri) : (pack.landscapeUri||pack.portraitUri);
+      if (elFmt.value === 'image'){
+        v.style.display='none'; i.style.display='block'; i.src = src; elMsg.textContent = 'Bild geladen.';
+      } else {
+        i.style.display='none'; v.style.display='block'; v.src = src; try{ await v.play(); }catch(_){} elMsg.textContent = 'Video bereit.';
+      }
+    }catch(e){ elMsg.textContent = '❌ Fehler: ' + (e.message||e); }
+  }
+
+  document.getElementById('btnFetch').addEventListener('click', fetchMedia);
+  document.getElementById('btnPlayPause').addEventListener('click', ()=>{ try{ if (v.style.display!=='none'){ v.paused? v.play(): v.pause(); } }catch(_){} });
+
+  // auto
+  fetchMedia();
+})();
+
+// SW registrieren (Mock‑APIs)
+if ('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('sw-mock-api.js').catch(()=>{}) ); }
+</script>
+</body>
+</html>

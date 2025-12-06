@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>🌌 Galaxy‑Lab – Prompt → Galaxie (Mirror/Spiral)</title>
+  <link rel="stylesheet" href="LineLuxSharedStyles.css">
+  <style>
+    :root{ --bg:#0b0f18; --fg:#e8f2ff; --accent:#00ff88; --accent2:#00ccff }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{position:sticky;top:0;z-index:10;background:rgba(11,15,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1)}
+    .wrap{max-width:1180px;margin:0 auto;padding:12px 16px}
+    h1{margin:0;font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    nav a{color:#a8ffdf;margin-right:12px;text-decoration:none}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-bottom:8px}
+    label.small{font-size:12px;color:#9fb0c6}
+    textarea,input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#e8f2ff}
+    .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001;border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+    .ghost{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid rgba(255,255,255,.12)}
+    #stage{width:100%;height:520px;border-radius:12px;background:radial-gradient(800px 400px at 50% 50%, rgba(0,255,136,.06), rgba(0,0,0,0));}
+    .muted{color:#9fb0c6;font-size:12px}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
+    <h1>🌌 Galaxy‑Lab – Prompt → Galaxie</h1>
+    <nav class="muted">
+      <a href="linelux-style.html">Haupt‑UI</a>
+      <a href="variants/variants-index.html">Varianten‑Index</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <div class="toolbar" style="flex-direction:column">
+        <label class="small" for="prompt">Beschreibe die Galaxie (z. B. "blau violett 4 Arme 60000 Sterne, sanfter Wirbel")</label>
+        <textarea id="prompt" rows="4">blau violett, 4 Arme, 60000 Sterne, sanfter Wirbel, poetisch</textarea>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px">
+          <label class="small">Seed
+            <input id="seed" type="text" placeholder="optional" />
+          </label>
+          <label class="small" style="display:flex;align-items:center;gap:8px;justify-content:flex-start"><input type="checkbox" id="mirror" checked> Spiegeln</label>
+          <div>
+            <button id="btnGen" class="btn" style="width:100%">Generieren</button>
+          </div>
+        </div>
+        <div id="msg" class="muted" style="margin-top:6px">Bereit. Hinweis: Alles läuft lokal (Mock‑API).</div>
+      </div>
+      <div class="muted">Tipps: Schlüsselwörter „blau/rot/grün/violett/gold“, „x Arme“, „y Sterne“. Der Seed macht die Szene reproduzierbar.</div>
+    </div>
+    <div class="card">
+      <div id="stage" aria-label="3D‑Galaxie"><canvas id="galaxy"></canvas></div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button id="btnMirrorToggle" class="btn ghost">Spiegeln an/aus</button>
+        <button id="btnShot" class="btn ghost">Screenshot</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// SW registrieren (Mock‑API verfügbar)
+if ('serviceWorker' in navigator) { window.addEventListener('load', ()=> navigator.serviceWorker.register('sw-mock-api.js').catch(()=>{}) ); }
+</script>
+<script src="https://unpkg.com/three@0.156.1/build/three.min.js"></script>
+<script>
+(function(){
+  const API = location.origin + '/api/galaxy/generate';
+  const canvas = document.getElementById('galaxy');
+  const stage = document.getElementById('stage');
+  const msg = document.getElementById('msg');
+
+  // THREE Grundsetup
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 1.8));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 5000);
+  camera.position.set(0,0,900);
+
+  function resize(){ const w=stage.clientWidth, h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  window.addEventListener('resize', resize); resize();
+
+  let galaxy=null; let currentParams=null;
+
+  function clearGalaxy(){ if(!galaxy) return; try{ scene.remove(galaxy); if(galaxy.geometry) galaxy.geometry.dispose(); if(galaxy.material) galaxy.material.dispose(); galaxy=null; }catch(_){} }
+
+  function lerpColor(a,b,t){ const ca=new THREE.Color(a), cb=new THREE.Color(b); return ca.lerp(cb, t).getStyle(); }
+
+  function buildGalaxy(params){
+    clearGalaxy();
+    const arms = params.arms||4;
+    const count = Math.min(90000, Math.max(3000, params.stars||48000));
+    const radius = params.radius||360;
+    const twist = params.twist||1.0;
+    const mirror = !!params.mirror;
+    const palette = Array.isArray(params.palette)&&params.palette.length? params.palette : ['#66e0ff','#a8ffdf','#ffffff'];
+
+    const positions = new Float32Array(count * (mirror? 6 : 3));
+    const colors = new Float32Array(count * (mirror? 6 : 3));
+
+    function rand(){ return Math.random(); }
+    function gaussian(){ // Box-Muller
+      let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random(); return Math.sqrt(-2.0*Math.log(u))*Math.cos(2.0*Math.PI*v);
+    }
+
+    for(let i=0;i<count;i++){
+      const r = Math.pow(rand(), 0.5) * radius; // dichter im Zentrum
+      const arm = i % arms;
+      const baseAngle = (arm/arms) * Math.PI*2 + r * (twist/ radius) * 4.0;
+      const jitter = gaussian()* (0.7 + 0.6 * (r/radius));
+      const x = Math.cos(baseAngle) * r + jitter*2;
+      const y = (gaussian()*0.6) * (1 - r/radius) * 40; // leichte Dicke
+      const z = Math.sin(baseAngle) * r + jitter*2;
+      const t = Math.min(1, r/radius);
+      const cA = new THREE.Color(palette[0]);
+      const cB = new THREE.Color(palette[palette.length-1]);
+      const c = cA.lerp(cB, t);
+
+      let idx = i*3;
+      positions[idx+0]=x; positions[idx+1]=y; positions[idx+2]=z;
+      colors[idx+0]=c.r; colors[idx+1]=c.g; colors[idx+2]=c.b;
+
+      if (mirror){
+        // Spiegeleintrag (x → -x)
+        const midx = count*3 + idx;
+        positions[midx+0] = -x; positions[midx+1] = y; positions[midx+2] = z;
+        colors[midx+0]=c.r; colors[midx+1]=c.g; colors[midx+2]=c.b;
+      }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const mat = new THREE.PointsMaterial({ size: 2.0, vertexColors: true, transparent:true, opacity:0.95, depthWrite:false, blending:THREE.AdditiveBlending });
+    galaxy = new THREE.Points(geo, mat);
+    scene.add(galaxy);
+    currentParams = params;
+  }
+
+  const clock = new THREE.Clock();
+  function animate(){
+    const dt = clock.getDelta();
+    if (galaxy){
+      galaxy.rotation.y += 0.06*dt;
+      scene.rotation.z += 0.01*dt;
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  async function generate(){
+    const prompt = document.getElementById('prompt').value.trim();
+    const seed = document.getElementById('seed').value.trim();
+    const mirror = document.getElementById('mirror').checked;
+    msg.textContent = 'Erzeuge…';
+    try{
+      const res = await fetch(API, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ prompt, seed: seed||undefined, mirror }) });
+      const j = await res.json();
+      if (!res.ok || !j || !j.params){ throw new Error('API Fehler'); }
+      buildGalaxy(j.params);
+      msg.textContent = `OK • Arme=${j.params.arms} • Sterne≈${j.params.stars} • Spiegel=${j.params.mirror?'ja':'nein'}`;
+    }catch(e){
+      msg.textContent = '❌ Fehler: ' + (e.message||e);
+    }
+  }
+
+  document.getElementById('btnGen').addEventListener('click', generate);
+  document.getElementById('btnMirrorToggle').addEventListener('click', ()=>{
+    if (!currentParams) return; currentParams.mirror = !currentParams.mirror; buildGalaxy(currentParams);
+  });
+  document.getElementById('btnShot').addEventListener('click', ()=>{
+    try{ renderer.domElement.toBlob(b=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='galaxy.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000); }); }catch(_){ }
+  });
+
+  // Auto‑Start
+  generate();
+})();
+</script>
+</body>
+</html>

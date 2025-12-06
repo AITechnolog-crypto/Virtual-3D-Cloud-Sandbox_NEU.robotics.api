@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>ResourceAcquisitionImplementation.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #808080;}
+.s3 { color: #36beff;}
+.s4 { color: #96be78;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ResourceAcquisitionImplementation.java</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">package </span><span class="s1">com.june.production;</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">java.util.logging.Logger;</span>
+<a name="l4"><span class="ln">4    </span></a>
+<a name="l5"><span class="ln">5    </span></a><span class="s2">/**</span>
+<a name="l6"><span class="ln">6    </span></a> <span class="s2">* Implementierung der Ressourcenbeschaffung.</span>
+<a name="l7"><span class="ln">7    </span></a> <span class="s2">*/</span>
+<a name="l8"><span class="ln">8    </span></a><span class="s0">public class </span><span class="s1">ResourceAcquisitionImplementation </span><span class="s0">implements <a href="IResourceAcquisition.java.html">IResourceAcquisition</a> </span><span class="s1">{</span>
+<a name="l9"><span class="ln">9    </span></a>    <span class="s0">private static final </span><span class="s1">Logger logger = Logger.getLogger(ResourceAcquisitionImplementation.</span><span class="s0">class</span><span class="s1">.getName());</span>
+<a name="l10"><span class="ln">10   </span></a>
+<a name="l11"><span class="ln">11   </span></a>    <span class="s1">@Override</span>
+<a name="l12"><span class="ln">12   </span></a>    <span class="s0">public void </span><span class="s1">acquireResources(</span><span class="s0">double </span><span class="s1">budget) </span><span class="s0">throws <a href="ResourceAcquisitionException.java.html">ResourceAcquisitionException</a> </span><span class="s1">{</span>
+<a name="l13"><span class="ln">13   </span></a>        <span class="s0">double </span><span class="s1">resourceCost = </span><span class="s3">5000.0</span><span class="s1">; </span><span class="s2">// Beispielwert</span>
+<a name="l14"><span class="ln">14   </span></a>        <span class="s0">if </span><span class="s1">(budget &gt;= resourceCost) {</span>
+<a name="l15"><span class="ln">15   </span></a>            <span class="s1">logger.info(</span><span class="s4">&quot;Ressourcen im Wert von &quot; </span><span class="s1">+ resourceCost + </span><span class="s4">&quot; erworben.&quot;</span><span class="s1">);</span>
+<a name="l16"><span class="ln">16   </span></a>        <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+<a name="l17"><span class="ln">17   </span></a>            <span class="s0">throw new <a href="ResourceAcquisitionException.java.html">ResourceAcquisitionException</a></span><span class="s1">(</span><span class="s4">&quot;Nicht genügend Budget für die Ressourcenbeschaffung vorhanden.&quot;</span><span class="s1">);</span>
+<a name="l18"><span class="ln">18   </span></a>        <span class="s1">}</span>
+<a name="l19"><span class="ln">19   </span></a>    <span class="s1">}</span>
+<a name="l20"><span class="ln">20   </span></a><span class="s1">}</span></pre>
+</body>
+</html>

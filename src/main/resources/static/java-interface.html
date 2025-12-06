@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>🧠 Java‑KI‑Bausteine – Ultimative Suite (5‑in‑1)</title>
+  <link rel="stylesheet" href="LineLuxSharedStyles.css">
+  <style>
+    :root{ --bg:#0b0f18; --fg:#e8f2ff; --accent:#00ff88; --accent2:#00ccff }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{position:sticky;top:0;z-index:10;background:rgba(11,15,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1)}
+    .wrap{max-width:1180px;margin:0 auto;padding:12px 16px}
+    h1{margin:0;font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    nav a{color:#a8ffdf;margin-right:12px;text-decoration:none}
+    .muted{color:#9fb0c6;font-size:12px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .tab{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--fg);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001;border:0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    textarea,input,select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--fg)}
+    .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001;border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+    .ghost{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid rgba(255,255,255,.12)}
+    .cols-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .cols-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .kv{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .value{font-size:1.6rem;font-weight:900;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    @media (max-width:1000px){ .grid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
+    <h1>🧠 Java‑KI‑Bausteine – Ultimative Suite (5‑in‑1)</h1>
+    <nav class="muted">
+      <a href="linelux-style.html">Haupt‑UI</a>
+      <a href="variants/variants-index.html">Varianten‑Index</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="card" style="margin-bottom:12px">
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <div class="row" style="gap:16px;align-items:center">
+        <div class="muted">Live‑Zähler</div>
+        <div>☕ Java‑Programmierungen: <span id="liveJava" class="value">–</span></div>
+        <div>🚁 Drohnen: <span id="liveDrones" class="value">–</span></div>
+        <div>🎯 Threats: <span id="liveThreats" class="value">0</span></div>
+      </div>
+      <div class="muted">Quelle: /api/meta/java-counts • /api/drones/count • /api/telemetry/status</div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-panel="p-snippets">🧩 Snippets</button>
+    <button class="tab" data-panel="p-deepseek">🧠 DeepSeek Berater</button>
+    <button class="tab" data-panel="p-models">🏰 Modelle/Embeddings</button>
+    <button class="tab" data-panel="p-ml">📚 Lernen (ML)</button>
+    <button class="tab" data-panel="p-chat">💬 Chatbot</button>
+  </div>
+
+  <!-- Workspace Coupling / Settings -->
+  <div class="card" id="p-workspace" style="margin-bottom:12px">
+    <div class="row" style="align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div class="muted">🔗 Workspace – Koppelung der 5 Bereiche</div>
+      <div class="row" style="gap:12px">
+        <label class="muted" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="wsAutoIngest"> Auto‑Ingest Snippets → ML</label>
+        <label class="muted" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="wsContext"> Chat/DeepSeek mit Snippet‑Kontext</label>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+      <input id="dsKey" placeholder="DeepSeek API‑Key (optional, lokal gespeichert)" style="flex:1;min-width:260px">
+      <button id="btnSaveKey" class="btn ghost">🔐 Key speichern</button>
+      <div id="wsStatus" class="muted">Bereit.</div>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div id="p-snippets" class="card">
+    <div class="muted" style="margin-bottom:8px">Verwalte Java‑Bausteine lokal. Titel/Tags vergeben, Inhalte durchsuchen, exportieren/importieren.</div>
+    <div class="cols-3">
+      <input id="snTitle" placeholder="Titel/Name…">
+      <input id="snTags" placeholder="Tags (Komma)…">
+      <div class="row">
+        <button id="snSave" class="btn">💾 Speichern</button>
+        <button id="snClear" class="btn ghost">🗑️ Alle löschen</button>
+      </div>
+    </div>
+    <textarea id="snText" rows="6" placeholder="// Java‑Code oder Beschreibung…"></textarea>
+    <div class="row" style="margin-top:8px">
+      <input id="snSearch" placeholder="Suchen (Titel/Tags)…" style="flex:1;min-width:220px">
+      <button id="snExport" class="btn ghost">⬇️ Export</button>
+      <label class="btn ghost" for="snImport" style="cursor:pointer">⬆️ Import<input type="file" id="snImport" accept="application/json" style="display:none"></label>
+    </div>
+    <div id="snList" class="muted" style="margin-top:8px">Noch keine Bausteine.</div>
+  </div>
+
+  <div id="p-deepseek" class="card" style="display:none">
+    <div class="grid">
+      <div>
+        <div class="muted" style="margin-bottom:6px">Formuliere eine Frage an den Berater. Antwort kommt über /api/deepseek/chat (Mock/Proxy).</div>
+        <textarea id="dsPrompt" rows="6" placeholder="Frage eingeben…"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button id="dsAsk" class="btn">Antwort holen</button>
+          <button id="dsTokenTest" class="btn ghost">🔐 Token‑Test</button>
+        </div>
+      </div>
+      <div>
+        <div class="muted">Antwort</div>
+        <div id="dsAnswer" style="min-height:160px;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;background:rgba(255,255,255,.04)">Bereit…</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-models" class="card" style="display:none">
+    <div class="grid">
+      <div>
+        <div class="row" style="align-items:center;gap:8px;margin-bottom:8px">
+          <select id="dsModel" style="max-width:240px">
+            <option value="deepseek-chat">deepseek-chat</option>
+            <option value="deepseek-reasoner">deepseek-reasoner</option>
+            <option value="deepseek-embed">deepseek-embed</option>
+          </select>
+          <button id="btnLoadModels" class="btn">Modelle laden</button>
+        </div>
+        <div id="modelsOut" class="muted">Modelle: noch nicht geladen.</div>
+      </div>
+      <div>
+        <textarea id="embInput" rows="5" placeholder="Text für Embeddings…"></textarea>
+        <div class="row" style="margin-top:8px"><button id="btnEmbeddings" class="btn">Embeddings berechnen</button></div>
+        <div id="embOut" class="muted" style="margin-top:6px">Embeddings: noch leer.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-ml" class="card" style="display:none">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="muted">Einfache ML‑Aktionen über /api/ml/*</div>
+      <div class="kv">
+        <div class="muted">Trainiert</div><div id="mlStatus">–</div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnTrain" class="btn">🧠 Trainieren</button>
+      <button id="btnPredict" class="btn ghost">🔮 Prognose (10)</button>
+    </div>
+    <div id="mlOut" class="muted" style="margin-top:8px">Bereit.</div>
+  </div>
+
+  <div id="p-chat" class="card" style="display:none">
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button class="btn" id="btnChAdmin">Admin</button>
+      <button class="btn ghost" id="btnChCustomer">Kunde</button>
+      <button class="btn ghost" id="btnVerify">🔐 Prüfen</button>
+    </div>
+    <div id="chatList" style="min-height:200px;max-height:260px;overflow:auto;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px;background:rgba(255,255,255,.04)">
+      <div class="muted">Noch keine Nachrichten…</div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input id="chatSender" placeholder="Dein Name (optional)" style="flex:1;min-width:160px">
+      <input id="chatText" placeholder="Nachricht eingeben…" style="flex:3;min-width:220px">
+      <button class="btn" id="btnSend">Senden</button>
+      <button class="btn ghost" id="btnAssist">Assistent antwortet</button>
+    </div>
+    <div class="muted" style="margin-top:6px">Kanal: <code id="chatChan">customer</code> • Hash: <code id="chatHead">–</code></div>
+  </div>
+</div>
+
+<script>
+// SW registrieren (für Mock‑APIs/Offline‑Vorschau)
+if ('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw-mock-api.js').catch(()=>{}); }); }
+const API = location.origin + '/api';
+
+// Workspace toggles & DS key
+const LS_WS_AUTO = 'ws.autoIngest';
+const LS_WS_CTX  = 'ws.context';
+const LS_DS_KEY  = 'deepseek.key';
+(function(){
+  try{
+    const auto = localStorage.getItem(LS_WS_AUTO) !== '0';
+    const ctx  = localStorage.getItem(LS_WS_CTX)  !== '0';
+    const key  = localStorage.getItem(LS_DS_KEY)  || '';
+    const elA = document.getElementById('wsAutoIngest'); if (elA) { elA.checked = auto; elA.addEventListener('change', ()=> localStorage.setItem(LS_WS_AUTO, elA.checked? '1':'0')); }
+    const elC = document.getElementById('wsContext');   if (elC) { elC.checked = ctx;  elC.addEventListener('change', ()=> localStorage.setItem(LS_WS_CTX,  elC.checked? '1':'0')); }
+    const elK = document.getElementById('dsKey');       if (elK) elK.value = key ? (key.slice(0,6)+'…'+key.slice(-4)) : '';
+    const status = document.getElementById('wsStatus');
+    const btn = document.getElementById('btnSaveKey');
+    if (btn){ btn.addEventListener('click', async ()=>{
+      try{
+        const raw = prompt('DeepSeek API‑Key eingeben (wird lokal gespeichert):', key||'')||'';
+        if (!raw) return;
+        localStorage.setItem(LS_DS_KEY, raw.trim());
+        if (status) status.textContent = '🔐 Key gespeichert (lokal).';
+        // optional: SW informieren
+        try{ await fetch(API + '/deepseek/key', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key: raw.trim() }) }); }catch(_){ }
+        if (elK) elK.value = raw.trim() ? (raw.trim().slice(0,6)+'…'+raw.trim().slice(-4)) : '';
+      }catch(e){ if (status) status.textContent = '❌ Fehler beim Speichern'; }
+    }); }
+  }catch(_){ }
+})();
+
+function dsHeaders(){ const k = localStorage.getItem(LS_DS_KEY)||''; return k? { 'x-deepseek-key': k }: {}; }
+function withContextPrompt(base){ try{ const on = (localStorage.getItem(LS_WS_CTX)!=='0'); if (!on) return base; const list = JSON.parse(localStorage.getItem('java_bausteine_ui_v2')||'[]'); const recent = list.slice(0,3).map(sn=> `• ${sn.title||''} [${(sn.tags||[]).join(', ')}]\n${(sn.text||'').slice(0,400)}` ).join("\n\n"); if (!recent) return base; return `Kontext (letzte Snippets):\n${recent}\n\nFrage:\n${base}`; }catch(_){ return base; }}
+
+// Live‑Zähler
+(async function live(){
+  function set(id, txt){ const el=document.getElementById(id); if(el) el.textContent = txt; }
+  async function tick(){
+    try{ const j = await fetch(API+'/meta/java-counts',{cache:'no-store'}).then(r=>r.json()); const total = Number(j.controllers||0)+Number(j.services||0)+Number(j.repositories||0)+Number(j.models||0); set('liveJava', total.toLocaleString('de-DE')); }catch(_){ }
+    try{ const n = await fetch(API+'/drones/count',{cache:'no-store'}).then(r=>r.json()); set('liveDrones', Number(n).toLocaleString('de-DE')); }catch(_){ }
+    try{ const s = await fetch(API+'/telemetry/status',{cache:'no-store'}).then(r=>r.json()); const tEl=document.getElementById('liveThreats'); if (Math.random()>0.985){ tEl.textContent = String(Number(tEl.textContent||'0')+1); } }catch(_){ }
+  }
+  tick(); setInterval(tick, 5000);
+})();
+
+// Tabs
+(function(){
+  const tabs=document.getElementById('tabs'); const panels=['p-snippets','p-deepseek','p-models','p-ml','p-chat'];
+  tabs.addEventListener('click', (e)=>{ const b=e.target.closest('.tab'); if(!b) return; tabs.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); panels.forEach(id=>{ const p=document.getElementById(id); if(p) p.style.display = (b.dataset.panel===id)?'block':'none'; }); });
+})();
+
+// Snippets (lokal)
+(function(){
+  const KEY='java_bausteine_ui_v2';
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(_){ return []; } }
+  function save(arr){ try{ localStorage.setItem(KEY, JSON.stringify(arr)); }catch(_){ } }
+  function norm(sn){ const t=(sn.title||'').trim(); const x=(sn.text||'').trim(); const tags=Array.isArray(sn.tags)? sn.tags : String(sn.tags||'').split(',').map(s=>s.trim()).filter(Boolean); const id=sn.id||String(Math.abs((t+'|'+x).split('').reduce((h,c)=>((h*31+c.charCodeAt(0))|0),0))); return { id, ts: sn.ts||Date.now(), title:t||('Snippet '+new Date().toLocaleString()), tags, text:x }; }
+  const elTitle=snTitle, elTags=snTags, elText=snText, elList=snList, elSearch=snSearch;
+  function render(){ const q=(elSearch.value||'').toLowerCase(); const list=load().map(norm).filter(it=> (it.title+' '+it.tags.join(',')).toLowerCase().includes(q)); if(!list.length){ elList.textContent='Noch keine Bausteine.'; return; } const wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.flexDirection='column'; wrap.style.gap='8px'; list.forEach(it=>{ const d=document.createElement('details'); d.open=false; d.style.border='1px solid rgba(255,255,255,.12)'; d.style.borderRadius='10px'; d.style.padding='8px'; d.style.background='rgba(255,255,255,.04)'; const s=document.createElement('summary'); s.innerHTML = `<strong>${escapeHtml(it.title)}</strong> <span class="muted">[${escapeHtml(it.tags.join(', '))}]</span>`+` <button class="btn ghost" data-act="copy" style="padding:4px 8px">Kopieren</button>`+` <button class="btn ghost" data-act="del" style="padding:4px 8px">Löschen</button>`; const pre=document.createElement('pre'); pre.style.whiteSpace='pre-wrap'; pre.style.margin='6px 0 0'; pre.textContent=it.text; d.appendChild(s); d.appendChild(pre); d.addEventListener('click',(ev)=>{ const t=ev.target; if(t&&t.dataset&&t.dataset.act){ ev.preventDefault(); ev.stopPropagation(); if(t.dataset.act==='copy'){ navigator.clipboard.writeText(it.text).catch(()=>{}); } if(t.dataset.act==='del'){ const arr=load().filter(x=> (x.id||'')!==it.id); save(arr); render(); } } }); wrap.appendChild(d); }); elList.innerHTML=''; elList.appendChild(wrap); }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  snSave.addEventListener('click', async ()=>{ const t=(elTitle.value||'').trim(), g=(elTags.value||'').trim(), x=(elText.value||'').trim(); if(!x){ alert('Bitte Inhalt eingeben'); return; } const arr=load(); const sn=norm({title:t,text:x,tags:g}); const idx=arr.findIndex(a=> (a.id||'')===sn.id); if(idx>=0) arr[idx]=sn; else arr.unshift(sn); save(arr); elText.value=''; render(); try{ if ((localStorage.getItem('ws.autoIngest')||localStorage.getItem('ws.autoIngest')===null) && (localStorage.getItem('ws.autoIngest')!=='0')){ const features={ textLen: sn.text.length, lineCount: (sn.text.match(/\n/g)||[]).length+1, tagCount: sn.tags.length }; await fetch(API+'/ml/ingest',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ features, label: sn.title, source:'java-interface' }) }).catch(()=>{}); document.getElementById('wsStatus') && (document.getElementById('wsStatus').textContent='📤 Ingest gesendet'); } }catch(_){ } });
+  snClear.addEventListener('click', ()=>{ if(confirm('Wirklich alle Bausteine löschen?')){ save([]); render(); } });
+  snExport.addEventListener('click', ()=>{ try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(load(),null,2)],{type:'application/json'})); a.download='java_bausteine.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000); }catch(_){ } });
+  snImport.addEventListener('change', async (e)=>{ try{ const f=e.target.files&&e.target.files[0]; if(!f) return; const txt=await f.text(); const arr=JSON.parse(txt); if(Array.isArray(arr)){ const cur=load().map(norm); arr.map(norm).forEach(sn=>{ const i=cur.findIndex(x=> (x.id||'')===sn.id); if(i>=0) cur[i]=sn; else cur.unshift(sn); }); save(cur); render(); } }catch(_){ } e.target.value=''; });
+  elSearch.addEventListener('input', render);
+  render();
+})();
+
+// DeepSeek Beratung
+(function(){
+  const out=dsAnswer; const input=dsPrompt;
+  async function ask(){ let prompt=(input.value||'').trim(); if(!prompt){ out.textContent='Bitte eine Frage eingeben.'; return; } prompt = withContextPrompt(prompt); out.innerHTML='<div class="muted">Lade…</div>'; try{ const r=await fetch(API+'/deepseek/chat',{ method:'POST', headers:Object.assign({'Content-Type':'application/json'}, dsHeaders()), body: JSON.stringify({ prompt }) }); const j=await r.json().catch(()=>({})); let text=''; const res=j && (j.response||j); if (res && res.choices && res.choices[0] && res.choices[0].message) text=res.choices[0].message.content||''; out.textContent = text || 'Keine Antwort.'; }catch(e){ out.textContent='❌ Fehler'; } }
+  dsAsk.addEventListener('click', ask);
+  dsTokenTest.addEventListener('click', async ()=>{ out.innerHTML='<div class="muted">Teste…</div>'; try{ const r=await fetch(API+'/deepseek/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'PING'})}); out.textContent = r.ok? '✅ OK' : '⚠️ Problem'; }catch(_){ out.textContent='❌ Fehler'; } });
+})();
+
+// Modelle & Embeddings
+(function(){
+  btnLoadModels.addEventListener('click', async ()=>{ const out=modelsOut; out.innerHTML='<div class="muted">Lade…</div>'; try{ const r=await fetch(API+'/deepseek/models',{ headers: dsHeaders() }); const j=await r.json(); const list = (j && j.data) ? j.data.map(m=>m.id).join(', ') : 'Keine Daten'; out.textContent='Modelle: '+list; }catch(e){ out.textContent='❌ Fehler'; } });
+  btnEmbeddings.addEventListener('click', async ()=>{ const out=embOut; const text=(embInput.value||'').trim(); if(!text){ out.textContent='Bitte Text eingeben'; return; } out.innerHTML='<div class="muted">Berechne…</div>'; try{ const model=dsModel.value||'deepseek-embed'; const r=await fetch(API+'/deepseek/embeddings',{method:'POST',headers:Object.assign({'Content-Type':'application/json'}, dsHeaders()),body:JSON.stringify({ model, input:text })}); const j=await r.json(); if(!r.ok){ out.textContent='❌ Fehler'; return; } const vec=(j.data&&j.data[0]&&j.data[0].embedding)||[]; out.textContent='Embedding‑Länge: '+vec.length+' | Beispiel: ['+vec.slice(0,8).map(n=>Number(n).toFixed(3)).join(', ')+']'; }catch(_){ out.textContent='❌ Fehler'; } });
+})();
+
+// ML Train/Predict (einfach)
+(function(){
+  async function refreshStatus(){ try{ const s=await fetch(API+'/ml/status').then(r=>r.json()); const st=document.getElementById('mlStatus'); st.textContent = s && s.model && s.model.trained ? ('n='+s.model.n) : '–'; }catch(_){ } }
+  btnTrain.addEventListener('click', async ()=>{ const out=mlOut; out.innerHTML='<div class="muted">Trainiere…</div>'; try{ const j=await fetch(API+'/ml/train',{method:'POST'}).then(r=>r.json()); out.textContent='✅ Trainiert (n='+(j.n||0)+', Trend='+(j.slope!=null? Number(j.slope).toFixed(2):'-')+')'; refreshStatus(); }catch(_){ out.textContent='❌ Fehler'; } });
+  btnPredict.addEventListener('click', async ()=>{ const out=mlOut; out.innerHTML='<div class="muted">Prognose…</div>'; try{ const j=await fetch(API+'/ml/predict?steps=10').then(r=>r.json()); const list=(j.predictions||[]).slice(0,10).map((v,i)=> (i+1)+': '+Number(v).toFixed(0)).join(', '); out.textContent='🔮 '+list; }catch(_){ out.textContent='❌ Fehler'; } });
+  refreshStatus();
+})();
+
+// Chatbot
+(function(){
+  let channel=localStorage.getItem('chat_channel')||'customer';
+  function setChan(){ const el=document.getElementById('chatChan'); if(el) el.textContent = channel; }
+  async function loadHistory(){ try{ const arr=await fetch(API+'/chat/history?channel='+encodeURIComponent(channel)+'&limit=50').then(r=>r.json()); const box=document.getElementById('chatList'); box.innerHTML=''; arr.forEach(m=> box.insertAdjacentHTML('beforeend', msgHtml(m))); box.scrollTop = box.scrollHeight; }catch(_){ } }
+  function fmtTs(ts){ try{ return new Date(ts).toLocaleTimeString('de-DE'); }catch(e){ return ''; } }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  function msgHtml(m){ const who=(m.role==='assistant')?'assistant':'user'; const clr=who==='assistant'? '#a8ffdf' : '#bfe9ff'; return `<div style="margin:6px 0"><span class="muted small">[${fmtTs(m.ts)}]</span> <b style="color:${clr}">${m.sender||who}</b>: ${escapeHtml(m.text||'')}</div>`; }
+  btnChAdmin.addEventListener('click', ()=>{ channel='admin'; localStorage.setItem('chat_channel', channel); setChan(); loadHistory(); });
+  btnChCustomer.addEventListener('click', ()=>{ channel='customer'; localStorage.setItem('chat_channel', channel); setChan(); loadHistory(); });
+  btnSend.addEventListener('click', async ()=>{ const sender=(chatSender.value||'user'); const text=(chatText.value||'').trim(); if(!text) return; chatText.value=''; try{ const r=await fetch(API+'/chat/send',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ channel, role:'user', sender, text })}); const m=await r.json(); if(!r.ok) return; const box=document.getElementById('chatList'); box.insertAdjacentHTML('beforeend', msgHtml(m)); box.scrollTop=box.scrollHeight; }catch(_){ }
+  });
+  btnAssist.addEventListener('click', async ()=>{ const sender=(chatSender.value||'user'); let text=(chatText.value||'').trim(); if(!text) return; chatText.value=''; try{ const useCtx = (localStorage.getItem('ws.context')!=='0'); if (useCtx) text = withContextPrompt(text); const r=await fetch(API+'/chat/assist',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ channel, role: channel==='admin'?'admin':'user', sender, message: text })}); const m=await r.json(); const box=document.getElementById('chatList'); box.insertAdjacentHTML('beforeend', msgHtml({ ts: Date.now(), sender:'assistant', role:'assistant', text: (m.text||m.reply||'…') })); box.scrollTop=box.scrollHeight; }catch(_){ }
+  });
+  btnVerify.addEventListener('click', async ()=>{ try{ const j=await fetch(API+'/chat/verify?channel='+encodeURIComponent(channel)).then(r=>r.json()); const hh=(j.headHash||'').toString(); document.getElementById('chatHead').textContent = hh? (hh.substring(0,8)+'…') : '–'; }catch(_){ } });
+  setChan(); loadHistory();
+})();
+</script>
+<div id="appMgrBtn" title="App‑Manager" style="position:fixed;right:14px;bottom:14px;width:54px;height:54px;border-radius:27px;background:linear-gradient(135deg,#00ff88,#00ccff);color:#001;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:99999;font-weight:800;box-shadow:0 10px 28px rgba(0,0,0,.35)">M</div>
+<div id="appMgrPanel" style="position:fixed;right:14px;bottom:80px;width:380px;max-width:92vw;max-height:70vh;display:none;flex-direction:column;background:#0b0f18;border:1px solid rgba(255,255,255,.12);border-radius:12px;box-shadow:0 18px 60px rgba(0,0,0,.4);z-index:99999;overflow:hidden">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.12);color:#a8ffdf;font:12px system-ui">App‑Manager Workspace <button id="appMgrClose" class="btn ghost" style="padding:4px 8px">Schließen</button></div>
+  <iframe id="appMgrFrame" src="app-manager-chat.html" style="border:0;width:100%;height:60vh;background:#fff"></iframe>
+</div>
+<script>
+(function(){
+  const btn = document.getElementById('appMgrBtn');
+  const panel = document.getElementById('appMgrPanel');
+  const closeBtn = document.getElementById('appMgrClose');
+  const frame = document.getElementById('appMgrFrame');
+  function toggle(open){ panel.style.display = open? 'flex':'none'; if (open) { sendWorkspaceContext(); } }
+  if (btn) btn.addEventListener('click', ()=> toggle(panel.style.display!=='flex'));
+  if (closeBtn) closeBtn.addEventListener('click', ()=> toggle(false));
+  function recentSnippets(){ try{ const arr=JSON.parse(localStorage.getItem('java_bausteine_ui_v2')||'[]'); return arr.slice(0,5).map(sn=>({title:sn.title||'', tags:sn.tags||[], text:(sn.text||'').slice(0,600)})); }catch(_){ return []; } }
+  function sendWorkspaceContext(){ try{
+    const ctx = {
+      ns: 'JavaWorkspaceV1',
+      type: 'context',
+      context: (localStorage.getItem('ws.context')!=='0'),
+      autoIngest: (localStorage.getItem('ws.autoIngest')!=='0'),
+      deepseekKeyMasked: (function(){ const k=localStorage.getItem('deepseek.key')||''; return k? (k.slice(0,6)+'…'+k.slice(-4)) : ''; })(),
+      snippets: recentSnippets()
+    };
+    frame && frame.contentWindow && frame.contentWindow.postMessage(ctx, '*');
+  }catch(e){}
+  }
+  // wenn das Iframe lädt, Kontext senden
+  window.addEventListener('message', (ev)=>{ try{ const d=ev.data||{}; if(d && d.ns==='JavaWorkspaceV1' && d.type==='ready'){ sendWorkspaceContext(); } }catch(_){ } });
+})();
+</script>
+</body>
+</html>

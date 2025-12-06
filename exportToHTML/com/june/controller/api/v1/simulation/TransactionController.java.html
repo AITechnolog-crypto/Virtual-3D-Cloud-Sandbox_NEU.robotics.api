@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>TransactionController.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #96be78;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+TransactionController.java</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">package </span><span class="s1">com.june.controller.api;</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">org.springframework.beans.factory.annotation.Autowired;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">import </span><span class="s1">org.springframework.web.bind.annotation.*;</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">import <a href="../../../../../../com/june/repository/TransactionRepository.java.html">com.june.repository.TransactionRepository</a></span><span class="s1">;</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">import </span><span class="s1">com.june.model.Transaction;</span>
+<a name="l7"><span class="ln">7    </span></a><span class="s0">import </span><span class="s1">java.util.List;</span>
+<a name="l8"><span class="ln">8    </span></a>
+<a name="l9"><span class="ln">9    </span></a><span class="s1">@RestController</span>
+<a name="l10"><span class="ln">10   </span></a><span class="s1">@RequestMapping(</span><span class="s2">&quot;/api/transactions&quot;</span><span class="s1">)</span>
+<a name="l11"><span class="ln">11   </span></a><span class="s1">@CrossOrigin(origins = </span><span class="s2">&quot;*&quot;</span><span class="s1">)</span>
+<a name="l12"><span class="ln">12   </span></a><span class="s0">public class </span><span class="s1">TransactionController {</span>
+<a name="l13"><span class="ln">13   </span></a>    <span class="s1">@Autowired</span>
+<a name="l14"><span class="ln">14   </span></a>    <span class="s0">private <a href="../../../../../../com/june/repository/TransactionRepository.java.html">TransactionRepository</a> </span><span class="s1">transactionRepository;</span>
+<a name="l15"><span class="ln">15   </span></a>
+<a name="l16"><span class="ln">16   </span></a>    <span class="s1">@GetMapping</span>
+<a name="l17"><span class="ln">17   </span></a>    <span class="s0">public </span><span class="s1">List&lt;Transaction&gt; getAllTransactions() {</span>
+<a name="l18"><span class="ln">18   </span></a>        <span class="s0">return </span><span class="s1">transactionRepository.findAll();</span>
+<a name="l19"><span class="ln">19   </span></a>    <span class="s1">}</span>
+<a name="l20"><span class="ln">20   </span></a>
+<a name="l21"><span class="ln">21   </span></a>    <span class="s1">@GetMapping(</span><span class="s2">&quot;/count&quot;</span><span class="s1">)</span>
+<a name="l22"><span class="ln">22   </span></a>    <span class="s0">public long </span><span class="s1">countTransactions() {</span>
+<a name="l23"><span class="ln">23   </span></a>        <span class="s0">return </span><span class="s1">transactionRepository.count();</span>
+<a name="l24"><span class="ln">24   </span></a>    <span class="s1">}</span>
+<a name="l25"><span class="ln">25   </span></a>
+<a name="l26"><span class="ln">26   </span></a>    <span class="s1">@GetMapping(</span><span class="s2">&quot;/recent&quot;</span><span class="s1">)</span>
+<a name="l27"><span class="ln">27   </span></a>    <span class="s0">public </span><span class="s1">List&lt;Transaction&gt; getRecentTransactions() {</span>
+<a name="l28"><span class="ln">28   </span></a>        <span class="s0">return </span><span class="s1">transactionRepository.findTop10ByOrderByCreatedAtDesc();</span>
+<a name="l29"><span class="ln">29   </span></a>    <span class="s1">}</span>
+<a name="l30"><span class="ln">30   </span></a><span class="s1">}</span>
+<a name="l31"><span class="ln">31   </span></a></pre>
+</body>
+</html>

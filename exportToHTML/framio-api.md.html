@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>framio-api.md</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #afb9c3;}
+.s3 { color: #96be78;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+framio-api.md</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0"># </span><span class="s2">Framio API </span><span class="s1">(</span><span class="s2">Mock via Service Worker</span><span class="s1">)</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s2">This project provides a lightweight, client‑side mock of a </span><span class="s1">&quot;</span><span class="s2">Framio</span><span class="s1">&quot; </span><span class="s2">API implemented inside `src/main/resources/static/sw-mock-api.js`. It enables UI development without a backend.</span>
+<a name="l4"><span class="ln">4    </span></a>
+<a name="l5"><span class="ln">5    </span></a><span class="s2">The mock requires a token with prefix `fio-u-` and supports a few simple endpoints.</span>
+<a name="l6"><span class="ln">6    </span></a>
+<a name="l7"><span class="ln">7    </span></a><span class="s0">## </span><span class="s2">Endpoints</span>
+<a name="l8"><span class="ln">8    </span></a>
+<a name="l9"><span class="ln">9    </span></a><span class="s2">Base</span><span class="s1">: </span><span class="s2">/api/framio</span>
+<a name="l10"><span class="ln">10   </span></a>
+<a name="l11"><span class="ln">11   </span></a><span class="s0">- </span><span class="s2">POST /token</span>
+<a name="l12"><span class="ln">12   </span></a>  <span class="s0">- </span><span class="s2">Body</span><span class="s1">: </span><span class="s2">`{ </span><span class="s1">&quot;</span><span class="s2">token</span><span class="s1">&quot;: &quot;</span><span class="s2">fio-u-...</span><span class="s1">&quot; </span><span class="s2">}`</span>
+<a name="l13"><span class="ln">13   </span></a>  <span class="s0">- </span><span class="s2">Stores the token in the SW mock. Returns `{ ok</span><span class="s1">: </span><span class="s2">true, masked</span><span class="s1">: &quot;</span><span class="s2">fio-u-…abc123</span><span class="s1">&quot; </span><span class="s2">}`.</span>
+<a name="l14"><span class="ln">14   </span></a>  <span class="s0">- </span><span class="s2">Token must start with `fio-u-`.</span>
+<a name="l15"><span class="ln">15   </span></a>
+<a name="l16"><span class="ln">16   </span></a><span class="s0">- </span><span class="s2">GET /ping</span>
+<a name="l17"><span class="ln">17   </span></a>  <span class="s0">- </span><span class="s2">Returns `{ ok</span><span class="s1">: </span><span class="s2">true, time</span><span class="s1">: </span><span class="s2">ISO, hasToken</span><span class="s1">: </span><span class="s2">boolean }`.</span>
+<a name="l18"><span class="ln">18   </span></a>
+<a name="l19"><span class="ln">19   </span></a><span class="s0">- </span><span class="s2">GET /profile</span>
+<a name="l20"><span class="ln">20   </span></a>  <span class="s0">- </span><span class="s2">Requires token set. Returns a demo profile</span><span class="s1">: </span><span class="s2">`{ id, name, plan, token</span><span class="s1">: </span><span class="s2">masked }`.</span>
+<a name="l21"><span class="ln">21   </span></a>
+<a name="l22"><span class="ln">22   </span></a><span class="s0">- </span><span class="s2">POST /echo</span>
+<a name="l23"><span class="ln">23   </span></a>  <span class="s0">- </span><span class="s2">Requires token set. Returns</span><span class="s1">: </span><span class="s2">`{ ok</span><span class="s1">: </span><span class="s2">true, echo</span><span class="s1">: &lt;your body&gt;</span><span class="s2">, ts }`.</span>
+<a name="l24"><span class="ln">24   </span></a>
+<a name="l25"><span class="ln">25   </span></a><span class="s0">- </span><span class="s2">GET /frames?id=</span><span class="s1">&lt;id&gt;</span>
+<a name="l26"><span class="ln">26   </span></a>  <span class="s0">- </span><span class="s2">Requires token set. Returns a mock frame object `{ id, title, vectors</span><span class="s1">:[</span><span class="s2">...</span><span class="s1">] </span><span class="s2">}` </span><span class="s1">(</span><span class="s2">cached by id during session</span><span class="s1">)</span><span class="s2">.</span>
+<a name="l27"><span class="ln">27   </span></a>
+<a name="l28"><span class="ln">28   </span></a><span class="s2">If a token is required but not present, the mock responds with HTTP 401 and `{ error</span><span class="s1">: &quot;</span><span class="s2">Unauthorized</span><span class="s1">&quot; </span><span class="s2">}`.</span>
+<a name="l29"><span class="ln">29   </span></a>
+<a name="l30"><span class="ln">30   </span></a><span class="s0">## </span><span class="s2">Quick test </span><span class="s1">(</span><span class="s2">in browser console</span><span class="s1">)</span>
+<a name="l31"><span class="ln">31   </span></a>
+<a name="l32"><span class="ln">32   </span></a><span class="s0">```</span><span class="s3">js</span>
+<a name="l33"><span class="ln">33   </span></a><span class="s3">const API = location.origin + '/api/framio';</span>
+<a name="l34"><span class="ln">34   </span></a>
+<a name="l35"><span class="ln">35   </span></a><span class="s3">// 1) Set token (replace with your token)</span>
+<a name="l36"><span class="ln">36   </span></a><span class="s3">await fetch(API + '/token', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: 'fio-u-7lHHhkbfOKsgodfRRril3aDfgT6F3noZ9KeC5ve8rNamlDVMyNYLrspKqp9YnwF5' }) }).then(r=&gt;r.json());</span>
+<a name="l37"><span class="ln">37   </span></a>
+<a name="l38"><span class="ln">38   </span></a><span class="s3">// 2) Ping</span>
+<a name="l39"><span class="ln">39   </span></a><span class="s3">await fetch(API + '/ping').then(r=&gt;r.json());</span>
+<a name="l40"><span class="ln">40   </span></a>
+<a name="l41"><span class="ln">41   </span></a><span class="s3">// 3) Profile</span>
+<a name="l42"><span class="ln">42   </span></a><span class="s3">await fetch(API + '/profile').then(r=&gt;r.json());</span>
+<a name="l43"><span class="ln">43   </span></a>
+<a name="l44"><span class="ln">44   </span></a><span class="s3">// 4) Echo</span>
+<a name="l45"><span class="ln">45   </span></a><span class="s3">await fetch(API + '/echo', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ hello:'framio' }) }).then(r=&gt;r.json());</span>
+<a name="l46"><span class="ln">46   </span></a>
+<a name="l47"><span class="ln">47   </span></a><span class="s3">// 5) Frames</span>
+<a name="l48"><span class="ln">48   </span></a><span class="s3">await fetch(API + '/frames?id=42').then(r=&gt;r.json());</span>
+<a name="l49"><span class="ln">49   </span></a><span class="s0">```</span>
+<a name="l50"><span class="ln">50   </span></a>
+<a name="l51"><span class="ln">51   </span></a><span class="s0">## </span><span class="s2">Notes</span>
+<a name="l52"><span class="ln">52   </span></a><span class="s0">- </span><span class="s2">These endpoints live entirely in the Service Worker and are meant for local preview </span><span class="s1">(</span><span class="s2">e.g., JetBrains 63342 or a simple static server</span><span class="s1">)</span><span class="s2">. They are not persisted across full reloads or browser restarts.</span>
+<a name="l53"><span class="ln">53   </span></a><span class="s0">- </span><span class="s2">If you want to add a UI card later, call these endpoints from your page and show the results.</span>
+<a name="l54"><span class="ln">54   </span></a></pre>
+</body>
+</html>

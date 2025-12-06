@@ -1,0 +1,212 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background: #000;
+}
+
+#canvas-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+#info-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(20, 20, 30, 0.95);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 350px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(100, 150, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    z-index: 100;
+}
+
+#info-panel h2 {
+    margin-bottom: 15px;
+    color: #64b5f6;
+    font-size: 20px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+}
+
+#metadata {
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-label {
+    color: #aaa;
+    font-weight: 500;
+}
+
+.stat-value {
+    color: #64b5f6;
+    font-weight: bold;
+}
+
+#controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 30, 0.95);
+    padding: 15px 30px;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(100, 150, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px 0 rgba(102, 126, 234, 0.3);
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.btn:active {
+    transform: translateY(-1px);
+}
+
+.btn-vr {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.btn-live {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+#stats-overlay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(20, 20, 30, 0.95);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(100, 150, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    z-index: 100;
+    line-height: 1.8;
+}
+
+#stats-overlay div {
+    margin: 5px 0;
+}
+
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a0a14 0%, #1a1a2e 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    z-index: 1000;
+}
+
+.spinner {
+    border: 6px solid rgba(255, 255, 255, 0.1);
+    border-top: 6px solid #667eea;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loading p {
+    margin-top: 30px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+#vr-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 30px 60px;
+    border-radius: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    display: none;
+    z-index: 200;
+    animation: pulse 2s infinite;
+    box-shadow: 0 10px 40px rgba(245, 87, 108, 0.5);
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% { 
+        opacity: 0.8; 
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #info-panel {
+        max-width: 90%;
+        left: 5%;
+        font-size: 12px;
+    }
+    
+    #controls {
+        flex-direction: column;
+        bottom: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}

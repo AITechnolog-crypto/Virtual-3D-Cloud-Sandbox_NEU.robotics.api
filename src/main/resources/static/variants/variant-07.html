@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LineLux Variante 07 – Swarm & Prognose</title>
+<link rel="stylesheet" href="../LineLuxSharedStyles.css">
+<style>:root{--h:52} body{background:hsl(var(--h),35%,8%);color:#eef6ff;font-family:system-ui,Segoe UI,Roboto,Arial}.wrap{max-width:1080px;margin:0 auto;padding:18px}h1{font-size:24px;margin:8px 0 12px;background:linear-gradient(90deg,hsl(var(--h),90%,60%),#00ccff);-webkit-background-clip:text;color:transparent}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}.pill{display:inline-block;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);border-radius:999px;padding:3px 8px;margin-right:6px}.btn{background:linear-gradient(135deg,#00ff88,#00ccff);color:#001a12;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}input{width:110px;border-radius:8px;border:1px solid rgba(255,255,255,.14);padding:6px;background:rgba(255,255,255,.06);color:#eef6ff}</style>
+</head><body>
+<div class="wrap">
+  <h1>LineLux – Variante 07 (Swarm & Prognose)</h1>
+  <div class="grid">
+    <div class="card">
+      <div class="muted">Zählungen</div>
+      <div class="pill">Roboter: <b id="v7R">2</b></div>
+      <div class="pill">Drohnen: <b id="v7D">1200</b></div>
+      <div class="pill">Tarngrillen: <b id="v7G">10000000000</b></div>
+      <div style="margin-top:8px"><button class="btn" onclick="deployR()">+ Robot</button> <button class="btn" onclick="deployD()">+ 100 Drohnen</button></div>
+    </div>
+    <div class="card">
+      <div class="muted">Produktionskosten (€/Stück)</div>
+      <div>Tarndrohne: <input id="cD" type="number" step="1" value="1200"></div>
+      <div>Tarngrille: <input id="cG" type="number" step="0.01" value="0.80"></div>
+      <div class="muted" style="margin-top:8px">Planmenge</div>
+      <div>Drohnen: <input id="mD" type="number" step="10" value="500"> • Grillen: <input id="mG" type="number" step="100000" value="1000000"></div>
+      <div style="margin-top:8px"><button class="btn" onclick="calcCost()">Kosten berechnen</button></div>
+      <div id="costOut" style="margin-top:6px;font-weight:700">Kosten: –</div>
+    </div>
+    <div class="card">
+      <div class="muted">Ertrag/Verlust (pro Tag)</div>
+      <div>Ertrag (€): <input id="rev" type="number" step="10" value="35000"></div>
+      <div>Ausgaben (€): <input id="exp" type="number" step="10" value="22000"></div>
+      <div style="margin-top:8px"><button class="btn" onclick="pnl()">P&L</button></div>
+      <div id="pnlOut" style="margin-top:6px;font-weight:700">Netto: –</div>
+    </div>
+    <div class="card">
+      <div class="muted">Karte / Satellit</div>
+      <div id="mapBox" style="height:280px;border-radius:10px;border:1px solid rgba(255,255,255,.12);display:grid;place-items:center;color:#9bd">Satelliten‑Tracking in der Haupt‑UI (Google/Leaflet).<br>Diese Variante zeigt nur eine Vorschau‑Box.</div>
+      <div style="margin-top:8px"><a class="btn" href="../linelux-style.html">Haupt‑UI öffnen</a></div>
+    </div>
+  </div>
+  <p style="margin-top:10px"><a href="variants-index.html">Varianten</a></p>
+</div>
+<script>
+function n(x){return Number(x).toLocaleString('de-DE')}
+function deployR(){ const el=document.getElementById('v7R'); const v=parseInt(el.textContent||'0'); el.textContent = n(v+1); }
+function deployD(){ const el=document.getElementById('v7D'); const v=parseInt(el.textContent||'0'); el.textContent = n(v+100); }
+function calcCost(){ const cd=parseFloat(cD.value||0), cg=parseFloat(cG.value||0), md=parseInt(mD.value||0), mg=parseInt(mG.value||0); const sum=cd*md + cg*mg; costOut.textContent = 'Kosten: '+sum.toLocaleString('de-DE',{minimumFractionDigits:2})+' €'; }
+function pnl(){ const r=parseFloat(rev.value||0), e=parseFloat(exp.value||0); const net=r-e; pnlOut.textContent = (net>=0?'Gewinn: ':'Verlust: ')+net.toLocaleString('de-DE',{minimumFractionDigits:2})+' €'; }
+</script>
+</body></html>
