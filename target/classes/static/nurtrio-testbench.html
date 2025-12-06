@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NurTrio Testbench – Synthetische Sensoren</title>
+  <style>
+    body{margin:0;background:#0a0f16;color:#e8f2ff;font-family:ui-monospace,Consolas,monospace}
+    .wrap{padding:10px}
+    .muted{color:#9fb0c6;font-size:12px}
+    .ok{color:#a8ffdf}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div>Testbench läuft – synthetische Sensoren → Hub</div>
+    <div id="st" class="muted">INIT…</div>
+  </div>
+<script>
+const NS='NurTrioV1';
+let t0=performance.now(), x=0,y=0, th=0, n=0;
+function send(){
+  const t=performance.now(); const dt=(t-t0)/1000; t0=t; n++;
+  const v=0.5, w=0.2; th+=w*dt; x+=Math.cos(th)*v*dt; y+=Math.sin(th)*v*dt;
+  const s={ ns:NS, type:'hal:sensors', pose:{x,y,theta:th}, imu:{yaw:th,pitch:0,roll:0}, prox:{front: 1.2+0.8*Math.sin(t*0.001)}, time:Date.now() };
+  parent.postMessage(s, '*');
+  if (n%3===0){ parent.postMessage({ ns:NS, type:'learn:stats', loss:Math.random()*0.1 }, '*'); }
+  if (n%5===0){ parent.postMessage({ ns:NS, type:'vision:blob', blobs: Math.floor(Math.random()*4) }, '*'); }
+  const el=document.getElementById('st'); if (el){ el.textContent = `t=${new Date().toLocaleTimeString()}  x=${x.toFixed(2)} y=${y.toFixed(2)} th=${th.toFixed(2)}  msgs=${n}`; }
+}
+let iv=null;
+function start(){ if(iv) clearInterval(iv); iv=setInterval(send, 200); }
+function stop(){ if(iv) clearInterval(iv); iv=null; }
+window.addEventListener('visibilitychange',()=>{ if(document.hidden) stop(); else start(); });
+start();
+</script>
+</body>
+</html>

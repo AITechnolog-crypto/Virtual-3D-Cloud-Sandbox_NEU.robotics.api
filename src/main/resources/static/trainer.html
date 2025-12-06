@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NurTrio Trainer</title>
+<style>
+  html,body{margin:0;height:100%;background:#0b0b0b;color:#eee;font-family:system-ui,Arial}
+  header{padding:8px 12px;background:#111;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  input[type=range]{width:160px}
+  #out{padding:10px;white-space:pre-wrap}
+  .small{opacity:.8;font-size:.9rem}
+</style>
+</head>
+<body>
+<header>
+  <label>alpha <input id="alpha" type="range" min="0.05" max="0.8" step="0.01"></label>
+  <label>gamma <input id="gamma" type="range" min="0.5" max="0.99" step="0.01"></label>
+  <label>eps   <input id="eps"   type="range" min="0.00" max="0.40" step="0.01"></label>
+  <button id="apply">Anwenden</button>
+  <button id="save">Speichern</button>
+  <button id="clear">Lernen löschen</button>
+  <span class="small" id="hint">Bereit…</span>
+</header>
+<div id="out"></div>
+
+<script>
+// Minimal NurBus client compatible with hub-postMessage usage
+const NurBus=(function(){
+  function createClient(){
+    const handlers=new Map();
+    window.addEventListener('message',ev=>{
+      const m=ev.data||{}; const list=handlers.get(m.type)||[]; const any=handlers.get('*')||[];
+      list.forEach(fn=>fn({type:m.type,payload:m})); any.forEach(fn=>fn({type:m.type,payload:m}));
+    });
+    return {
+      on(type,fn){ handlers.set(type,(handlers.get(type)||[]).concat(fn)); },
+      post(win,type,payload){ try{ win.postMessage(Object.assign({type}, payload||{}),'*'); }catch(_){} }
+    };
+  }
+  return { createClient };
+})();
+</script>
+<script>
+(function(){
+  const out = document.getElementById('out');
+  const a = document.getElementById('alpha');
+  const g = document.getElementById('gamma');
+  const e = document.getElementById('eps');
+  const hint = document.getElementById('hint');
+  const bus = NurBus.createClient();
+
+  bus.on('learn:stats', msg=>{
+    const s = msg.payload || {};
+    if (s.cfg){ a.value = s.cfg.alpha; g.value = s.cfg.gamma; e.value = s.cfg.eps; }
+    out.textContent =
+      "steps " + (s.steps||0) + "  episodes " + (s.episodes||0) + "\n" +
+      "rewardSum " + Number(s.rewardSum||0).toFixed(2) + "  last " + Number(s.lastReward||0).toFixed(2) + "\n" +
+      "alpha " + (s.cfg?.alpha??'') + "  gamma " + (s.cfg?.gamma??'') + "  eps " + (s.cfg?.eps??'') + "\n" +
+      "tableSize " + (s.tableSize||0);
+  });
+
+  document.getElementById('apply').onclick = ()=>{
+    hint.textContent='Sende Parameter…';
+    bus.post(window.parent, 'learn:set', { alpha: parseFloat(a.value), gamma: parseFloat(g.value), eps: parseFloat(e.value) });
+  };
+  document.getElementById('save').onclick  = ()=>{ hint.textContent='Speichere…'; bus.post(window.parent, 'learn:save', {}); };
+  document.getElementById('clear').onclick = ()=>{ hint.textContent='Lösche…';   bus.post(window.parent, 'learn:clear',{}); };
+})();
+</script>
+</body>
+</html>

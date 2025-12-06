@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>NurTrio Hub – Flags, Caps, Checkpoints</title>
+  <link rel="stylesheet" href="LineLuxSharedStyles.css">
+  <style>
+    :root{ --bg:#0b0f18; --fg:#e8f2ff; --accent:#00ff88; --accent2:#00ccff }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{position:sticky;top:0;z-index:10;background:rgba(11,15,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1)}
+    .wrap{max-width:1180px;margin:0 auto;padding:12px 16px}
+    h1{margin:0;font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    nav a{color:#a8ffdf;margin-right:12px;text-decoration:none}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;padding:16px}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+    .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001;border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+    .ghost{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid rgba(255,255,255,.12)}
+    #cv{width:100%;height:420px;border-radius:10px;display:block;background:#05070c}
+    #frameTrain,#frameVision{width:100%;height:260px;border:0;border-radius:10px;background:#000}
+    #caps{position:fixed;right:8px;top:8px;z-index:9999;background:rgba(0,0,0,.6);color:#0f0;font:12px ui-monospace,Consolas,monospace;padding:6px 8px;border:1px solid #333;border-radius:8px}
+    .muted{color:#9fb0c6;font-size:12px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
+    <h1>NurTrio Hub – Flags, Caps, Checkpoints</h1>
+    <nav class="muted">
+      <a href="linelux-style.html">Haupt‑UI</a>
+      <a href="variants/variants-index.html">Varianten‑Index</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <div class="toolbar">
+        <button id="btnEco" class="btn">Eco an</button>
+        <button id="btnTrainer" class="btn ghost">Trainer anzeigen</button>
+        <button id="btnVision" class="btn ghost">Vision anzeigen</button>
+        <button id="cpSave" class="btn ghost">CP Export</button>
+        <button id="cpLoad" class="btn ghost">CP Import</button>
+      </div>
+      <canvas id="cv" aria-label="Renderer/Simulation"></canvas>
+      <div class="muted" style="margin-top:6px">FPS‑geregelt • Eco reduziert Last. Checkpoints über lokale Datei import/export.</div>
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:6px">Trainer & Vision als Iframes (Testbench sendet synthetische Nachrichten).</div>
+      <iframe id="frameTrain" title="Trainer" src="nurtrio-testbench.html?mode=train" style="display:none"></iframe>
+      <iframe id="frameVision" title="Vision" src="nurtrio-testbench.html?mode=vision" style="display:none;margin-top:8px"></iframe>
+    </div>
+  </div>
+</div>
+<div id="caps">INIT…</div>
+
+<script>
+// --- Feature-Flags & Settings ---
+const Settings = {
+  load(){ try{ return JSON.parse(localStorage.getItem('nur.settings')||'{}'); }catch{ return {}; } },
+  save(s){ try{ localStorage.setItem('nur.settings', JSON.stringify(s)); }catch(_){} }
+};
+const S = Object.assign({ eco:true, vision:false, trainer:false }, Settings.load());
+
+// Flags aus URL (#f=vision,trainer) einmalig übernehmen
+(function(){
+  const m = (location.hash.match(/f=([^&]+)/)||[])[1];
+  if (m){ m.split(',').forEach(k=> S[k]=true); Settings.save(S); }
+})();
+
+// Elemente
+const btnEco = document.getElementById('btnEco');
+const btnTrainer = document.getElementById('btnTrainer');
+const btnVision = document.getElementById('btnVision');
+const frameTrain = document.getElementById('frameTrain');
+const frameVision = document.getElementById('frameVision');
+
+// Anwenden beim Start
+function applyFlags(){
+  try{ btnEco.textContent = S.eco ? 'Eco an' : 'Eco aus'; }catch(_){ }
+  try{ frameTrain.style.display = S.trainer ? 'block' : 'none'; }catch(_){ }
+  try{ if (frameVision) frameVision.style.display = S.vision ? 'block' : 'none'; }catch(_){ }
+}
+applyFlags();
+
+// UI -> Flags
+if (btnEco){ btnEco.onclick = ()=>{ S.eco = !S.eco; Settings.save(S); btnEco.textContent = S.eco ? 'Eco an' : 'Eco aus'; }; }
+if (btnTrainer){ btnTrainer.onclick = ()=>{ S.trainer = (frameTrain.style.display==='none'); Settings.save(S); applyFlags(); }; }
+if (btnVision && frameVision){ btnVision.onclick = ()=>{ S.vision = (frameVision.style.display==='none'); Settings.save(S); applyFlags(); }; }
+</script>
+
+<script>
+// ---------------------------------
+// Caps Overlay (Alive / Rates)
+// ---------------------------------
+let alive={sim:false,robot:false,vision:false,train:false};
+let rate={sens:0,learn:0,vis:0};
+function capsRender(){
+  const el=document.getElementById('caps'); if(!el) return;
+  el.textContent =
+    `SIM ${alive.sim?'🟢':'⚫'}  ROBOT ${alive.robot?'🟢':'⚫'}  VISION ${alive.vision?'🟢':'⚫'}  TRAIN ${alive.train?'🟢':'⚫'}  | `+
+    `sens/s ${rate.sens}  learn/s ${rate.learn}  vis/s ${rate.vis}`;
+  alive={sim:false,robot:false,vision:false,train:false};
+  rate={sens:0,learn:0,vis:0};
+}
+setInterval(capsRender,1000);
+window.addEventListener('message', ev=>{
+  const m=ev.data||{}; if(m.ns!=='NurTrioV1') return;
+  if(m.type==='hal:sensors'){ alive.sim=true; rate.sens++; }
+  if(m.type==='learn:stats'){ alive.robot=true; rate.learn++; }
+  if(m.type==='vision:blob'){ alive.vision=true; rate.vis++; }
+});
+frameTrain.addEventListener('load',()=> alive.train=true);
+</script>
+
+<script>
+// ---------------------------------
+// Renderer/Loop mit FPS‑Regel & Eco
+// ---------------------------------
+const canvas = document.getElementById('cv');
+const ctx = canvas.getContext('2d');
+function resize(){
+  const pr = renderer._pxr || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = Math.max(1, Math.floor(w*pr));
+  canvas.height = Math.max(1, Math.floor(h*pr));
+  ctx.setTransform(pr,0,0,pr,0,0); // logisch 1x zeichnen
+}
+const renderer = {
+  _pxr: Math.min(window.devicePixelRatio||1, 1.5),
+  setPixelRatio(v){ this._pxr = Math.max(0.5, Math.min(2, Number(v)||1)); resize(); }
+};
+let scene={}, camera={}; // Platzhalter
+window.addEventListener('resize', resize); resize();
+
+let tPrev=performance.now();
+let fCnt=0, t0=performance.now();
+let anim=0;
+function step(dt){
+  // einfache Visual: wandernde Partikel
+  const w=canvas.clientWidth, h=canvas.clientHeight;
+  ctx.fillStyle = '#05070c'; ctx.fillRect(0,0,w,h);
+  const n = S.eco ? 60 : 140;
+  for(let i=0;i<n;i++){
+    const x = (i*37 + (anim*60)) % w;
+    const y = (i*91 + (anim*30)) % h;
+    const a = 0.35 + 0.35*Math.sin((i+anim)*0.02);
+    ctx.fillStyle = `rgba(0,255,136,${a.toFixed(3)})`;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  anim += (S.eco? 0.8 : 1.6);
+}
+
+function tick(){
+  const t=performance.now(), dt=Math.min(0.05,(t-tPrev)/1000); tPrev=t;
+  // Eco: jeden 2. Frame überspringen
+  if (!(S.eco && (fCnt%2===0))) { step(dt); renderer.render && renderer.render(scene,camera); }
+  requestAnimationFrame(tick);
+
+  // FPS messen & PixelRatio anpassen
+  fCnt++; if (t - t0 > 1200){
+    const fps = fCnt * 1000 / (t - t0);
+    if (fps < 24) renderer.setPixelRatio(1);
+    else if (fps > 40) renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+    fCnt=0; t0=t;
+  }
+  // Watchdog beat
+  wdLast = Date.now();
+}
+requestAnimationFrame(tick);
+</script>
+
+<script>
+// ---------------------------------
+// CP Export/Import (Q‑Table)
+// ---------------------------------
+document.getElementById('cpSave').onclick = ()=>{
+  try{
+    const blob = localStorage.getItem('nurtrio.qtable')||'{}';
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([blob],{type:'application/json'}));
+    a.download='nurtrio-qcheckpoint.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }catch(e){ console.warn(e); }
+};
+document.getElementById('cpLoad').onclick = ()=>{
+  const i=document.createElement('input'); i.type='file'; i.accept='application/json';
+  i.onchange=()=>{ const f=i.files && i.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=()=>{ try{ localStorage.setItem('nurtrio.qtable', r.result); location.reload(); }catch(e){ console.warn(e); } };
+    r.readAsText(f);
+  }; i.click();
+};
+</script>
+
+<script>
+// ---------------------------------
+// Watchdog – sanfter Reset bei Stillstand
+// ---------------------------------
+let wdLast=Date.now();
+let running=true;
+const api={ setMotor: function(){ /* noop */ } };
+const learner={ endEpisode: function(){ /* noop */ } };
+function pushStats(){ /* noop */ }
+setInterval(()=>{ if (running && Date.now()-wdLast>1500){
+  try{ api.setMotor(0,0); }catch(_){ }
+  try{ learner.endEpisode(); }catch(_){ }
+  try{ pushStats(); }catch(_){ }
+  wdLast=Date.now();
+}}, 800);
+</script>
+
+<script>
+// Service Worker registrieren (Mock‑APIs verfügbar halten)
+if ('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('sw-mock-api.js').catch(()=>{}) ); }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,3822 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🛡️ NurSystem - LineLux Style</title>
+
+    <!-- Three.js für 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Chart.js für Diagramme -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Datastore: Local/File/Http Ringpuffer & Export/Import -->
+    <script src="datastore.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Content over canvas */
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* Stats Section */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            padding: 100px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease both;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0s; }
+        .stat-card:nth-child(2) { animation-delay: 0.1s; }
+        .stat-card:nth-child(3) { animation-delay: 0.2s; }
+        .stat-card:nth-child(4) { animation-delay: 0.3s; }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.5));
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Features Grid */
+        .features {
+            padding: 100px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            text-align: center;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 255, 136, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #00ff88;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 10px 30px rgba(0, 255, 136, 0.4);
+            }
+            50% {
+                box-shadow: 0 10px 50px rgba(0, 255, 136, 0.8);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Consent Overlay & Network Gating (inserted by Junie) -->
+<div id="consentOverlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);z-index:99999">
+  <div style="max-width:680px;background:#071018;color:#eafff0;padding:22px;border-radius:12px;border:1px solid rgba(0,255,136,.12);text-align:left">
+    <h2 style="margin-bottom:6px">Datenschutz & Netzwerk-Zustimmung</h2>
+    <p style="opacity:.85">NurSystem respektiert Minimaldatenprinzip. Netzwerk-Funktionen (Cloud/Serp/ML) benötigen deine Zustimmung. Lokal-Modus bleibt aktiv, wenn du ablehnst.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="consentDecline" class="btn btn-secondary">Lokal-nur</button>
+      <button id="consentAccept" class="btn btn-primary">Zustimmen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Consent-Promise: await consentReady()
+  (function(){
+    let _consentResolve;
+    window.consentReady = new Promise(function(resolve){ _consentResolve = resolve; });
+    var overlay = document.getElementById('consentOverlay');
+    function finish(val){ try{ overlay.style.display='none'; }catch(_){} _consentResolve(val); }
+    try{
+      var saved = localStorage.getItem('ui.consent');
+      if (saved === '1'){ finish(true); }
+      else if (saved === '0'){ finish(false); }
+      else { overlay.style.display='flex'; }
+      var accept = document.getElementById('consentAccept');
+      var decline = document.getElementById('consentDecline');
+      if (accept) accept.addEventListener('click', function(){ localStorage.setItem('ui.consent','1'); finish(true); });
+      if (decline) decline.addEventListener('click', function(){ localStorage.setItem('ui.consent','0'); finish(false); });
+    }catch(e){ try{ overlay.style.display='flex'; }catch(_){} }
+
+    // helper: network-safe fetch
+    window.safeFetch = async function(url, opts){
+      try {
+        var consent = await window.consentReady; if (!consent) throw new Error('Netzwerk deaktiviert (kein Consent)');
+        return fetch(url, opts);
+      } catch (err){ return Promise.reject(err); }
+    };
+  })();
+</script>
+
+<script type="module">
+  // Optional module loader (robust): only best-effort, failures are ignored
+  async function init(){
+    try{
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(!reduce){
+        try{ const mod = await import('https://unpkg.com/three@0.156.1/build/three.module.js'); window.THREE = mod && (mod.default||mod); }catch(_){ /* ignore */ }
+        // Optional local helpers (not required). Ignore if missing.
+        try{ await import('./modules/three-init.js').then(m=> m && m.initThree && m.initThree()); }catch(_){ }
+      }
+      if(document.querySelector('#energyChart')){
+        try{ const ch = await import('https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js'); window.Chart = ch && (ch.Chart||window.Chart); }catch(_){ }
+        try{ await import('./modules/energy-chart.js'); }catch(_){ }
+      }
+    }catch(e){ console.warn('[init-mod]', e); }
+  }
+  init();
+</script>
+
+<style>
+  :root{
+    --bg:#000; --fg:#e7fff7;
+    --accent1:#00ff88; --accent2:#00ccff;
+    --card-bg: rgba(255,255,255,0.03);
+    --glass: rgba(255,255,255,0.04);
+  }
+  [data-theme="light"]{
+    --bg:#f7fbff; --fg:#042b2b; --card-bg: rgba(0,0,0,0.03);
+  }
+  body{ background:var(--bg); color:var(--fg); transition:background .3s, color .3s; }
+  .card{ transition:transform .18s ease, box-shadow .18s ease }
+  .card:focus-within, .card:hover{ transform:translateY(-6px); box-shadow:0 14px 40px rgba(0,255,136,.06) }
+  a.skiplink{ position:absolute; top:-40px; left:8px; background:#fff; color:#000; padding:6px 8px; border-radius:4px }
+  a.skiplink:focus{ top:8px }
+</style>
+
+<script>
+  // Theme toggle with fallback button
+  (function(){
+    try{
+      var saved = localStorage.getItem('ui.theme');
+      if (saved){ document.documentElement.setAttribute('data-theme', saved); }
+      var btn = document.getElementById('themeToggle');
+      if (!btn){
+        btn = document.createElement('button');
+        btn.id = 'themeToggle';
+        btn.title = 'Theme umschalten';
+        btn.textContent = '🌗';
+        btn.style.position='fixed'; btn.style.right='12px'; btn.style.bottom='12px'; btn.style.zIndex='10000';
+        btn.className = 'btn btn-secondary';
+        document.addEventListener('DOMContentLoaded', function(){ try{ document.body.appendChild(btn); }catch(_){} });
+      }
+      function toggle(){ const t = (document.documentElement.getAttribute('data-theme') === 'light') ? '' : 'light'; document.documentElement.setAttribute('data-theme', t); localStorage.setItem('ui.theme', t); }
+      btn.addEventListener('click', toggle);
+    }catch(e){ /* ignore */ }
+  })();
+</script>
+
+<!-- Explain/Anomaly Panel -->
+<div id="explainPanel" aria-live="polite" style="display:none;position:fixed;right:12px;bottom:72px;max-width:360px;background:var(--card-bg);backdrop-filter:blur(10px);border:1px solid rgba(0,255,136,.25);border-radius:12px;padding:12px;z-index:99998">
+  <h3 style="margin:0 0 6px">📖 Entscheidung</h3>
+  <div id="explainBody" class="small"></div>
+  <div style="margin-top:8px;display:flex;justify-content:flex-end"><button id="ackBtn" class="btn btn-primary">Bestätigen (Human)</button></div>
+</div>
+<script>
+  // simple sliding window anomaly detector
+  class AnomalyDetector {
+    constructor(windowSize=30){ this.windowSize=windowSize; this.data=[]; }
+    push(val){ this.data.push(Number(val)||0); if(this.data.length>this.windowSize) this.data.shift(); return this.check(val); }
+    mean(){ return this.data.reduce((a,b)=>a+b,0)/this.data.length; }
+    std(){ const m=this.mean(); return Math.sqrt(this.data.reduce((s,v)=>s+(v-m)*(v-m),0)/this.data.length)||0; }
+    check(val){ if(this.data.length<5) return false; const z=(val-this.mean())/(this.std()||1); return Math.abs(z) > 3; }
+  }
+  (function(){
+    const detector = new AnomalyDetector(60);
+    const panel = document.getElementById('explainPanel');
+    const body = document.getElementById('explainBody');
+    const ack = document.getElementById('ackBtn');
+    function showExplain(text){ try{ body.textContent = text; panel.style.display='block'; }catch(_){} }
+    if (ack) ack.addEventListener('click', ()=>{ try{ panel.style.display='none'; }catch(_){} });
+
+    function wrap(){
+      if (typeof window.updateEnergyChart === 'function' && !window.updateEnergyChart.__withAnomaly){
+        const old = window.updateEnergyChart;
+        const wrapped = function(v){
+          try{ if (typeof v === 'number' && detector.push(v)) { showExplain('Anomalie erkannt bei Energie: '+Number(v).toLocaleString('de-DE')+' kWh'); } }catch(_){ }
+          return old.apply(this, arguments);
+        };
+        wrapped.__withAnomaly = true;
+        window.updateEnergyChart = wrapped;
+      }
+    }
+    // Try periodically until the chart updater exists
+    const iv = setInterval(wrap, 800);
+    setTimeout(()=>{ try{ clearInterval(iv); }catch(_){} }, 20000);
+
+    // local retention helpers
+    function pushLocalEvent(key, obj){ try{ const arr = JSON.parse(localStorage.getItem(key)||'[]'); obj._ts = Date.now(); arr.push(obj); localStorage.setItem(key, JSON.stringify(arr)); }catch(_){} }
+    function purgeOlderThanDays(key, days){ try{ const arr=JSON.parse(localStorage.getItem(key)||'[]'); const cutoff=Date.now()-days*24*3600*1000; const keep=arr.filter(x=> (x._ts||0) > cutoff); localStorage.setItem(key, JSON.stringify(keep)); }catch(_){} }
+    setInterval(()=> purgeOlderThanDays('telemetry', 7), 6*3600*1000);
+    // Export helpers (optional)
+    window.pushLocalEvent = pushLocalEvent;
+  })();
+</script>
+
+<!-- 3D Background Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Content -->
+<div class="content">
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>🛡️ NurSystem</h1>
+        <p>
+            Defensive AI Command Center mit 10 Milliarden Tarngrillen-Schwarm.
+            Echtzeit-3D-Visualisierung, Live-Energie-Management und aktive Bedrohungsabwehr.
+        </p>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="startDemo()">🚀 Demo starten</button>
+            <button class="btn btn-secondary" onclick="showDashboard()">📊 Dashboard</button>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stat-card">
+            <div class="stat-icon">🤖</div>
+            <div class="stat-value" id="swarmCount">10.0B</div>
+            <div class="stat-label">Schwarm-Größe</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-value" id="energyCount">2,847</div>
+            <div class="stat-label">kWh Energie</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value" id="threatCount">0</div>
+            <div class="stat-label">Bedrohungen</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🚁</div>
+            <div class="stat-value" id="droneCount">1,247</div>
+            <div class="stat-label">Aktive Drohnen</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">☕</div>
+            <div class="stat-value" id="javaCount">–</div>
+            <div class="stat-label">Java‑Programmierungen</div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2>✨ Funktionen</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>🗺️ 3D-Visualisierung</h3>
+                <p>Echtzeit-3D-Darstellung aller Schwarm-Einheiten mit Google Maps Integration und Satellitenansicht.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>⚡ Energie-Management</h3>
+                <p>Automatische Energiesammlung über Solar, Wind und CO₂-Konversion mit Antarktis-Speicher.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🛡️ Active Defense</h3>
+                <p>KI-gestützte Bedrohungserkennung mit Plasma-Schilden, EMP-Schutz und Resonanz-Absorption.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>📊 Live-Analytics</h3>
+                <p>Echtzeit-Charts für Energie, Bedrohungen und Schwarm-Status mit Prometheus-Metriken.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🔒 Edge-Privacy</h3>
+                <p>Alle Datenverarbeitung erfolgt lokal. Keine Cloud-Abhängigkeit, volle Kontrolle.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>📱 Mobile-First</h3>
+                <p>Optimiert für iPhone, iPad und alle Touch-Geräte mit nativen Gesten.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Floating Action Button -->
+<button class="fab" onclick="toggleControl()">🎮</button>
+
+<script>
+    // ========================================
+    // 3D BACKGROUND ANIMATION
+    // ========================================
+    let scene, camera, renderer;
+    let particles = [];
+    let lines = [];
+
+    function init3D() {
+        const canvas = document.getElementById('bg-canvas');
+
+        // Scene
+        scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x000000, 1, 1000);
+
+        // Camera
+        camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.z = 400;
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+            alpha: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create particles
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const particleCount = 1000;
+
+        for (let i = 0; i < particleCount; i++) {
+            const x = (Math.random() - 0.5) * 1000;
+            const y = (Math.random() - 0.5) * 1000;
+            const z = (Math.random() - 0.5) * 1000;
+
+            vertices.push(x, y, z);
+
+            particles.push({
+                x: x,
+                y: y,
+                z: z,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                vz: (Math.random() - 0.5) * 0.5
+            });
+        }
+
+        geometry.setAttribute(
+            'position',
+            new THREE.Float32BufferAttribute(vertices, 3)
+        );
+
+        const material = new THREE.PointsMaterial({
+            color: 0x00ff88,
+            size: 2,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const points = new THREE.Points(geometry, material);
+        scene.add(points);
+
+        // Window resize
+        window.addEventListener('resize', onWindowResize);
+
+        // Start animation
+        animate();
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        // Rotate scene
+        scene.rotation.y += 0.001;
+
+        // Update particles
+        const positions = scene.children[0].geometry.attributes.position.array;
+
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].x += particles[i].vx;
+            particles[i].y += particles[i].vy;
+            particles[i].z += particles[i].vz;
+
+            // Bounce
+            if (Math.abs(particles[i].x) > 500) particles[i].vx *= -1;
+            if (Math.abs(particles[i].y) > 500) particles[i].vy *= -1;
+            if (Math.abs(particles[i].z) > 500) particles[i].vz *= -1;
+
+            positions[i * 3] = particles[i].x;
+            positions[i * 3 + 1] = particles[i].y;
+            positions[i * 3 + 2] = particles[i].z;
+        }
+
+        scene.children[0].geometry.attributes.position.needsUpdate = true;
+
+        renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // ========================================
+    // LIVE STATS UPDATE
+    // ========================================
+    function updateStats() {
+        setInterval(() => {
+            // Energy
+            const energy = parseInt(document.getElementById('energyCount').textContent.replace(',', ''));
+            const newEnergy = energy + Math.floor((Math.random() - 0.5) * 100);
+            document.getElementById('energyCount').textContent = newEnergy.toLocaleString('de-DE');
+
+            // Random threat
+            if (Math.random() > 0.98) {
+                const threats = parseInt(document.getElementById('threatCount').textContent);
+                document.getElementById('threatCount').textContent = threats + 1;
+
+                // Flash effect
+                const card = document.querySelectorAll('.stat-card')[2];
+                card.style.borderColor = 'rgba(255, 0, 68, 0.8)';
+                setTimeout(() => {
+                    card.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }, 500);
+            }
+
+            // Java-Programmierungen (Echtzeit, via SW-Mock oder Backend)
+            try {
+                fetch(window.location.origin + '/api/meta/java-counts', { cache: 'no-store' })
+                  .then(r => r.ok ? r.json() : null)
+                  .then(j => {
+                      if (!j) return;
+                      const total = Number(j.controllers||0) + Number(j.services||0) + Number(j.repositories||0) + Number(j.models||0);
+                      const el = document.getElementById('javaCount');
+                      if (el) el.textContent = total.toLocaleString('de-DE');
+                  })
+                  .catch(()=>{});
+            } catch (_) {}
+        }, 2000);
+    }
+
+    // ========================================
+    // USER ACTIONS
+    // ========================================
+    function startDemo() {
+        alert('🚀 Demo wird gestartet!\n\nSchwarm wird deployed...\nEnergie-System initialisiert...\nAbwehr-Systeme online!');
+
+        // Animate swarm count
+        animateNumber('swarmCount', 10000000000, 10100000000, 2000);
+    }
+
+    function showDashboard() {
+        window.location.href = '/mobile.html';
+    }
+
+    function toggleControl() {
+        alert('🎮 Steuerung\n\n✅ 3D-Visualisierung aktiv\n✅ Live-Updates laufen\n✅ Alle Systeme operativ');
+    }
+
+    function animateNumber(id, start, end, duration) {
+        const element = document.getElementById(id);
+        const startTime = Date.now();
+        const difference = end - start;
+
+        function update() {
+            const now = Date.now();
+            const progress = Math.min((now - startTime) / duration, 1);
+            const current = start + (difference * progress);
+
+            if (current >= 1000000000) {
+                element.textContent = (current / 1000000000).toFixed(1) + 'B';
+            } else if (current >= 1000000) {
+                element.textContent = (current / 1000000).toFixed(1) + 'M';
+            } else {
+                element.textContent = Math.floor(current).toLocaleString('de-DE');
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        }
+
+        update();
+    }
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🛡️ NurSystem LineLux Style wird initialisiert...');
+        init3D();
+        updateStats();
+    });
+</script>
+</body>
+</html>
+<!-- DUPLICATE DOCUMENT MOVED TO static/variants (linelux-complete-dashboard.html). Keeping only the first document here. The content below is commented out to avoid duplicate scripts. -->
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ NurSystem - Complete Cloud Infrastructure</title>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* 3D Background */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid #00ff88;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            background: rgba(0, 255, 136, 0.2);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            border: 1px solid #00ff88;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: #00ff88;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .card-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #00ff88, #00cc6e);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff0044, #cc0033);
+            color: white;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 3D Background -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Content -->
+<div class="content">
+    <!-- Header -->
+    <header class="header">
+        <h1>🛡️ NurSystem - Komplette Cloud-Infrastruktur</h1>
+        <div class="status-bar">
+            <div class="status-pill">🟢 Backend: <span id="backendStatus">Verbinde...</span></div>
+            <div class="status-pill">🤖 Roboter: <span id="robotCount">-</span></div>
+            <div class="status-pill">🚁 Drohnen: <span id="droneCount">-</span></div>
+            <div class="status-pill">💰 Wallets: <span id="walletCount">-</span></div>
+            <div class="status-pill">📊 Transactions: <span id="transactionCount">-</span></div>
+        </div>
+    </header>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- NurSystem Metrics -->
+        <div class="card">
+            <div class="card-title">🛡️ NurSystem Status</div>
+            <div class="card-value" id="swarmSize">10.0B</div>
+            <div class="card-label">Tarngrillen-Schwarm</div>
+            <div style="margin-top: 20px;">
+                <div>⚡ Energie: <strong id="energy">2,847 kWh</strong></div>
+                <div>🎯 Bedrohungen: <strong id="threats">0</strong></div>
+                <div>🌡️ System-Temp: <strong>23°C</strong></div>
+                <div>🛡️ Guardian Shield: <strong id="guardianShield">Aktiv</strong></div>
+                <div>🤖 Swarm‑Tech: <strong id="swarmTech">Dual</strong></div>
+            </div>
+        </div>
+
+        <!-- Roboter aus DB -->
+        <div class="card">
+            <div class="card-title">🤖 Roboter (DB)</div>
+            <div id="roboterList" class="loading">Lade Daten...</div>
+            <button class="btn" onclick="loadRoboter()">🔄 Neu laden</button>
+        </div>
+
+        <!-- Drohnen aus DB -->
+        <div class="card">
+            <div class="card-title">🚁 Drohnen (DB)</div>
+            <div id="drohnenList" class="loading">Lade Daten...</div>
+            <button class="btn" onclick="loadDrohnen()">🔄 Neu laden</button>
+        </div>
+
+        <!-- Wallets aus DB -->
+        <div class="card">
+            <div class="card-title">💰 Wallets (DB)</div>
+            <div id="walletList" class="loading">Lade Daten...</div>
+            <button class="btn" onclick="loadWallets()">🔄 Neu laden</button>
+        </div>
+
+        <!-- Transactions aus DB -->
+        <div class="card">
+            <div class="card-title">📊 Transactions (DB)</div>
+            <div id="transactionList" class="loading">Lade Daten...</div>
+            <button class="btn" onclick="loadTransactions()">🔄 Neu laden</button>
+        </div>
+
+        <!-- Blueprints aus DB -->
+        <div class="card">
+            <div class="card-title">📐 Blueprints (DB)</div>
+            <div id="blueprintList" class="loading">Lade Daten...</div>
+            <button class="btn" onclick="loadBlueprints()">🔄 Neu laden</button>
+        </div>
+
+        <!-- Tech Instances aus DB -->
+        <div class="card">
+            <div class="card-title">⚙️ Tech Instances (DB)</div>
+            <div id="techList" class="loading">Lade Daten...</div>
+            <button class="btn" onclick="loadTechInstances()">🔄 Neu laden</button>
+        </div>
+
+        <!-- Energie-Chart (kompakt, um mehr Platz unten zu lassen) -->
+        <div class="card" id="energyCard" style="grid-column: span 1; max-width: 360px; justify-self: start; display: none;">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <span>📈 Echtzeit-Energie-Verlauf</span>
+                <button class="btn" id="toggleEnergySize" style="padding:6px 10px;font-size:.85rem">⬍ Kompakt</button>
+            </div>
+            <canvas id="energyChart" style="height: 120px;"></canvas>
+        </div>
+
+        <!-- Schnell-Aktionen -->
+        <div class="card">
+            <div class="card-title">🎮 Schnell-Aktionen</div>
+            <button class="btn" onclick="deploySwarm()">🚀 Schwarm deployen</button>
+            <button class="btn" onclick="collectEnergy()">⚡ Energie sammeln</button>
+            <button class="btn btn-danger" onclick="simulateThreat()">⚠️ Threat simulieren</button>
+            <button class="btn" onclick="createTestData()">➕ Test-Daten erstellen</button>
+        </div>
+
+        <!-- SERP Web-Suche (via Backend-Proxy) -->
+        <div class="card">
+            <div class="card-title">🔎 Web‑Assistent (Chatbot/SERP) – Lexikon/Block‑Modus für SERP</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; align-items:center;">
+                <input id="serpQ" placeholder="Frage oder Suchbegriff eingeben…" style="flex:1; min-width:220px; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;" />
+                <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="serpChatMode" checked/> Chatbot</label>
+                <select id="serpEngine" title="Engine" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)">
+                  <option value="google">Google</option>
+                  <option value="bing">Bing</option>
+                  <option value="duckduckgo">DuckDuckGo</option>
+                  <option value="yahoo">Yahoo</option>
+                </select>
+                <select id="serpTbm" title="Typ" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)">
+                  <option value="">Alle</option>
+                  <option value="isch">Bilder</option>
+                  <option value="nws">News</option>
+                  <option value="vid">Videos</option>
+                </select>
+                <select id="serpTime" title="Zeitraum" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)">
+                  <option value="">Beliebig</option>
+                  <option value="d">24h</option>
+                  <option value="w">Woche</option>
+                  <option value="m">Monat</option>
+                  <option value="y">Jahr</option>
+                </select>
+                <input id="serpNum" type="number" min="1" max="100" value="20" title="Anzahl" style="width:90px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;" />
+                <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="serpLex"/> Lexikon</label>
+                <label class="small" style="display:flex;align-items:center;gap:6px">Blockgröße <input id="serpBlockSize" type="number" min="1" max="50" value="10" style="width:70px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;"/></label>
+                <label class="small" style="display:flex;align-items:center;gap:6px">Block # <input id="serpBlock" type="number" min="0" value="0" style="width:70px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;"/></label>
+                <button class="btn" onclick="searchSerp()">Suchen</button>
+                <button class="btn" onclick="serpPrevBlock()">◀︎ Zurück</button>
+                <button class="btn" onclick="serpNextBlock()">Weiter ▶︎</button>
+                <button class="btn" onclick="serpTest()">🔒 Schnittstellen‑Test</button>
+            </div>
+            <div id="serpResults" class="small muted">Chatbot ist standardmäßig aktiv. Für echte SERP‑Ergebnisse Chatbot deaktivieren (Checkbox) und optional Lexikon/Block nutzen. Vorschau zeigt komplette Seiten über den Proxy.</div>
+        </div>
+
+        <!-- KI Beratung (DeepSeek) -->
+        <div class="card">
+            <div class="card-title">🧠 KI-Beratung (DeepSeek / OpenAI)</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                <textarea id="dsPrompt" placeholder="Frage eingeben… (z. B. Energieoptimierung vorschlagen)" style="flex:1; min-width:260px; min-height:80px; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;"></textarea>
+                <select id="dsProvider" title="Provider" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)">
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="openai">OpenAI</option>
+                </select>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn" onclick="deepSeekChat()">Antwort holen</button>
+                    <button class="btn" onclick="deepSeekTokenTest()">🔐 Token‑Test</button>
+                </div>
+            </div>
+            <div id="dsAnswer" class="small muted">Antwort erscheint hier.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Service Worker registrieren (Mock-API für 63342 Preview)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Relative Pfad, damit 63342-Preview & 8080 gleich gut funktionieren
+        const swUrl = 'sw-mock-api.js';
+        navigator.serviceWorker.register(swUrl).catch(console.warn);
+      });
+    }
+
+    // ========================================
+    // CONFIG
+    // ========================================
+    // API-Basis dynamisch vom aktuellen Ursprung – funktioniert unter 63342 & 8080
+    const API_BASE = window.location.origin + '/api';
+    let energyChart;
+    var ENERGY_LIVE_ENABLED = false;
+
+    // ========================================
+    // 3D BACKGROUND INIT
+    // ========================================
+    function loadThree(cb){
+        try{
+            if (window.THREE){ try{ cb&&cb(); }catch(e){ console.warn('[3D init]', e); } return; }
+            const id = 'three-js-loader';
+            if (document.getElementById(id)){
+                // already loading – wait
+                const iv = setInterval(()=>{ if (window.THREE){ clearInterval(iv); try{ cb&&cb(); }catch(e){ console.warn('[3D init]', e); } } }, 250);
+                return;
+            }
+            const s = document.createElement('script');
+            s.id = id; s.defer = true; s.async = true;
+            s.src = 'https://unpkg.com/three@0.156.1/build/three.min.js';
+            s.onload = ()=>{ try{ cb&&cb(); }catch(e){ console.warn('[3D init]', e); } };
+            s.onerror = ()=>{ console.warn('[3D] THREE.js konnte nicht geladen werden – fahre ohne 3D fort.'); };
+            document.head.appendChild(s);
+        }catch(e){ console.warn('[3D loader]', e); }
+    }
+    function init3D() {
+        const canvas = document.getElementById('bg-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.set(0, 0, 420);
+
+        // Respect user preference for reduced motion
+        const motionReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // =====================
+        // Particle Starfield
+        // =====================
+        const particleCount = 1500;
+        const positions = new Float32Array(particleCount * 3);
+        const speeds = new Float32Array(particleCount);
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            positions[i3 + 0] = (Math.random() - 0.5) * 1600; // x
+            positions[i3 + 1] = (Math.random() - 0.5) * 900;  // y
+            positions[i3 + 2] = (Math.random() - 0.5) * 1200; // z
+            speeds[i] = 0.15 + Math.random() * 0.6; // drift speed
+        }
+        const particleGeo = new THREE.BufferGeometry();
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particleMat = new THREE.PointsMaterial({
+            color: 0x00ffcc,
+            size: 2,
+            transparent: true,
+            opacity: 0.85,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+        const particles = new THREE.Points(particleGeo, particleMat);
+        scene.add(particles);
+
+        // =====================
+        // Wireframe Globe + Halo
+        // =====================
+        const globeGeo = new THREE.IcosahedronGeometry(120, 1);
+        const globeMat = new THREE.MeshBasicMaterial({ color: 0x2288ff, wireframe: true, transparent: true, opacity: 0.18 });
+        const globe = new THREE.Mesh(globeGeo, globeMat);
+        scene.add(globe);
+
+        const ringGeo = new THREE.TorusGeometry(180, 0.8, 8, 160);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.3 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
+
+        // Vision: export key 3D references for external UI controls
+        try {
+            window.__scene = scene;
+            window.__camera = camera;
+            window.__globe = globe;
+            window.__ring = ring;
+            window.__particles = particles;
+            window.__materials = { globe: globeMat, ring: ringMat, particles: particleMat };
+        } catch (e) { /* no-op */ }
+
+        // =====================
+        // Subtle camera parallax
+        // =====================
+        let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            const y = (e.clientY / window.innerHeight) * 2 - 1;
+            mouseX = x; mouseY = y;
+        });
+
+        const clock = new THREE.Clock();
+        function animate() {
+            const dt = clock.getDelta();
+            const pos = particles.geometry.attributes.position.array;
+
+            if (!motionReduced) {
+                // Parallax
+                targetX += (mouseX - targetX) * 0.05;
+                targetY += (mouseY - targetY) * 0.05;
+                camera.position.x = targetX * 40;
+                camera.position.y = -targetY * 20;
+                camera.lookAt(0, 0, 0);
+
+                // Rotate centerpiece
+                globe.rotation.y += 0.25 * dt;
+                ring.rotation.z += 0.15 * dt;
+                scene.rotation.y += 0.06 * dt;
+
+                // Drift particles forward in Z and wrap
+                for (let i = 0; i < particleCount; i++) {
+                    const zIndex = i * 3 + 2;
+                    pos[zIndex] += speeds[i] * (1 + 0.3 * Math.sin((i + performance.now() * 0.0005)));
+                    if (pos[zIndex] > 650) pos[zIndex] = -650;
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    }
+
+    // ========================================
+    // CHART INIT
+    // ========================================
+    function initChart() {
+        if (!ENERGY_LIVE_ENABLED) { window.updateEnergyChart = function(){}; return; }
+        const energyEl = document.getElementById('energyChart');
+        if (!energyEl) { window.updateEnergyChart = function(){}; return; }
+        energyChart = new Chart(energyEl, {
+            type: 'line',
+            data: {
+                labels: Array(20).fill(''),
+                datasets: [{
+                    label: 'Energie (kWh)',
+                    data: Array(20).fill(0).map(() => Math.random() * 3000 + 2000),
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 180 },
+                plugins: { legend: { display: false } },
+                layout: { padding: { left: 0, right: 6, top: 0, bottom: 0 } },
+                scales: {
+                    x: { display: false },
+                    y: {
+                        ticks: { color: '#00ff88', maxTicksLimit: 4, font: { size: 10 } },
+                        grid: { color: 'rgba(0, 255, 136, 0.08)' }
+                    }
+                }
+            }
+        });
+
+        // Fallback: periodische Zufallsupdates (deaktiviert, sobald Telemetrie Live‑Werte liefert)
+        if (window.energyIv) { clearInterval(window.energyIv); }
+        window.energyIv = setInterval(() => {
+            if (!window.__energyLive) {
+                const ds = energyChart.data.datasets[0].data;
+                ds.shift();
+                ds.push(Math.random() * 3000 + 2000);
+                energyChart.update('none');
+            }
+        }, 2000);
+
+        // Tab‑Sichtbarkeit beachten (Ressourcen sparen)
+        document.addEventListener('visibilitychange', () => {
+            try {
+                if (document.hidden) {
+                    if (window.energyIv) clearInterval(window.energyIv);
+                } else {
+                    if (window.energyIv) clearInterval(window.energyIv);
+                    window.energyIv = setInterval(() => {
+                        if (!window.__energyLive) {
+                            const ds = energyChart.data.datasets[0].data;
+                            ds.shift();
+                            ds.push(Math.random() * 3000 + 2000);
+                            energyChart.update('none');
+                        }
+                    }, 2000);
+                }
+            } catch (_) {}
+        });
+
+        // Live‑Updater für Telemetrie (SSE/Polling)
+        window.__energyLive = false;
+        window.updateEnergyChart = function(val){
+            try {
+                if (typeof val === 'number' && isFinite(val)) {
+                    window.__energyLive = true;
+                    const ds = energyChart.data.datasets[0].data;
+                    ds.shift();
+                    ds.push(val);
+                    energyChart.update('none');
+                }
+            } catch (_) {}
+        };
+    }
+
+    // ========================================
+    // API CALLS
+    // ========================================
+    async function loadRoboter() {
+        const listEl = document.getElementById('roboterList');
+        listEl.innerHTML = '<div class="loading">Lade...</div>';
+        try {
+            // MOCK DATA (Backend evtl. nicht aktiv) – konfigurierbar via localStorage
+            // ui.robotCount: Zahl (Standard 2)
+            // ui.robotNames: Kommagetrennt (z. B. "Ich,Du")
+            const storedCount = parseInt(localStorage.getItem('ui.robotCount') || '2');
+            const namesCsv = (localStorage.getItem('ui.robotNames') || 'Ich,Du').split(',').map(s=>s.trim()).filter(Boolean);
+            const count = isFinite(storedCount) && storedCount > 0 ? Math.min(storedCount, 50) : 2;
+            const mockData = Array.from({ length: count }).map((_, i) => {
+                const name = namesCsv[i] || `Robot-${String(i+1).padStart(3,'0')}`;
+                const status = 'ACTIVE';
+                const energy = Math.round(60 + Math.random()*40 * 10) / 10; // 60.0–100.0
+                return { id: i+1, name, status, energy };
+            });
+
+            let html = '<div class="small muted">Mock-Daten • Roboter: ' + mockData.length + ' (anpassbar via ui.robotCount/ui.robotNames)</div>';
+            html += '<table class="data-table"><tr><th>ID</th><th>Name</th><th>Status</th><th>Energie</th></tr>';
+            mockData.forEach(r => {
+                html += `<tr><td>${r.id}</td><td>${r.name}</td><td>${r.status}</td><td>${r.energy}%</td></tr>`;
+            });
+            html += '</table>';
+
+            listEl.innerHTML = html;
+            const cnt = document.getElementById('robotCount'); if (cnt) cnt.textContent = mockData.length;
+        } catch (e) {
+            listEl.innerHTML = '❌ Fehler: ' + e.message;
+        }
+    }
+
+    async function loadDrohnen() {
+        document.getElementById('drohnenList').innerHTML = '<div class="loading">Lade...</div>';
+        const mockData = [
+            { id: 1, name: 'Drohne-Alpha', mission: 'PATROL', battery: 78 },
+            { id: 2, name: 'Drohne-Beta', mission: 'RECON', battery: 91 }
+        ];
+
+        let html = '<table class="data-table"><tr><th>Name</th><th>Mission</th><th>Akku</th></tr>';
+        mockData.forEach(d => {
+            html += `<tr><td>${d.name}</td><td>${d.mission}</td><td>${d.battery}%</td></tr>`;
+        });
+        html += '</table>';
+
+        document.getElementById('drohnenList').innerHTML = html;
+        document.getElementById('droneCount').textContent = mockData.length;
+    }
+
+    async function loadWallets() {
+        document.getElementById('walletList').innerHTML = '<div class="loading">Lade...</div>';
+        // Mock: Mindestens 6+ Wallets, bis das Backend angebunden ist
+        const mockData = [
+            { id: 1, name: 'Main Wallet',    balance: 15420.50, currency: 'EUR' },
+            { id: 2, name: 'Backup Wallet',  balance: 8750.20,  currency: 'EUR' },
+            { id: 3, name: 'Ops Wallet',     balance: 2210.00,  currency: 'EUR' },
+            { id: 4, name: 'Reserve A',      balance: 504.75,   currency: 'EUR' },
+            { id: 5, name: 'Reserve B',      balance: 11990.00, currency: 'EUR' },
+            { id: 6, name: 'Green Fund',     balance: 3420.10,  currency: 'EUR' },
+            { id: 7, name: 'Research Lab',   balance: 785.33,   currency: 'EUR' }
+        ];
+
+        const total = mockData.reduce((s,w)=> s + Number(w.balance||0), 0);
+        let html = '<table class="data-table"><tr><th>Name</th><th>Balance</th></tr>';
+        mockData.forEach(w => {
+            html += `<tr><td>${w.name}</td><td>${Number(w.balance).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${w.currency}</td></tr>`;
+        });
+        html += `<tr><td style="font-weight:700">Gesamtsumme</td><td style="font-weight:700">${total.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR</td></tr>`;
+        html += '</table>';
+
+        document.getElementById('walletList').innerHTML = html;
+        const cnt = document.getElementById('walletCount'); if (cnt) cnt.textContent = mockData.length;
+    }
+
+    async function loadTransactions() {
+        document.getElementById('transactionList').innerHTML = '<div class="loading">Lade...</div>';
+        const mockData = [
+            { id: 1, type: 'INCOME', amount: 250.00, category: 'Solar' },
+            { id: 2, type: 'EXPENSE', amount: -120.00, category: 'Maintenance' },
+            { id: 3, type: 'INCOME', amount: 180.00, category: 'Wind' }
+        ];
+
+        let html = '<table class="data-table"><tr><th>Typ</th><th>Betrag</th><th>Kategorie</th></tr>';
+        mockData.forEach(t => {
+            const color = t.type === 'INCOME' ? '#00ff88' : '#ff0044';
+            html += `<tr><td>${t.type}</td><td style="color:${color}">${t.amount.toFixed(2)} EUR</td><td>${t.category}</td></tr>`;
+        });
+        html += '</table>';
+
+        document.getElementById('transactionList').innerHTML = html;
+        document.getElementById('transactionCount').textContent = mockData.length;
+    }
+
+    async function loadBlueprints() {
+        document.getElementById('blueprintList').innerHTML = '<div class="loading">Lade...</div>';
+        const mockData = [
+            { id: 1, name: 'Defense Grid Alpha', version: '2.1.0' },
+            { id: 2, name: 'Energy Harvester', version: '1.5.3' }
+        ];
+
+        let html = '<table class="data-table"><tr><th>Name</th><th>Version</th></tr>';
+        mockData.forEach(b => {
+            html += `<tr><td>${b.name}</td><td>${b.version}</td></tr>`;
+        });
+        html += '</table>';
+
+        document.getElementById('blueprintList').innerHTML = html;
+    }
+
+    async function loadTechInstances() {
+        document.getElementById('techList').innerHTML = '<div class="loading">Lade...</div>';
+        const mockData = [
+            { id: 1, type: 'SERVER', status: 'RUNNING', cpu: 45 },
+            { id: 2, type: 'DATABASE', status: 'RUNNING', cpu: 23 }
+        ];
+
+        let html = '<table class="data-table"><tr><th>Typ</th><th>Status</th><th>CPU</th></tr>';
+        mockData.forEach(t => {
+            html += `<tr><td>${t.type}</td><td>${t.status}</td><td>${t.cpu}%</td></tr>`;
+        });
+        html += '</table>';
+        document.getElementById('techList').innerHTML = html;
+    }
+
+    // SERP Search via backend proxy (mit Lexikon- & Blockmodus)
+    const serpState = { q:'', block:0, blockSize:10 };
+    async function searchSerp(){
+        const qInput = document.getElementById('serpQ');
+        const out = document.getElementById('serpResults');
+        const q = (qInput && qInput.value || '').trim();
+        if (!q){ out.textContent = 'Bitte eine Frage oder einen Suchbegriff eingeben.'; return; }
+        const chatMode = !!(document.getElementById('serpChatMode')||{}).checked;
+        serpState.q = q;
+        const engine = (document.getElementById('serpEngine')||{}).value || 'google';
+        const tbm = (document.getElementById('serpTbm')||{}).value || '';
+        const time = (document.getElementById('serpTime')||{}).value || '';
+        const num = Math.max(1, Math.min(100, parseInt((document.getElementById('serpNum')||{}).value||20)));
+        const lex = !!(document.getElementById('serpLex')||{}).checked;
+        const bsEl = document.getElementById('serpBlockSize');
+        const bEl  = document.getElementById('serpBlock');
+        serpState.blockSize = Math.max(1, Math.min(50, parseInt((bsEl&&bsEl.value)||10)));
+        serpState.block = Math.max(0, parseInt((bEl&&bEl.value)||0));
+        out.innerHTML = '<div class="loading">Wird verarbeitet…</div>';
+        try{
+            // Chatbot‑Modus (Standard): DeepSeek‑Proxy verwenden
+            if (chatMode){
+                const res = await fetch(API_BASE + '/deepseek/chat', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: q })
+                });
+                const json = await res.json().catch(()=>({}));
+                if (!res.ok){ out.innerHTML = '<span style="color:#ff4d6d">❌ ' + (json && json.error || ('HTTP '+res.status)) + '</span>'; return; }
+                let text = '';
+                const r = json && (json.response || json);
+                if (r && r.choices && r.choices[0] && r.choices[0].message){
+                    text = r.choices[0].message.content || '';
+                } else if (typeof json.text === 'string') {
+                    text = json.text;
+                }
+                out.innerHTML = '<div style="white-space:pre-wrap;line-height:1.4">' + (text || 'Keine Antwort erhalten.') + '</div>';
+                return;
+            }
+            // SERP‑Modus mit optionalem Lexikon/Block
+            if (lex){
+                let url = API_BASE + '/serp/lexicon?q=' + encodeURIComponent(q)
+                        + '&engine=' + encodeURIComponent(engine)
+                        + '&block=' + serpState.block + '&block_size=' + serpState.blockSize;
+                if (tbm)  url += '&tbm=' + encodeURIComponent(tbm);
+                if (time) url += '&time_period=' + encodeURIComponent(time);
+                const res = await fetch(url);
+                const json = await res.json();
+                if (!res.ok){ out.innerHTML = '<span style="color:#ff4d6d">❌ ' + (json && json.error || ('HTTP '+res.status)) + '</span>'; return; }
+                // Render groups A–Z
+                const groups = json.groups || {};
+                const total  = json.estimatedTotal || 0;
+                let html = '<div class="small muted">Block '+json.block+' (Größe '+json.blockSize+') • Gesamt ~ '+(total? total.toLocaleString('de-DE'):'?')+'</div>';
+                const letters = Object.keys(groups);
+                if (letters.length === 0){ out.innerHTML = '<span class="muted">Keine Ergebnisse.</span>'; return; }
+                letters.forEach(L => {
+                    html += '<div style="margin-top:10px"><div style="font-weight:800;color:#a8ffdf">'+L+'</div>';
+                    html += '<ul style="list-style:none;padding:0;margin:6px 0;display:flex;flex-direction:column;gap:6px">';
+                    (groups[L]||[]).forEach(it => {
+                        const title = it.title || it.term || 'Eintrag';
+                        const link  = it.url || '#';
+                        const snippet = it.snippet || '';
+                        const domain = it.domain || '';
+                        html += `<li style="padding:8px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03)">`
+                              + `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">`
+                              + `<div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%"><a href="${link}" target="_blank">${title}</a></div>`
+                              + `<div class="small muted" style="opacity:.8">${domain}</div>`
+                              + `</div>`
+                              + `<div class="small muted" style="margin-top:4px">${snippet}</div>`
+                              + `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">`
+                              + `<button class="btn" onclick="openSerpPreview('${link.replace(/'/g,"\\'")}')">Vorschau</button>`
+                              + `<a class="btn" href="${link}" target="_blank" rel="noopener">Quelle öffnen</a>`
+                              + `</div>`
+                              + `</li>`;
+                    });
+                    html += '</ul></div>';
+                });
+                out.innerHTML = html;
+                if (bEl) bEl.value = json.block;
+                if (bsEl) bsEl.value = json.blockSize;
+            } else {
+                let url = API_BASE + '/serp/search?q=' + encodeURIComponent(q) + '&engine=' + encodeURIComponent(engine) + '&num=' + num;
+                if (tbm) url += '&tbm=' + encodeURIComponent(tbm);
+                if (time) url += '&time_period=' + encodeURIComponent(time);
+                const res = await fetch(url);
+                const json = await res.json();
+                if (!res.ok){
+                    const msg = json && json.error ? json.error : ('HTTP ' + res.status);
+                    out.innerHTML = '<span style="color:#ff4d6d">❌ ' + msg + '</span>';
+                    return;
+                }
+                const items = [];
+                if (json.organic_results) items.push(...json.organic_results);
+                if (items.length === 0 && Array.isArray(json.results)) items.push(...json.results);
+                if (items.length === 0){ out.innerHTML = '<span class="muted">Keine Ergebnisse.</span>'; return; }
+                const view = items.slice(0, num);
+                let html = '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px">';
+                view.forEach(it => {
+                    const title = it.title || it.name || it.snippet || 'Ergebnis';
+                    const link = it.link || it.url || '#';
+                    const snippet = it.snippet || it.description || '';
+                    const domain = (link||'').replace(/^https?:\/\//,'').split('/')[0];
+                    html += `<li style="padding:8px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03)">`
+                          + `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">`
+                          + `<div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%"><a href="${link}" target="_blank">${title}</a></div>`
+                          + `<div class="small muted" style="opacity:.8">${domain}</div>`
+                          + `</div>`
+                          + `<div class="small muted" style="margin-top:4px">${snippet}</div>`
+                          + `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">`
+                          + `<button class="btn" onclick="openSerpPreview('${link.replace(/'/g,"\\'")}')">Vorschau</button>`
+                          + `<a class="btn" href="${link}" target="_blank" rel="noopener">Quelle öffnen</a>`
+                          + `</div>`
+                          + `</li>`;
+                });
+                html += '</ul>';
+                out.innerHTML = html;
+            }
+        }catch(e){
+            out.innerHTML = '<span style="color:#ff4d6d">❌ Fehler: ' + (e.message || e) + '</span>';
+        }
+    }
+    function serpPrevBlock(){ try{ const chat = !!(document.getElementById('serpChatMode')||{}).checked; if (chat) return; const lex = !!(document.getElementById('serpLex')||{}).checked; if (!lex) return; const bEl=document.getElementById('serpBlock'); let b= Math.max(0, parseInt((bEl&&bEl.value)||0)-1); if (bEl) bEl.value=b; searchSerp(); }catch(e){} }
+    function serpNextBlock(){ try{ const chat = !!(document.getElementById('serpChatMode')||{}).checked; if (chat) return; const lex = !!(document.getElementById('serpLex')||{}).checked; if (!lex) return; const bEl=document.getElementById('serpBlock'); let b= Math.max(0, parseInt((bEl&&bEl.value)||0)+1); if (bEl) bEl.value=b; searchSerp(); }catch(e){} }
+    async function serpTest(){
+        const out = document.getElementById('serpResults');
+        const chatMode = !!(document.getElementById('serpChatMode')||{}).checked;
+        try{
+            if (chatMode){
+                const r = await fetch(API_BASE + '/deepseek/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: 'PING' }) });
+                if (!r.ok){ out.innerHTML = '❌ Chatbot‑Test fehlgeschlagen (HTTP '+r.status+')'; return; }
+                out.innerHTML = '✅ Chatbot OK';
+            } else {
+                const r = await fetch(API_BASE + '/serp/ping');
+                const j = await r.json();
+                out.innerHTML = (j.ok? '✅ ':'❌ ') + 'SERP ' + (j.ok? 'OK':'Fehler') + ' • Key: ' + (j.hasKey? 'gesetzt':'FEHLT');
+            }
+        } catch(e) {
+            out.innerHTML = '❌ Test fehlgeschlagen';
+        }
+    }
+
+    // KI‑Chat via Backend‑Proxy mit Fallback‑Rotation (DeepSeek → OpenAI)
+    async function deepSeekChat(){
+        const input = document.getElementById('dsPrompt');
+        const out = document.getElementById('dsAnswer');
+        const providerEl = document.getElementById('dsProvider');
+        const prefer = (providerEl && providerEl.value) || 'deepseek';
+        const prompt = (input && input.value || '').trim();
+        if (!prompt){ out.textContent = 'Bitte eine Frage eingeben.'; return; }
+        out.innerHTML = '<div class="loading">Frage wird gesendet…</div>';
+
+        async function callOnce(kind){
+            const url = API_BASE + (kind === 'openai' ? '/openai/chat' : '/deepseek/chat');
+            const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt }) });
+            let json = null; try{ json = await res.clone().json(); }catch(_){ }
+            if (!res.ok){ throw new Error((json&&json.error)||('HTTP '+res.status)); }
+            let text = '';
+            const r = json && (json.response || json);
+            if (r && r.choices && r.choices[0] && r.choices[0].message){ text = r.choices[0].message.content || ''; }
+            return text || '';
+        }
+
+        const order = prefer === 'openai' ? ['openai','deepseek'] : ['deepseek','openai'];
+        try{
+            let text = await callOnce(order[0]);
+            if (!text){ throw new Error('Leere Antwort vom '+order[0]); }
+            out.textContent = text;
+        }catch(e1){
+            try{
+                const text2 = await callOnce(order[1]);
+                out.innerHTML = '<div class="small muted">(' + order[0] + ' fehlgeschlagen: '+ (e1&&e1.message||'Error') + '; Fallback='+order[1]+')</div>' +
+                                 '<div style="margin-top:6px">'+ (text2||'Keine Antwort') +'</div>';
+            }catch(e2){
+                out.innerHTML = '<span style="color:#ff4d6d">❌ Beide Provider fehlgeschlagen • '+order[0]+': '+(e1&&e1.message||e1)+' • '+order[1]+': '+(e2&&e2.message||e2)+'</span>';
+            }
+        }
+    }
+
+    // Schneller Token/Endpoint‑Selbsttest (DeepSeek & OpenAI via Proxy)
+    async function deepSeekTokenTest(){
+        const out = document.getElementById('dsAnswer');
+        out.innerHTML = '<div class="loading">Teste Provider…</div>';
+        async function ping(kind){
+            try{
+                const url = API_BASE + (kind==='openai'? '/openai/chat' : '/deepseek/chat');
+                const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt:'PING' }) });
+                if (!r.ok){ return '❌ '+kind+' HTTP '+r.status; }
+                const j = await r.json().catch(()=>({}));
+                const ok = !!(j && (j.response||j) && ((j.response||j).choices||[]).length);
+                return (ok? '✅ ':'⚠️ ')+kind+(ok?' OK':' Antwort unklar');
+            }catch(e){ return '❌ '+kind+' '+(e.message||e); }
+        }
+        const a = await ping('deepseek');
+        const b = await ping('openai');
+        out.innerHTML = '<div>'+a+'</div><div>'+b+'</div>';
+    }
+
+    // ========================================
+    // USER ACTIONS
+    // ========================================
+    function deploySwarm() {
+        alert('🚀 Schwarm-Deployment gestartet!\n\n✅ +100 Roboter werden deployed');
+        document.getElementById('swarmSize').textContent = '10.1B';
+    }
+
+    function collectEnergy() {
+        alert('⚡ Energie-Sammlung aktiv!\n\n✅ +150 kWh gesammelt');
+        const current = parseInt(document.getElementById('energy').textContent.replace(/[^0-9]/g, ''));
+        document.getElementById('energy').textContent = (current + 150).toLocaleString('de-DE') + ' kWh';
+    }
+
+    function simulateThreat() {
+        alert('⚠️ Bedrohung simuliert!\n\n🛡️ Erfolgreich blockiert');
+        const current = parseInt(document.getElementById('threats').textContent);
+        document.getElementById('threats').textContent = current + 1;
+    }
+
+    function createTestData() {
+        alert('➕ Test-Daten werden erstellt!\n\n✅ Roboter, Drohnen, Wallets & Transactions hinzugefügt');
+        loadRoboter();
+        loadDrohnen();
+        loadWallets();
+        loadTransactions();
+    }
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🛡️ NurSystem Complete Dashboard wird initialisiert...');
+
+        try { loadThree(init3D); } catch (e) { console.warn('[3Dload]', e); }
+        // Echtzeit‑Energieverlauf vorübergehend deaktiviert
+        if (ENERGY_LIVE_ENABLED) initChart();
+        // Falls vorheriger Patch die Karte verborgen hat, wieder entfernen
+        try {
+            const old = document.getElementById('tmp-hide-energy');
+            if (old) old.remove();
+        } catch (e) {}
+
+        // Load all data
+        loadRoboter();
+        loadDrohnen();
+        loadWallets();
+        loadTransactions();
+        loadBlueprints();
+        loadTechInstances();
+
+        document.getElementById('backendStatus').textContent = 'Mock-Daten (Backend offline)';
+        document.getElementById('backendStatus').style.color = '#ffaa00';
+    });
+</script>
+
+<!-- Live-Daten (SSE) Injection -->
+<script>
+(function(){
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function createCard(title, inner){ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<div class="card-title">'+title+'</div>'+inner; return d; }
+  const inner = `
+    <div class="small muted" id="liveHint">Verbindet zu Live‑Daten…</div>
+    <div style="margin-top:8px">
+      <div>Letztes Update: <span id="ldTs">–</span></div>
+      <div>⚡ Energie: <strong id="ldEnergy">–</strong></div>
+      <div>🎯 Bedrohungen: <strong id="ldThreats">–</strong></div>
+      <div>🌡️ Temperatur: <strong id="ldTemp">–</strong></div>
+    </div>`;
+  const card = createCard('🛰️ Live‑Daten (Realtime)', inner);
+  window.addEventListener('DOMContentLoaded', ()=> addCard(card));
+
+  const API_BASE = window.location.origin + '/api';
+  let es;
+  function connectSSE(){
+    try{
+      es = new EventSource(API_BASE + '/telemetry/stream');
+      document.getElementById('liveHint').textContent = 'Verbunden (SSE)';
+      es.addEventListener('snapshot', (e)=> update(JSON.parse(e.data)));
+      es.addEventListener('update', (e)=> update(JSON.parse(e.data)));
+      es.onerror = ()=>{ document.getElementById('liveHint').textContent = 'SSE getrennt – Fallback Polling'; es.close(); startPolling(); };
+    }catch(_){ startPolling(); }
+  }
+  let pollIv;
+  function startPolling(){
+    clearInterval(pollIv);
+    pollIv = setInterval(async ()=>{
+      try{ const r = await fetch(API_BASE + '/telemetry/status'); const j = await r.json(); update(j); document.getElementById('liveHint').textContent = 'Polling aktiv'; }catch(e){}
+    }, 3000);
+  }
+  function update(j){
+    try{
+      const ts = new Date(j.ts||Date.now()).toLocaleTimeString();
+      const m = j.metrics||{};
+      document.getElementById('ldTs').textContent = ts;
+      document.getElementById('ldEnergy').textContent = (m.energy!=null? m.energy.toLocaleString('de-DE')+' kWh':'–');
+      document.getElementById('ldThreats').textContent = (m.threats!=null? m.threats:'–');
+      document.getElementById('ldTemp').textContent = (m.temperature!=null? m.temperature+'°C':'–');
+      // Energie-Chart mit Livewert anreichern
+      if (window.updateEnergyChart && m.energy != null) {
+        window.updateEnergyChart(Number(m.energy));
+      }
+    }catch(e){}
+  }
+  window.addEventListener('load', connectSSE);
+})();
+</script>
+
+<script>
+// === UI-Helfer: einfache Toast-Meldung (ohne Blockieren) ===
+(function(){
+  if (!document.getElementById('toastHost')){
+    const host = document.createElement('div');
+    host.id = 'toastHost';
+    host.style.position='fixed'; host.style.right='16px'; host.style.bottom='16px';
+    host.style.zIndex='9999'; host.style.display='flex'; host.style.flexDirection='column'; host.style.gap='8px';
+    document.addEventListener('DOMContentLoaded', ()=>document.body.appendChild(host));
+  }
+})();
+function toast(msg){
+  const host = document.getElementById('toastHost');
+  const n = document.createElement('div');
+  n.textContent = msg;
+  n.style.background='rgba(0,0,0,.8)'; n.style.border='1px solid rgba(0,255,136,.5)'; n.style.color='#a8ffdf';
+  n.style.padding='10px 14px'; n.style.borderRadius='10px'; n.style.boxShadow='0 6px 24px rgba(0,0,0,.35)';
+  host.appendChild(n);
+  setTimeout(()=>{ n.style.transition='opacity .4s'; n.style.opacity='0'; setTimeout(()=>n.remove(), 400); }, 2600);
+}
+
+// === Aktionen verdrahten (Sim/Mock) ===
+async function deploySwarm(){
+  try{
+    toast('🚀 Schwarm-Deployment gestartet (Simulation)');
+    // Optional: API-Hit gegen Mock/Backend, falls vorhanden
+    await fetch(API_BASE + '/robots/deploy', { method:'POST' }).catch(()=>{});
+    // Sichtbar aktualisieren
+    loadRoboter();
+  }catch(e){ console.warn(e); }
+}
+async function collectEnergy(){
+  toast('⚡ Energie-Ernte ausgelöst (Simulation)');
+  try{ await fetch(API_BASE + '/energy/collect', { method:'POST' }).catch(()=>{});}catch(e){}
+  // Chart optimistisch updaten
+  try{
+    energyChart.data.datasets[0].data.shift();
+    energyChart.data.datasets[0].data.push(Math.random()*3500+2500);
+    energyChart.update('none');
+  }catch(e){}
+}
+async function simulateThreat(){
+  toast('⚠️ Bedrohung simuliert – Abwehr aktiviert (Simulation)');
+  try{ await fetch(API_BASE + '/threats/simulate', { method:'POST' }).catch(()=>{});}catch(e){}
+  // Kleine visuelle Reaktion: Statusfarbe kurz ändern
+  try{
+    const s = document.getElementById('backendStatus');
+    const old = s.style.color;
+    s.style.color = '#ffbb00';
+    setTimeout(()=>{ s.style.color = old || '#00ff88'; }, 1200);
+  }catch(e){}
+}
+async function createTestData(){
+  toast('➕ Test-Daten werden erzeugt (Simulation)');
+  try{ await fetch(API_BASE + '/seed', { method:'POST' }).catch(()=>{});}catch(e){}
+  loadWallets();
+  loadTransactions();
+}
+</script>
+
+
+<script>
+// === Karten-Controller mit Google-Maps-Toggle (Leaflet Standard) ===
+(function(){
+  const PARAMS = new URLSearchParams(location.search);
+  const gridSel = '.dashboard-grid';
+  const LS_KEY = 'gmaps_key';
+  const LS_PROVIDER = 'map_provider';
+
+  // URL-Parameter verarbeiten
+  const pKey = PARAMS.get('gmapsKey');
+  if (pKey) localStorage.setItem(LS_KEY, pKey);
+  const providerParam = PARAMS.get('provider');
+  if (providerParam) localStorage.setItem(LS_PROVIDER, providerParam);
+
+  function ensureGrid(){ return document.querySelector(gridSel); }
+  function addCardBeforeFirst(card){
+    const grid = ensureGrid(); if (!grid) return;
+    grid.insertBefore(card, grid.firstChild);
+  }
+  function createNavCard(){
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = '<div class="card-title">🔗 Navigation</div>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+      '<a class="btn" href="mobile.html">📱 Mobile Dashboard</a>'+
+      '<a class="btn" href="cloud-architecture.html">🌐 Cloud-Architektur</a>'+
+      '<a class="btn" href="java-interface.html">🧠 Java‑KI‑Bausteine</a>'+
+      '</div>';
+    addCardBeforeFirst(card);
+  }
+  function createMapCard(){
+    const card = document.createElement('div');
+    card.className='card';
+    card.style.gridColumn='span 2';
+    card.innerHTML = '<div class="card-title">🗺️ Weltkarte</div>'+
+      '<div id="geoMap" style="height:360px;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35);"></div>'+
+      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'+
+      '<button id="btnLeaflet" class="btn">Leaflet</button>'+
+      '<button id="btnGoogle" class="btn">Google Maps</button>'+
+      '<button id="btnMapRoadmap" class="btn">Karte</button>'+
+      '<button id="btnMapSatellite" class="btn">Satellit</button>'+
+      '<button id="btnMapHybrid" class="btn">Hybrid</button>'+
+      '<button id="btnMap3D" class="btn">3D an/aus</button>'+
+      '</div>';
+    addCardBeforeFirst(card);
+    return card.querySelector('#geoMap');
+  }
+
+  function loadLeaflet(cb){
+    const LCSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    const LJS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    if(!document.querySelector('link[href*="leaflet.css"]')){
+      const link = document.createElement('link');
+      link.rel='stylesheet'; link.href=LCSS; document.head.appendChild(link);
+    }
+    if (window.L){ cb(); return; }
+    const s=document.createElement('script'); s.src=LJS; s.defer=true; s.onload=cb; document.body.appendChild(s);
+  }
+
+  function initLeaflet(mapDiv){
+    loadLeaflet(()=>{
+      const map = L.map(mapDiv, { zoomControl:true, attributionControl:true }).setView([20, 0], 2);
+      // Expose Leaflet map globally for other UI modules (e.g., Physics card)
+      try { window.__leafletMap = map; } catch(_) {}
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap-Mitwirkende' }).addTo(map);
+      const points = [
+        { name:'Swarm Hub',  lat:44.97554, lon:16.08238 },
+        { name:'Node A',     lat:45.81,   lon:15.98 },
+        { name:'Node B',     lat:43.85,   lon:18.41 }
+      ];
+      points.forEach(p => L.marker([p.lat, p.lon]).addTo(map).bindPopup('<b>'+p.name+'</b>'));
+    });
+  }
+
+  function loadGoogleMaps(key, cb){
+    if (window.google && window.google.maps){ cb(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key);
+    s.async = true; s.defer = true; s.onload = cb; s.onerror = ()=>{ toast('Google Maps konnte nicht geladen werden. Prüfe Key.'); };
+    document.body.appendChild(s);
+  }
+  function initGoogle(mapDiv){
+    const savedType = getMapType();
+    const mapId = PARAMS.get('mapId') || localStorage.getItem('gmaps_map_id') || undefined;
+    const opts = { center:{lat:20,lng:0}, zoom:2, mapTypeId: savedType || 'hybrid', disableDefaultUI:false };
+    if (mapId) opts.mapId = mapId;
+    const map = new google.maps.Map(mapDiv, opts);
+    window.__gmap = map;
+
+    // Demo Marker
+    const pts = [
+      { name:'Swarm Hub',  lat:44.97554, lng:16.08238 },
+      { name:'Node A',     lat:45.81,   lng:15.98 },
+      { name:'Node B',     lat:43.85,   lng:18.41 }
+    ];
+    pts.forEach(p=> new google.maps.Marker({ position:{lat:p.lat,lng:p.lng}, map, title:p.name }));
+
+    // 3D Zustand wiederherstellen
+    if (is3DEnabled()) {
+      enable3D();
+    }
+  }
+
+  function getProvider(){ return localStorage.getItem(LS_PROVIDER) || 'leaflet'; }
+  function setProvider(v){ localStorage.setItem(LS_PROVIDER, v); }
+  function getKey(){ return localStorage.getItem(LS_KEY) || ''; }
+
+  const LS_MAPTYPE = 'map_type';
+  const LS_MAP3D = 'map_3d';
+  function getMapType(){ return localStorage.getItem(LS_MAPTYPE) || 'hybrid'; }
+  function setMapType(v){ localStorage.setItem(LS_MAPTYPE, v); }
+  function is3DEnabled(){ return localStorage.getItem(LS_MAP3D) === '1'; }
+  function set3DEnabled(flag){ localStorage.setItem(LS_MAP3D, flag ? '1' : '0'); }
+
+  let __rotateReq = null;
+  function setMapTypeOnGoogle(type){
+    try{
+      if (window.__gmap){
+        // Prefer Google Maps constants if available to avoid string mismatches
+        const mt = (window.google && google.maps && google.maps.MapTypeId && google.maps.MapTypeId[type && String(type).toUpperCase()]) || type;
+        window.__gmap.setMapTypeId(mt);
+        // If satellite selected, ensure proper tilt for a richer satellite experience
+        if (String(type).toLowerCase() === 'satellite' || String(type).toLowerCase() === 'hybrid'){
+          try { window.__gmap.setTilt(67.5); } catch(_) {}
+        }
+      }
+    }catch(e){ console.warn(e); }
+  }
+  function enable3D(){
+    if (!window.__gmap){ toast('Bitte zuerst Google Maps aktivieren.'); return; }
+    set3DEnabled(true);
+    try{ window.__gmap.setTilt(67.5); }catch(e){}
+    cancelAnimationFrame(__rotateReq);
+    const step = ()=>{
+      try{
+        const h = (window.__gmap.getHeading() || 0) + 0.5; // langsame Rotation
+        window.__gmap.setHeading(h);
+      }catch(e){}
+      __rotateReq = requestAnimationFrame(step);
+    };
+    __rotateReq = requestAnimationFrame(step);
+  }
+  function disable3D(){
+    set3DEnabled(false);
+    if (__rotateReq){ cancelAnimationFrame(__rotateReq); __rotateReq = null; }
+    try{ if (window.__gmap){ window.__gmap.setTilt(0); window.__gmap.setHeading(0); } }catch(e){}
+  }
+  function toggle3D(){ is3DEnabled() ? disable3D() : enable3D(); }
+
+  function mount(){
+    const grid = ensureGrid(); if(!grid) return;
+    const mapDiv = createMapCard();
+    createNavCard();
+    // Auto-Provider: wenn ein Google Maps Key vorhanden ist und kein Provider gesetzt wurde, automatisch Google aktivieren
+    if (!localStorage.getItem(LS_PROVIDER) && getKey()) {
+      setProvider('google');
+    }
+    const provider = getProvider();
+    if (provider === 'google' && getKey()){
+      loadGoogleMaps(getKey(), ()=> initGoogle(mapDiv));
+    } else {
+      initLeaflet(mapDiv);
+    }
+
+    // Toggle Buttons
+    const btnLeaf = document.getElementById('btnLeaflet');
+    const btnGmap = document.getElementById('btnGoogle');
+    btnLeaf.addEventListener('click', ()=>{ setProvider('leaflet'); toast('Leaflet aktiviert'); location.search = updateQuery({ provider:'leaflet' }); });
+    btnGmap.addEventListener('click', ()=>{
+      let key = getKey();
+      if (!key){ key = prompt('Bitte Google Maps API-Key eingeben:'); if (key) localStorage.setItem(LS_KEY, key); }
+      if (key){ setProvider('google'); toast('Google Maps aktiviert'); location.search = updateQuery({ provider:'google', gmapsKey:key }); }
+    });
+
+    // MapType Buttons (nur für Google aktiv sinnvoll)
+    document.getElementById('btnMapRoadmap').addEventListener('click', ()=>{
+      if (getProvider() !== 'google'){ toast('Für Satellit/Karte bitte Google aktivieren.'); return; }
+      setMapType('roadmap'); setMapTypeOnGoogle('roadmap'); toast('Kartentyp: Karte');
+    });
+    document.getElementById('btnMapSatellite').addEventListener('click', ()=>{
+      if (getProvider() !== 'google'){ toast('Für Satellit bitte Google aktivieren.'); return; }
+      setMapType('satellite'); setMapTypeOnGoogle('satellite'); toast('Kartentyp: Satellit');
+    });
+    document.getElementById('btnMapHybrid').addEventListener('click', ()=>{
+      if (getProvider() !== 'google'){ toast('Für Hybrid bitte Google aktivieren.'); return; }
+      setMapType('hybrid'); setMapTypeOnGoogle('hybrid'); toast('Kartentyp: Hybrid');
+    });
+    document.getElementById('btnMap3D').addEventListener('click', ()=>{
+      if (getProvider() !== 'google'){ toast('3D erfordert Google Maps.'); return; }
+      toggle3D();
+      toast(is3DEnabled() ? '3D aktiviert' : '3D deaktiviert');
+    });
+  }
+
+  function updateQuery(up){
+    const q = new URLSearchParams(location.search);
+    Object.entries(up).forEach(([k,v])=>{ if(v===null) q.delete(k); else q.set(k, v); });
+    return '?' + q.toString();
+  }
+
+  window.addEventListener('load', ()=>{
+    try{ mount(); }catch(e){ console.warn('[MapController]', e); }
+  });
+})();
+</script>
+
+
+<!-- Lifelong Learning Card Injection -->
+<script>
+(function(){
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function createCard(title, inner){ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<div class="card-title">'+title+'</div>'+inner; return d; }
+  const inner = `
+    <div class="small muted">Nutze die gesammelten Daten seit Tag 1 – trainiere ein einfaches Modell und zeige Prognosen.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+      <button class="btn" id="btnHistSummary">📚 Zusammenfassung</button>
+      <button class="btn" id="btnTrain">🧠 Trainieren</button>
+      <button class="btn" id="btnPredict">🔮 Prognose (10)</button>
+    </div>
+    <div id="learnOut" class="small muted">Noch keine Aktion ausgeführt.</div>
+  `;
+  const card = createCard('📚 Lebenslanges Lernen', inner);
+  window.addEventListener('DOMContentLoaded', ()=>{
+    addCard(card);
+    const out = card.querySelector('#learnOut');
+    const api = window.location.origin + '/api';
+    async function summary(){
+      out.innerHTML = '<div class="loading">Lade Zusammenfassung…</div>';
+      try{
+        const r = await fetch(api + '/history/summary');
+        const j = await r.json();
+        if (!r.ok){ out.innerHTML = '❌ ' + (j && j.error || ('HTTP '+r.status)); return; }
+        const first = j.firstTs ? new Date(j.firstTs).toLocaleString() : '–';
+        const last  = j.lastTs ? new Date(j.lastTs).toLocaleString() : '–';
+        const en = j.energy || {}; 
+        out.innerHTML = `Seit: <b>${first}</b> &nbsp; Bis: <b>${last}</b><br/>Datensätze: <b>${j.totalEvents||0}</b><br/>Energie Ø/Min/Max: <b>${(en.avg||0).toFixed?en.avg.toFixed(1):en.avg}</b> / <b>${en.min??'–'}</b> / <b>${en.max??'–'}</b>`;
+      }catch(e){ out.innerHTML = '❌ Fehler: '+(e.message||e); }
+    }
+    async function train(){
+      out.innerHTML = '<div class="loading">Trainiere Modell…</div>';
+      try{
+        const r = await fetch(api + '/learn/train', { method:'POST' });
+        const j = await r.json();
+        if (!r.ok){ out.innerHTML = '❌ ' + (j && j.error || ('HTTP '+r.status)); return; }
+        out.innerHTML = `✅ Trainiert (${new Date(j.trainedTs||Date.now()).toLocaleTimeString()}) — n=${j.n}, Trend=${(j.slope||0).toFixed?j.slope.toFixed(2):j.slope}`;
+      }catch(e){ out.innerHTML = '❌ Fehler: '+(e.message||e); }
+    }
+    async function predict(){
+      out.innerHTML = '<div class="loading">Berechne Prognose…</div>';
+      try{
+        const r = await fetch(api + '/learn/predict?steps=10');
+        const j = await r.json();
+        if (!r.ok){ out.innerHTML = '❌ ' + (j && j.error || ('HTTP '+r.status)); return; }
+        const list = (j.predictions||[]).map((v,i)=> `${i+1}: ${Number(v).toFixed(0)}`).join(', ');
+        out.innerHTML = `🔮 Prognose (nächste 10): ${list}`;
+      }catch(e){ out.innerHTML = '❌ Fehler: '+(e.message||e); }
+    }
+    card.querySelector('#btnHistSummary').addEventListener('click', summary);
+    card.querySelector('#btnTrain').addEventListener('click', train);
+    card.querySelector('#btnPredict').addEventListener('click', predict);
+  });
+})();
+</script>
+
+<!-- Patch A: Dynamic KI‑Palast & Java‑Bausteine UI injection -->
+<script>
+(function(){
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function createCard(title, inner){ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<div class="card-title">'+title+'</div>'+inner; return d; }
+  function initKIPalast(){
+    const inner = `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <select id="dsModel" style="padding:8px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff">
+          <option value="deepseek-chat">deepseek-chat</option>
+          <option value="deepseek-reasoner">deepseek-reasoner</option>
+          <option value="deepseek-embed">deepseek-embed</option>
+        </select>
+        <button class="btn" id="btnLoadModels">Modelle laden</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <textarea id="embInput" placeholder="Text für Embeddings…" style="flex:1;min-width:240px;min-height:70px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"></textarea>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn" id="btnEmbeddings">Embeddings berechnen</button>
+        </div>
+      </div>
+      <div id="modelsOut" class="small muted">Modelle: noch nicht geladen.</div>
+      <div id="embOut" class="small muted" style="margin-top:6px">Embeddings: noch leer.</div>
+    `;
+    const card = createCard('🏰 KI‑Palast (DeepSeek – Modelle & Embeddings)', inner);
+    addCard(card);
+
+    // Wire actions
+    card.querySelector('#btnLoadModels').addEventListener('click', async ()=>{
+      try{
+        const res = await fetch(API_BASE + '/deepseek/models');
+        const json = await res.json();
+        const list = (json && json.data) ? json.data.map(m=>m.id).join(', ') : 'Keine Daten';
+        card.querySelector('#modelsOut').textContent = 'Modelle: ' + list;
+        toast('✅ Modelle geladen');
+      }catch(e){ card.querySelector('#modelsOut').textContent = '❌ Fehler: '+(e.message||e); }
+    });
+    card.querySelector('#btnEmbeddings').addEventListener('click', async ()=>{
+      const text = (card.querySelector('#embInput').value||'').trim();
+      if (!text){ toast('Bitte Text eingeben'); return; }
+      card.querySelector('#embOut').innerHTML = '<div class="loading">Berechne…</div>';
+      try{
+        const model = card.querySelector('#dsModel').value || 'deepseek-embed';
+        const res = await fetch(API_BASE + '/deepseek/embeddings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model, input: text }) });
+        const json = await res.json();
+        if (!res.ok){ card.querySelector('#embOut').textContent = '❌ ' + (json.error||('HTTP '+res.status)); return; }
+        const vec = (json.data && json.data[0] && json.data[0].embedding) ? json.data[0].embedding : [];
+        card.querySelector('#embOut').textContent = 'Embedding‑Länge: '+vec.length+' | Beispiel: ['+vec.slice(0,8).map(n=>Number(n).toFixed(3)).join(', ')+']';
+        toast('✅ Embedding berechnet');
+      }catch(e){ card.querySelector('#embOut').textContent = '❌ Fehler: '+(e.message||e); }
+    });
+  }
+
+  function initJavaBausteine(){
+    const KEY = 'java_bausteine_v1';
+    const KEY_COMPACT = 'java_bausteine_compact';
+    function load(){ return JSON.parse(localStorage.getItem(KEY)||'[]'); }
+    function save(x){ localStorage.setItem(KEY, JSON.stringify(x)); }
+    function compactPref(v){ if (typeof v==='boolean') localStorage.setItem(KEY_COMPACT, v?'1':'0'); return localStorage.getItem(KEY_COMPACT)!=='0'; }
+    function checksum(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h*31 + str.charCodeAt(i))|0; } return (h>>>0).toString(16); }
+    const inner = `
+      <div class="small muted" style="margin-bottom:6px">Java‑Bausteine werden jetzt kompakt verwaltet: Titel/Tags vergeben, Inhalte sind einklappbar, Suche/Export/Import verfügbar. Ausgewählte Bausteine können direkt ins ML‑Dataset ingestet und trainiert werden.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:6px">
+        <input id="javaTitle" placeholder="Titel/Name…" style="padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <input id="javaTags" placeholder="Tags (Komma‑getrennt)…" style="padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+      </div>
+      <textarea id="javaTxt" placeholder="// Java‑Code oder Beschreibung…" style="width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn" id="btnSaveJava">💾 Speichern</button>
+        <button class="btn" id="btnClearJava">🗑️ Alle löschen</button>
+        <button class="btn" id="btnExportJava">⬇️ Export</button>
+        <label class="btn" for="javaImport" style="cursor:pointer">⬆️ Import<input type="file" id="javaImport" accept="application/json" style="display:none"></label>
+        <button class="btn" id="btnCollapseAll">▾ Alle einklappen</button>
+        <button class="btn" id="btnExpandAll">▸ Alle ausklappen</button>
+        <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="javaCompact"> Kompaktansicht</label>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <input id="javaSearch" placeholder="Suchen (Titel/Tags)…" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <button class="btn" id="btnIngestSelected">➡️ In ML (ausgewählte)</button>
+        <button class="btn" id="btnTrainML">🧠 Trainieren</button>
+      </div>
+      <div id="javaList" class="small muted" style="margin-top:8px">Noch keine Bausteine.</div>
+    `;
+    const card = createCard('🧩 Java‑KI‑Bausteine (lokal)', inner);
+    addCard(card);
+
+    const elTitle = card.querySelector('#javaTitle');
+    const elTags  = card.querySelector('#javaTags');
+    const elTxt   = card.querySelector('#javaTxt');
+    const elList  = card.querySelector('#javaList');
+    const elSearch= card.querySelector('#javaSearch');
+    const elCompact = card.querySelector('#javaCompact');
+
+    // init compact checkbox
+    elCompact.checked = compactPref();
+
+    function normalize(sn){
+      const title = (sn.title||'').trim();
+      const text  = (sn.text||'').trim();
+      const tags  = Array.isArray(sn.tags)? sn.tags : String(sn.tags||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const id    = sn.id || checksum((title||'')+'|'+text);
+      return { id, ts: sn.ts||Date.now(), title: title||('Snippet '+new Date().toLocaleString()), tags, text };
+    }
+
+    function saveNew(title, tagsCsv, text){
+      const list = load();
+      const sn = normalize({ title, text, tags: tagsCsv });
+      // dedupe by id
+      const exists = list.findIndex(x=> (x.id||'') === sn.id);
+      if (exists >= 0) list.splice(exists, 1);
+      list.unshift(sn);
+      save(list);
+    }
+
+    function render(){
+      const list = load().map(normalize);
+      const q = (elSearch.value||'').toLowerCase();
+      const compact = elCompact.checked;
+      if (!list.length){ elList.textContent='Noch keine Bausteine.'; return; }
+      const wrap = document.createElement('div');
+      wrap.style.display='flex'; wrap.style.flexDirection='column'; wrap.style.gap='8px';
+      list.filter(it=>{
+        if (!q) return true;
+        const hay = (it.title+' '+it.tags.join(',')).toLowerCase();
+        return hay.includes(q);
+      }).forEach((it,idx)=>{
+        const details = document.createElement('details');
+        details.open = !compact; details.style.border='1px solid rgba(255,255,255,.08)'; details.style.borderRadius='10px'; details.style.padding='8px'; details.style.background='rgba(255,255,255,.03)';
+        const lines = (it.text.match(/\n/g)||[]).length + 1;
+        const len = it.text.length;
+        const summary = document.createElement('summary');
+        summary.style.cursor='pointer';
+        summary.innerHTML = `<input type="checkbox" class="sel" data-id="${it.id}" style="margin-right:8px">`+
+          `<strong>${escapeHtml(it.title)}</strong>`+
+          (it.tags.length? ` <span class="muted">[${escapeHtml(it.tags.join(', '))}]</span>` : '')+
+          ` <span class="muted">(${lines} Zeilen, ${len} Zeichen)</span>`+
+          ` <button class="btn" data-act="copy" style="margin-left:8px;padding:4px 8px">Kopieren</button>`+
+          ` <button class="btn" data-act="del" style="padding:4px 8px;background:rgba(255,0,0,.2);border:1px solid rgba(255,0,0,.35)">Löschen</button>`;
+        const pre = document.createElement('pre');
+        pre.style.whiteSpace='pre-wrap'; pre.style.maxHeight='220px'; pre.style.overflow='auto'; pre.style.margin='6px 0 0'; pre.style.border='1px solid rgba(255,255,255,.08)'; pre.style.borderRadius='8px'; pre.style.padding='8px'; pre.style.background='rgba(255,255,255,.02)';
+        pre.textContent = it.text;
+        details.appendChild(summary);
+        details.appendChild(pre);
+        // actions
+        summary.addEventListener('click', (ev)=>{
+          const t = ev.target;
+          if (t && t.dataset && t.dataset.act){ ev.preventDefault(); ev.stopPropagation(); }
+        });
+        summary.addEventListener('mousedown', (ev)=>{
+          const t = ev.target;
+          if (t && t.dataset && t.dataset.act){ ev.preventDefault(); ev.stopImmediatePropagation(); }
+        });
+        summary.addEventListener('click', (ev)=>{
+          const t = ev.target;
+          if (t && t.dataset && t.dataset.act === 'copy'){
+            navigator.clipboard.writeText(it.text).then(()=> toast('📋 Kopiert')).catch(()=>{});
+          } else if (t && t.dataset && t.dataset.act === 'del'){
+            if (confirm('Diesen Baustein löschen?')){
+              const arr = load().filter(x=> (x.id||'') !== it.id);
+              save(arr); render(); toast('🗑️ Gelöscht');
+            }
+          }
+        });
+        wrap.appendChild(details);
+      });
+      elList.innerHTML=''; elList.appendChild(wrap);
+    }
+
+    function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    render();
+
+    // Handlers
+    card.querySelector('#btnSaveJava').addEventListener('click', ()=>{
+      const title = (elTitle.value||'').trim();
+      const tagsCsv = (elTags.value||'').trim();
+      const txt = (elTxt.value||'').trim();
+      if (!txt){ toast('Bitte Inhalt eingeben'); return; }
+      saveNew(title, tagsCsv, txt);
+      elTxt.value=''; if (!title) elTitle.value=''; if (!tagsCsv) elTags.value='';
+      render(); toast('✅ Baustein gespeichert');
+    });
+    card.querySelector('#btnClearJava').addEventListener('click', ()=>{
+      if (!confirm('Wirklich alle Bausteine löschen?')) return;
+      save([]); render(); toast('🗑️ Alle gelöscht');
+    });
+    card.querySelector('#btnExportJava').addEventListener('click', ()=>{
+      try{
+        const data = JSON.stringify(load(), null, 2);
+        const blob = new Blob([data], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'java_bausteine.json'; a.click(); URL.revokeObjectURL(a.href);
+      }catch(e){ toast('❌ Export fehlgeschlagen'); }
+    });
+    card.querySelector('#javaImport').addEventListener('change', async (e)=>{
+      try{
+        const f = e.target.files && e.target.files[0]; if (!f) return;
+        const text = await f.text();
+        const arr = JSON.parse(text);
+        if (!Array.isArray(arr)) throw new Error('Kein Array');
+        const cur = load().map(normalize);
+        arr.map(normalize).forEach(sn=>{
+          const i = cur.findIndex(x=> (x.id||'') === sn.id);
+          if (i>=0) cur[i]=sn; else cur.unshift(sn);
+        });
+        save(cur); render(); toast('✅ Import OK');
+        e.target.value='';
+      }catch(err){ toast('❌ Import fehlgeschlagen'); }
+    });
+    elSearch.addEventListener('input', ()=> render());
+    card.querySelector('#btnCollapseAll').addEventListener('click', ()=>{ elList.querySelectorAll('details').forEach(d=> d.open=false); compactPref(true); elCompact.checked=true; });
+    card.querySelector('#btnExpandAll').addEventListener('click', ()=>{ elList.querySelectorAll('details').forEach(d=> d.open=true); compactPref(false); elCompact.checked=false; });
+    elCompact.addEventListener('change', ()=>{ compactPref(elCompact.checked); render(); });
+
+    // ML Integration: ingest selected and train
+    card.querySelector('#btnIngestSelected').addEventListener('click', async ()=>{
+      const sels = Array.from(elList.querySelectorAll('input.sel:checked'));
+      if (sels.length===0){ toast('Bitte mindestens einen Baustein auswählen'); return; }
+      let ok=0, fail=0;
+      for (const cb of sels){
+        const id = cb.dataset.id; const sn = load().map(normalize).find(x=> (x.id||'')===id);
+        if (!sn) { fail++; continue; }
+        const features = { textLen: sn.text.length, lineCount: (sn.text.match(/\n/g)||[]).length+1, tagCount: sn.tags.length };
+        try{
+          const r = await fetch(window.location.origin + '/api/ml/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ features, label: sn.title, source: 'java-snippets-ui' }) });
+          if (r.ok) ok++; else fail++;
+        }catch(e){ fail++; }
+      }
+      toast('📤 Ingest: '+ok+' OK, '+fail+' Fehler');
+    });
+    card.querySelector('#btnTrainML').addEventListener('click', async ()=>{
+      try{
+        const r = await fetch(window.location.origin + '/api/ml/train', { method:'POST' });
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok){ toast('❌ Training: '+(j.error||('HTTP '+r.status))); return; }
+        toast('🧠 Training OK (n='+(j.n||'?')+')');
+      }catch(e){ toast('❌ Training fehlgeschlagen'); }
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', ()=>{
+    try{ initKIPalast(); initJavaBausteine(); }catch(e){ console.warn('[UI-PatchA]', e); }
+  });
+})();
+</script>
+
+
+<!-- Inline helpers for Demo/Dashboard buttons to avoid missing function errors -->
+<script>
+// Smooth scroll helper
+function __scrollToDashboard(){
+  try{
+    const grid = document.querySelector('.dashboard-grid');
+    if (grid && typeof grid.scrollIntoView === 'function') {
+      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.location.hash = '#dashboard';
+    }
+  }catch(e){}
+}
+
+// "Demo starten" – scrollt zum Dashboard und erzeugt sichtbare Testdaten
+function startDemo(){
+  try {
+    __scrollToDashboard();
+    // Falls vorhanden: Testdaten laden und UI refreshen
+    if (typeof createTestData === 'function') createTestData();
+    if (typeof loadRoboter === 'function') loadRoboter();
+    if (typeof loadDrohnen === 'function') loadDrohnen();
+    if (typeof loadWallets === 'function') loadWallets();
+    if (typeof loadTransactions === 'function') loadTransactions();
+    // Status-Hinweis aktualisieren, falls vorhanden
+    var be = document.getElementById('backendStatus');
+    if (be){ be.textContent = 'Demo-Modus aktiv (Mock)'; be.style.color = '#ffaa00'; }
+  } catch(e) { console.warn('[startDemo]', e); }
+}
+
+// "Dashboard" – nur sanft nach unten scrollen und Grunddaten laden
+function showDashboard(){
+  try {
+    __scrollToDashboard();
+    if (typeof loadRoboter === 'function') loadRoboter();
+    if (typeof loadDrohnen === 'function') loadDrohnen();
+    if (typeof loadWallets === 'function') loadWallets();
+    if (typeof loadTransactions === 'function') loadTransactions();
+  } catch(e) { console.warn('[showDashboard]', e); }
+}
+</script>
+
+
+<!-- Energy chart compact/expand helper -->
+<script>
+(function(){
+  function applyEnergySize(compact){
+    try{
+      const card = document.getElementById('energyCard');
+      const canvas = document.getElementById('energyChart');
+      if(!card || !canvas) return;
+      if (compact){
+        card.style.maxWidth = '320px';
+        canvas.style.height = '90px';
+      } else {
+        card.style.maxWidth = '420px';
+        canvas.style.height = '130px';
+      }
+      localStorage.setItem('energyChartCompact', compact ? '1' : '0');
+      if (window.energyChart && typeof window.energyChart.resize === 'function') {
+        try { window.energyChart.resize(); } catch(_){}
+      }
+    }catch(e){}
+  }
+  function toggleEnergySize(){
+    const cur = localStorage.getItem('energyChartCompact') !== '0';
+    applyEnergySize(!cur);
+  }
+  window.addEventListener('DOMContentLoaded', ()=>{
+    const compactDefault = true; // Standard: kompakt, damit unten mehr Platz bleibt
+    const pref = localStorage.getItem('energyChartCompact');
+    const compact = (pref === null) ? compactDefault : (pref !== '0');
+    applyEnergySize(compact);
+    const btn = document.getElementById('toggleEnergySize');
+    if (btn) btn.addEventListener('click', toggleEnergySize);
+  });
+})();
+</script>
+
+
+<!-- Realtime Analyse: kompakte Live-Statistiken -->
+<script>
+(function(){ if (typeof ENERGY_LIVE_ENABLED !== 'undefined' && !ENERGY_LIVE_ENABLED) { return; }
+  const MAX_POINTS = 60; // ~2min bei 2s Fallback / 3s SSE
+  const state = { series: [] };
+
+  function ensureCard(){
+    if (document.getElementById('rtAnalysisCard')) return;
+    const grid = document.querySelector('.dashboard-grid');
+    if (!grid) return;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'rtAnalysisCard';
+    card.innerHTML = '<div class="card-title">⚡ Echtzeit‑Analyse</div>'+
+      '<div class="small muted">Automatisch aus den Live‑Werten berechnet</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px">'+
+      '  <div><div class="muted small">Letzter</div><div id="rtLast" class="card-value" style="font-size:1.2rem">–</div></div>'+
+      '  <div><div class="muted small">Trend</div><div id="rtTrend" class="card-value" style="font-size:1.2rem">–</div></div>'+
+      '  <div><div class="muted small">Durchschnitt</div><div id="rtAvg" class="card-value" style="font-size:1.2rem">–</div></div>'+
+      '  <div><div class="muted small">Min / Max</div><div id="rtMinMax" class="card-value" style="font-size:1.2rem">–</div></div>'+
+      '</div>';
+    grid.appendChild(card);
+  }
+
+  function fmt(n){ try { return Number(n).toLocaleString('de-DE'); } catch(e) { return String(n); } }
+  function compute(){
+    const arr = state.series;
+    if (!arr.length) return null;
+    const last = arr[arr.length-1];
+    const min = Math.min(...arr);
+    const max = Math.max(...arr);
+    const avg = arr.reduce((a,b)=>a+b,0)/arr.length;
+    // einfacher Trend (letzte 8 Punkte): linearer Fit via zwei Punkte
+    const k = Math.min(8, arr.length-1);
+    let trend = 0;
+    if (k>1){
+      const y1 = arr[arr.length-k];
+      const y2 = last;
+      trend = (y2 - y1) / k;
+    }
+    return { last, min, max, avg, trend };
+  }
+
+  function render(){
+    ensureCard();
+    const stats = compute();
+    if (!stats) return;
+    const tEl = document.getElementById('rtTrend');
+    const lEl = document.getElementById('rtLast');
+    const aEl = document.getElementById('rtAvg');
+    const mEl = document.getElementById('rtMinMax');
+    if (!tEl) return;
+    const arrow = stats.trend>3 ? '⬆️' : (stats.trend<-3 ? '⬇️' : '→');
+    tEl.textContent = arrow + ' ' + (stats.trend>=0?'+':'') + stats.trend.toFixed(1);
+    lEl.textContent = fmt(stats.last) + ' kWh';
+    aEl.textContent = fmt(stats.avg.toFixed(0)) + ' kWh';
+    mEl.textContent = fmt(stats.min) + ' / ' + fmt(stats.max) + ' kWh';
+  }
+
+  function push(val){
+    if (typeof val !== 'number' || !isFinite(val)) return;
+    state.series.push(val);
+    if (state.series.length > MAX_POINTS) state.series.shift();
+    render();
+  }
+
+  // Hook in bestehendes Update – behutsam dekorieren
+  const oldUpdate = window.updateEnergyChart;
+  window.updateEnergyChart = function(v){ try{ push(v); }catch(_){}; if (typeof oldUpdate === 'function') oldUpdate(v); };
+
+  // Fallback: auch Zufallswerte einsammeln, sofern aktiv
+  const oldIv = window.energyIv;
+  if (oldIv){
+    clearInterval(oldIv);
+    window.energyIv = setInterval(()=>{
+      if (!window.__energyLive && window.energyChart){
+        const ds = window.energyChart.data.datasets[0].data;
+        const v = Number(ds[ds.length-1]);
+        push(v);
+        // original update
+        const dso = window.energyChart.data.datasets[0].data;
+        dso.shift(); dso.push(Math.random()*3000 + 2000);
+        window.energyChart.update('none');
+      }
+    }, 2000);
+  }
+
+  window.addEventListener('DOMContentLoaded', ensureCard);
+})();
+</script>
+
+
+<!-- ML Policy & Training UI injection -->
+<script>
+(function(){
+  const API = window.location.origin + '/api/ml';
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function createCard(){
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <div class="card-title">🧠 ML‑Policy & Training</div>
+      <div id="mlpStatus" class="small muted">Lade Policy…</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0">
+        <label><input type="checkbox" id="mlpTrain"> Training erlaubt</label>
+        <label><input type="checkbox" id="mlpIngest"> Ingest erlaubt</label>
+        <label><input type="checkbox" id="mlpMirror"> Telemetrie → Dataset</label>
+        <label>Retention (Tage): <input type="number" id="mlpRet" min="1" max="365" style="width:80px"></label>
+        <label>Trainings/h: <input type="number" id="mlpRate" min="1" max="60" style="width:80px"></label>
+        <label><input type="checkbox" id="mlpExt"> Externe Modelle erlauben</label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btnSavePol">💾 Policy speichern</button>
+        <button class="btn" id="btnIngestDemo">➕ Demo‑Ingest</button>
+        <button class="btn" id="btnTrainPol">🧠 Trainieren</button>
+        <button class="btn" id="btnPredictPol">🔮 Prognose (10)</button>
+      </div>
+      <div id="mlpOut" class="small muted" style="margin-top:8px"></div>
+    `;
+    return card;
+  }
+  async function fetchJson(url, opts){ const r = await fetch(url, opts||{}); const j = await r.json().catch(()=>({})); if(!r.ok) throw new Error(j && j.error || ('HTTP '+r.status)); return j; }
+  function set(el, val){ if (el.type==='checkbox') el.checked=!!val; else el.value = val; }
+  function get(el){ return el.type==='checkbox' ? !!el.checked : Number(el.value); }
+
+  window.addEventListener('DOMContentLoaded', async ()=>{
+    try{
+      const card = createCard();
+      addCard(card);
+      const out = card.querySelector('#mlpOut');
+      const st  = card.querySelector('#mlpStatus');
+      const elTrain = card.querySelector('#mlpTrain');
+      const elIngest= card.querySelector('#mlpIngest');
+      const elMirror= card.querySelector('#mlpMirror');
+      const elRet   = card.querySelector('#mlpRet');
+      const elRate  = card.querySelector('#mlpRate');
+      const elExt   = card.querySelector('#mlpExt');
+
+      async function load(){
+        try{
+          const s = await fetchJson(API + '/status');
+          const p = s.policy || await fetchJson(API + '/policy');
+          set(elTrain, p.trainingEnabled); set(elIngest, p.ingestEnabled); set(elMirror, p.mirrorTelemetryToDataset);
+          set(elRet, p.retentionDays||30); set(elRate, p.maxTrainPerHour||6); set(elExt, p.allowExternalModels||false);
+          const model = s.model && s.model.trained ? ('Modell trainiert: n=' + (s.model.n||0)) : 'Kein Modell';
+          st.textContent = 'Policy geladen • ' + model;
+          out.textContent = '';
+        }catch(e){ st.innerHTML = '<span style="color:#ff4d6d">❌ '+(e.message||e)+'</span>'; }
+      }
+
+      card.querySelector('#btnSavePol').addEventListener('click', async ()=>{
+        out.innerHTML = '<div class="loading">Speichern…</div>';
+        try{
+          const body = { trainingEnabled: get(elTrain), ingestEnabled: get(elIngest), mirrorTelemetryToDataset: get(elMirror), retentionDays: get(elRet), maxTrainPerHour: get(elRate), allowExternalModels: get(elExt) };
+          await fetchJson(API + '/policy', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+          out.textContent = '✅ Policy gespeichert';
+        }catch(e){ out.innerHTML = '<span style="color:#ff4d6d">❌ '+(e.message||e)+'</span>'; }
+      });
+      card.querySelector('#btnIngestDemo').addEventListener('click', async ()=>{
+        out.innerHTML = '<div class="loading">Sende Demo‑Row…</div>';
+        try{
+          const body = { features: { energy: Math.floor(3000+Math.random()*400), temperature: 20+Math.floor(Math.random()*6) }, source: 'ui-demo' };
+          await fetchJson(API + '/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+          out.textContent = '✅ Ingest OK';
+        }catch(e){ out.innerHTML = '<span style="color:#ff4d6d">❌ '+(e.message||e)+'</span>'; }
+      });
+      card.querySelector('#btnTrainPol').addEventListener('click', async ()=>{
+        out.innerHTML = '<div class="loading">Trainiere…</div>';
+        try{
+          const j = await fetchJson(API + '/train', { method:'POST' });
+          out.textContent = '✅ Trainiert (n='+(j.n||0)+', Trend='+(j.slope!=null? Number(j.slope).toFixed(2):'-')+')';
+        }catch(e){ out.innerHTML = '<span style="color:#ff4d6d">❌ '+(e.message||e)+'</span>'; }
+      });
+      card.querySelector('#btnPredictPol').addEventListener('click', async ()=>{
+        out.innerHTML = '<div class="loading">Prognose…</div>';
+        try{
+          const j = await fetchJson(API + '/predict?steps=10');
+          const list = (j.predictions||[]).map((v,i)=> `${i+1}: ${Number(v).toFixed(0)}`).join(', ');
+          out.textContent = '🔮 '+list;
+        }catch(e){ out.innerHTML = '<span style="color:#ff4d6d">❌ '+(e.message||e)+'</span>'; }
+      });
+
+      await load();
+    }catch(e){ console.warn('[ML Policy UI]', e); }
+  });
+})();
+</script>
+
+
+<!-- Azure Prediction & Föderation – UI Injection -->
+<script>
+(function(){
+  const API = window.location.origin + '/api';
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function card(title, inner){ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<div class="card-title">'+title+'</div>'+inner; return d; }
+
+  // Azure Prediction Card
+  function initAzure(){
+    const inner = `
+      <div class="small muted">Sende JSON an Azure Prediction (Endpoint/Region werden lokal gespeichert). Nur zu positiven, defensiven Zwecken.</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0">
+        <label>Endpoint <input id="azEp" placeholder="https://...cognitiveservices.azure.com" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"></label>
+        <label>Region <input id="azReg" placeholder="eastus" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"></label>
+      </div>
+      <textarea id="azBody" placeholder='{"inputs": {}}' style="width:100%;min-height:100px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn" id="btnAzSave">🔐 Speichern</button>
+        <button class="btn" id="btnAzSend">🚀 Vorhersage</button>
+      </div>
+      <div id="azOut" class="small muted" style="margin-top:8px">Bereit.</div>
+      <div class="small muted" style="margin-top:6px">Tipp: Setze serverseitig X‑API‑KEY (APP_API_KEY), Schlüssel nie im Code speichern.</div>
+    `;
+    const c = card('☁️ Azure Vorhersage (Atomauge)', inner);
+    addCard(c);
+    const ep = c.querySelector('#azEp'); const reg = c.querySelector('#azReg'); const out = c.querySelector('#azOut');
+    ep.value = localStorage.getItem('az_endpoint')||''; reg.value = localStorage.getItem('az_region')||'eastus';
+    c.querySelector('#btnAzSave').addEventListener('click', ()=>{ localStorage.setItem('az_endpoint', ep.value.trim()); localStorage.setItem('az_region', reg.value.trim()); toast('🔒 Gespeichert'); });
+    c.querySelector('#btnAzSend').addEventListener('click', async ()=>{
+      out.innerHTML = '<div class="loading">Sende…</div>';
+      try{
+        const body = String(c.querySelector('#azBody').value||'{}');
+        const r = await fetch(API + '/azure/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body });
+        const j = await r.json();
+        if (!r.ok){ out.innerHTML = '<span style="color:#ff4d6d">❌ '+(j.error||('HTTP '+r.status))+'</span>'; return; }
+        out.textContent = (typeof j.response === 'string') ? j.response : JSON.stringify(j.response);
+      }catch(e){ out.innerHTML = '<span style=\"color:#ff4d6d\">❌ '+(e.message||e)+'</span>'; }
+    });
+  }
+
+  // Federation Card
+  function initFederation(){
+    const inner = `
+      <div class="small muted">Teile Modellparameter mit der Föderation und übernimm das Aggregat – so lernen Instanzen voneinander.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0">
+        <input id="fdSlope" placeholder="slope" />
+        <input id="fdIntercept" placeholder="intercept" />
+        <input id="fdAvg" placeholder="avg" />
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btnFdSubmit">📤 Veröffentlichen</button>
+        <button class="btn" id="btnFdAgg">🧮 Aggregat abrufen</button>
+        <button class="btn" id="btnFdAdopt">⬇️ Aggregat übernehmen</button>
+      </div>
+      <div id="fdOut" class="small muted" style="margin-top:8px">Bereit.</div>
+    `;
+    const c = card('🤝 Instanz‑Föderation', inner);
+    addCard(c);
+    const out = c.querySelector('#fdOut');
+    c.querySelector('#btnFdSubmit').addEventListener('click', async ()=>{
+      out.innerHTML = '<div class="loading">Sende…</div>';
+      try{
+        const slope = Number(c.querySelector('#fdSlope').value||'');
+        const intercept = Number(c.querySelector('#fdIntercept').value||'');
+        const avg = Number(c.querySelector('#fdAvg').value||'');
+        const body = { slope, intercept, avg, source: 'ui', instanceId: (localStorage.getItem('inst_id')||'ui-'+Math.floor(Math.random()*1e6)) };
+        const r = await fetch(API + '/federation/submitModel', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        const j = await r.json(); if (!r.ok){ out.textContent='❌ '+(j.error||('HTTP '+r.status)); return; }
+        out.textContent = '✅ Modell veröffentlicht';
+      }catch(e){ out.textContent = '❌ '+(e.message||e); }
+    });
+    c.querySelector('#btnFdAgg').addEventListener('click', async ()=>{
+      out.innerHTML = '<div class="loading">Lade…</div>';
+      try{ const r = await fetch(API + '/federation/aggregate'); const j = await r.json(); if (!r.ok){ out.textContent='❌ '+(j.error||('HTTP '+r.status)); return; } out.textContent = 'Agg: '+JSON.stringify(j); }catch(e){ out.textContent='❌ '+(e.message||e); }
+    });
+    c.querySelector('#btnFdAdopt').addEventListener('click', async ()=>{
+      out.innerHTML = '<div class="loading">Übernehme…</div>';
+      try{ const r = await fetch(API + '/federation/adoptAggregate', { method:'POST' }); const j = await r.json().catch(()=>({})); if (!r.ok){ out.textContent='❌ '+(j.error||('HTTP '+r.status)); return; } out.textContent = '✅ Aggregat übernommen'; }catch(e){ out.textContent='❌ '+(e.message||e); }
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', ()=>{ try{ initAzure(); initFederation(); }catch(e){ console.warn('[UI Azure/Federation]', e); } });
+})();
+</script>
+
+
+<!-- Chatbot UI Injection -->
+<script>
+(function(){
+  const API = window.location.origin + '/api/chat';
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function createCard(){
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span>💬 Chatbot (Admin & Kunden)</span>
+        <span class="small muted">Kette: <code id="chatHead">–</code></span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <button class="btn" id="btnChAdmin">Admin</button>
+        <button class="btn" id="btnChCustomer">Kunde</button>
+        <button class="btn" id="btnVerify">🔐 Prüfen</button>
+      </div>
+      <div id="chatList" style="min-height:160px;max-height:260px;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;background:rgba(255,255,255,.03)">
+        <div class="small muted">Noch keine Nachrichten…</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <input id="chatSender" placeholder="Dein Name (optional)" style="flex:1;min-width:160px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <input id="chatText" placeholder="Nachricht eingeben…" style="flex:3;min-width:220px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <button class="btn" id="btnSend">Senden</button>
+        <button class="btn" id="btnAssist">Assistent antwortet</button>
+      </div>`;
+    return card;
+  }
+  function fmtTs(ts){ try{ return new Date(ts).toLocaleTimeString(); }catch(e){ return ''; } }
+  function msgHtml(m){
+    const who = (m.role === 'assistant') ? 'assistant' : 'user';
+    const clr = who==='assistant' ? '#a8ffdf' : '#bfe9ff';
+    return `<div style="margin:6px 0"><span class="muted small">[${fmtTs(m.ts)}]</span> <b style="color:${clr}">${m.sender||who}</b>: ${escapeHtml(m.text||'')}</div>`;
+  }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+  let channel = localStorage.getItem('chat_channel') || 'customer';
+  let sse;
+
+  function mount(){
+    const card = createCard();
+    addCard(card);
+    card.querySelector('#btnChAdmin').addEventListener('click', ()=> switchChannel('admin'));
+    card.querySelector('#btnChCustomer').addEventListener('click', ()=> switchChannel('customer'));
+    card.querySelector('#btnSend').addEventListener('click', send);
+    card.querySelector('#btnAssist').addEventListener('click', assist);
+    card.querySelector('#btnVerify').addEventListener('click', verify);
+    loadHistory();
+    connectSSE();
+  }
+
+  async function loadHistory(){
+    try{
+      const r = await fetch(API + '/history?channel=' + encodeURIComponent(channel) + '&limit=50');
+      const arr = await r.json();
+      const box = document.getElementById('chatList');
+      box.innerHTML = '';
+      arr.forEach(m => box.insertAdjacentHTML('beforeend', msgHtml(m)));
+      box.scrollTop = box.scrollHeight;
+    }catch(e){ /* ignore */ }
+  }
+
+  async function send(){
+    const sender = document.getElementById('chatSender').value.trim() || 'user';
+    const text = document.getElementById('chatText').value.trim();
+    if (!text) return;
+    document.getElementById('chatText').value = '';
+    try{
+      const r = await fetch(API + '/send', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channel, role:'user', sender, text }) });
+      const m = await r.json();
+      if (!r.ok){ toast('❌ '+(m.error||('HTTP '+r.status))); return; }
+      const box = document.getElementById('chatList');
+      box.insertAdjacentHTML('beforeend', msgHtml(m)); box.scrollTop = box.scrollHeight;
+    }catch(e){ toast('❌ Senden fehlgeschlagen'); }
+  }
+
+  async function assist(){
+    const sender = document.getElementById('chatSender').value.trim() || 'user';
+    const text = document.getElementById('chatText').value.trim();
+    if (!text) return;
+    document.getElementById('chatText').value = '';
+    try{
+      const r = await fetch(API + '/assist', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channel, role: channel==='admin'?'admin':'user', sender, message: text }) });
+      const m = await r.json();
+      if (!r.ok){ toast('❌ '+(m.error||('HTTP '+r.status))); return; }
+      // Antwort wird via SSE zusätzlich eintreffen; füge sie dennoch optimistisch hinzu
+      const box = document.getElementById('chatList');
+      box.insertAdjacentHTML('beforeend', msgHtml({ ts: Date.now(), sender:'assistant', role:'assistant', text: (m.text || '…') })); box.scrollTop = box.scrollHeight;
+    }catch(e){ toast('❌ Assist fehlgeschlagen'); }
+  }
+
+  async function verify(){
+    try{
+      const r = await fetch(API + '/verify?channel=' + encodeURIComponent(channel));
+      const j = await r.json();
+      const hh = (j.headHash||'').toString();
+      document.getElementById('chatHead').textContent = hh ? (hh.substring(0,8)+'…') : '–';
+      toast(j.valid? '✅ Kette gültig' : '⚠️ Kettenfehler');
+    }catch(e){ toast('❌ Prüfen fehlgeschlagen'); }
+  }
+
+  function connectSSE(){
+    try{ if (sse) { try{sse.close();}catch(_){ } } }catch(_){ }
+    try{
+      sse = new EventSource(API + '/stream?channel=' + encodeURIComponent(channel));
+      sse.addEventListener('msg', (ev)=>{
+        try{ const m = JSON.parse(ev.data); const box = document.getElementById('chatList'); box.insertAdjacentHTML('beforeend', msgHtml(m)); box.scrollTop = box.scrollHeight; }catch(_){ }
+      });
+    }catch(_){ }
+  }
+
+  function switchChannel(ch){ channel = ch; localStorage.setItem('chat_channel', ch); document.getElementById('chatList').innerHTML = '<div class="small muted">Kanal geändert – lade…</div>'; loadHistory(); connectSSE(); verify(); toast('🔁 Kanal: '+ch); }
+
+  window.addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+
+
+<!-- Physik/Mathe/Chemie Modell: realistische Energie & Chemie -->
+<script>
+/*
+  Physik/Mathe/Chemie – Realistisches Energie-Modell
+  - Solar: I ≈ 1000·sin(α)·(1-0.6·Bewölkung), α via Deklination+Stundenwinkel
+  - Wind: P = 0.5·ρ·A·Cp·v^3
+  - Chemie: CO₂→Methanol‑Äquivalent (LHV ~19.9 MJ/kg) als Energiepuffer
+  - Ergebnisse werden in die Telemetrie gepusht und ins Diagramm geschrieben
+*/
+(function(){
+  const API = window.location.origin + '/api';
+  const params = {
+    lat: 48.2082, lon: 16.3738,
+    areaSolar: 2000,   // m² kollektive Fläche
+    eta: 0.22,         // Wirkungsgrad
+    cloud: 0.2,        // 0..1
+    rho: 1.225,        // kg/m³
+    rotorArea: 120,    // m²
+    Cp: 0.4,
+    wind: 6.0,         // m/s
+    scale: 1000,       // Schwarm‑Skalierung
+    co2kgPerHour: 35   // CO₂‑Bindung (kg/h)
+  };
+
+  function mountCard(){
+    const grid = document.querySelector('.dashboard-grid'); if(!grid) return;
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `<div class="card-title">🔬 Physik/Mathe/Chemie – Realismus</div>
+      <div class="small muted">Deterministisches Solar/Wind/CO₂‑Modell. Werte speisen Live‑Telemetrie.</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px">
+        <label>Breite φ [°] <input id="p_lat" type="number" step="0.0001" value="${params.lat}"></label>
+        <label>Länge λ [°] <input id="p_lon" type="number" step="0.0001" value="${params.lon}"></label>
+        <label>Solarfläche A [m²] <input id="p_area" type="number" step="1" value="${params.areaSolar}"></label>
+        <label>Wirkungsgrad η [%] <input id="p_eta" type="number" step="0.1" value="${(params.eta*100).toFixed(1)}"></label>
+        <label>Bewölkung 0..1 <input id="p_cloud" type="number" min="0" max="1" step="0.05" value="${params.cloud}"></label>
+        <label>Wind v [m/s] <input id="p_wind" type="number" step="0.1" value="${params.wind}"></label>
+        <label>Rotorfläche [m²] <input id="p_rotor" type="number" step="1" value="${params.rotorArea}"></label>
+        <label>Cp <input id="p_cp" type="number" step="0.05" value="${params.Cp}"></label>
+        <label>Skalierung xN <input id="p_scale" type="number" step="1" value="${params.scale}"></label>
+        <label>CO₂‑Bindung [kg/h] <input id="p_co2" type="number" step="1" value="${params.co2kgPerHour}"></label>
+      </div>
+      <div class="small muted" id="p_out" style="margin-top:8px">bereit…</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="p_apply">Übernehmen</button>
+        <button class="btn" id="p_usemap">Von Karte übernehmen (Mitte)</button>
+      </div>`;
+    grid.appendChild(card);
+
+    function apply(){
+      params.lat = parseFloat(card.querySelector('#p_lat').value)||params.lat;
+      params.lon = parseFloat(card.querySelector('#p_lon').value)||params.lon;
+      params.areaSolar = Math.max(0, parseFloat(card.querySelector('#p_area').value)||params.areaSolar);
+      params.eta = Math.max(0, Math.min(1,(parseFloat(card.querySelector('#p_eta').value)|| (params.eta*100))/100));
+      params.cloud = Math.max(0, Math.min(1, parseFloat(card.querySelector('#p_cloud').value)||params.cloud));
+      params.wind = Math.max(0, parseFloat(card.querySelector('#p_wind').value)||params.wind);
+      params.rotorArea = Math.max(0, parseFloat(card.querySelector('#p_rotor').value)||params.rotorArea);
+      params.Cp = Math.max(0, Math.min(0.59, parseFloat(card.querySelector('#p_cp').value)||params.Cp));
+      params.scale = Math.max(1, parseInt(card.querySelector('#p_scale').value)||params.scale);
+      params.co2kgPerHour = Math.max(0, parseFloat(card.querySelector('#p_co2').value)||params.co2kgPerHour);
+      if (typeof toast==='function') toast('✅ Parameter aktualisiert');
+    }
+    card.querySelector('#p_apply').addEventListener('click', apply);
+    card.querySelector('#p_usemap').addEventListener('click', ()=>{
+      try{
+        if (window.__leafletMap){ const c = window.__leafletMap.getCenter(); card.querySelector('#p_lat').value=c.lat.toFixed(6); card.querySelector('#p_lon').value=c.lng.toFixed(6); apply(); return; }
+        if (window.__gmap){ const c = window.__gmap.getCenter(); card.querySelector('#p_lat').value=c.lat().toFixed(6); card.querySelector('#p_lon').value=c.lng().toFixed(6); apply(); return; }
+        if (typeof toast==='function') toast('Karte nicht initialisiert');
+      }catch(e){ if (typeof toast==='function') toast('Fehler Kartenmitte'); }
+    });
+  }
+
+  function deg2rad(d){ return d*Math.PI/180; }
+  function dayOfYear(d){ const start = new Date(d.getFullYear(),0,0); return Math.floor((d - start)/86400000); }
+  function solarElevation(lat, lon, date){
+    const n = dayOfYear(date);
+    const delta = deg2rad(23.45*Math.sin(deg2rad(360*(284+n)/365))); // Deklination
+    const phi = deg2rad(lat);
+    const hours = date.getUTCHours() + date.getUTCMinutes()/60 + (lon/15); // sehr einfache Solartime‑Annäherung
+    const H = deg2rad(15*(hours-12)); // Stundenwinkel
+    const sinAlpha = Math.sin(phi)*Math.sin(delta) + Math.cos(phi)*Math.cos(delta)*Math.cos(H);
+    return Math.asin(Math.max(-1, Math.min(1, sinAlpha)));
+  }
+
+  let energyKWh = 0; let lastTs = Date.now();
+  function loop(){
+    const now = new Date();
+    const dt = Math.max(0, (Date.now()-lastTs)/1000); lastTs = Date.now();
+    const alpha = solarElevation(params.lat, params.lon, now);
+    const I0 = 1000; // W/m²
+    const I = Math.max(0, I0 * Math.sin(alpha) * (1 - params.cloud*0.6));
+    const Psolar = I * params.areaSolar * params.eta;          // W
+    const Pwind  = 0.5 * params.rho * params.rotorArea * params.Cp * Math.pow(Math.max(0, params.wind), 3);
+    const PtotW  = (Psolar + Pwind) * params.scale;
+    energyKWh += PtotW * dt / 3600.0;
+
+    // Chemie: Methanol‑Äquivalent aus CO₂ Bindung
+    const co2kgps = params.co2kgPerHour / 3600.0;
+    const co2This = co2kgps * dt; // kg
+    const methanolKg = co2This * (32.04/44.01);
+    const LHV_MeOH = 19.9e6; // J/kg
+    const chemKWh = (methanolKg * LHV_MeOH) / 3.6e6;
+
+    const metrics = { energy: Math.round(energyKWh), threats: 0, temperature: 22 };
+    try { fetch(API + '/telemetry/push', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ source:'physik-model', metrics:{ ...metrics, chemBuffer_kWh:+chemKWh.toFixed(3), co2Bound_kg:+co2This.toFixed(3) } }) }).catch(()=>{}); } catch(_){ }
+    try { if (window.updateEnergyChart) window.updateEnergyChart(metrics.energy); } catch(_){ }
+    const out = document.getElementById('p_out');
+    if (out){
+      out.innerHTML = `P_solar=${(Psolar*params.scale/1000).toFixed(0)} kW, P_wind=${(Pwind*params.scale/1000).toFixed(0)} kW, E=${Math.round(energyKWh)} kWh`+
+                      `<br/>CO₂ gebunden: ${co2This.toFixed(2)} kg, chemischer Puffer: ${chemKWh.toFixed(3)} kWh`;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('DOMContentLoaded', ()=>{
+    try{ mountCard(); }catch(e){ console.warn('[PhysikCard]', e); }
+    setTimeout(()=>{ lastTs = Date.now(); loop(); }, 800);
+  });
+})();
+</script>
+
+
+<!-- Finanz-Workspace: Einnahmen & Rückfluss Mapping (Energy → EUR) -->
+<script>
+(function(){
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function fmtEUR(n){ try{ return Number(n).toLocaleString('de-DE', { minimumFractionDigits:2, maximumFractionDigits:2 }); }catch(e){ return String(n); } }
+  function parseDE(s){ if (!s) return NaN; try{ const x=String(s).replace(/[^0-9,.-]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',', '.'); return parseFloat(x); }catch(e){ return NaN; } }
+  function currentEnergyKWh(){
+    try{
+      if (typeof window.__physEnergyKWh === 'number' && isFinite(window.__physEnergyKWh)) return window.__physEnergyKWh;
+    }catch(_){}
+    try{
+      const out = document.getElementById('p_out');
+      if (out){
+        const m = out.textContent.match(/E\s*=\s*([0-9]+(?:[\.,][0-9]+)?)\s*kWh/i);
+        if (m){ return parseDE(m[1]); }
+      }
+    }catch(_){ }
+    try{
+      const ld = document.getElementById('ldEnergy');
+      if (ld && ld.textContent && ld.textContent.indexOf('kWh')>-1){ return parseDE(ld.textContent); }
+    }catch(_){ }
+    try{
+      const e = document.getElementById('energy');
+      if (e){ return parseDE(e.textContent); }
+    }catch(_){ }
+    return 0;
+  }
+
+  function createCard(){
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.id = 'financeWorkspace';
+    c.innerHTML = `
+      <div class="card-title">💶 Einnahmen & Rückfluss – Finanz‑Workspace</div>
+      <div class="small muted">Mathematische Relation: EUR = kWh × Preis × Verkauf − Kosten. Werte werden live aus der Energie abgeleitet.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px">
+        <label>Preis [EUR/kWh]
+          <input id="fw_price" type="number" min="0" step="0.01" value="0.18" style="width:100%">
+        </label>
+        <label>Verkauf [%]
+          <input id="fw_sell" type="number" min="0" max="100" step="1" value="60" style="width:100%">
+        </label>
+        <label>Kosten [%]
+          <input id="fw_cost" type="number" min="0" max="100" step="1" value="15" style="width:100%">
+        </label>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px">
+        <div><div class="muted small">Energie gesamt</div><div id="fw_energy" class="card-value">–</div></div>
+        <div><div class="muted small">Umsatz (brutto)</div><div id="fw_gross" class="card-value">–</div></div>
+        <div><div class="muted small">Kosten</div><div id="fw_costAmt" class="card-value">–</div></div>
+        <div><div class="muted small">Rückfluss Wallets (netto)</div><div id="fw_net" class="card-value">–</div></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="fw_stampBtn">🔏 Policy‑Stempel setzen</button>
+        <button class="btn" id="fw_unstampBtn">♻️ Stempel löschen</button>
+        <span id="fw_stampStatus" class="small muted"></span>
+      </div>
+      <div style="margin-top:12px">
+        <div class="muted small">Workspace/Komfortzone – Notizen</div>
+        <textarea id="fw_notes" placeholder="Planung, Verteilungslogik, Dienstpläne…" style="width:100%;min-height:90px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;"></textarea>
+      </div>
+    `;
+    return c;
+  }
+
+  function loadCfg(){
+    try{ return JSON.parse(localStorage.getItem('financeCfg')||'{}'); }catch(_){ return {}; }
+  }
+  function saveCfg(cfg){ try{ localStorage.setItem('financeCfg', JSON.stringify(cfg)); }catch(_){} }
+  function loadNotes(){ try{ return localStorage.getItem('financeNotes')||''; }catch(_){ return ''; } }
+  function saveNotes(v){ try{ localStorage.setItem('financeNotes', v||''); }catch(_){} }
+
+  function setStamp(txt){ try{ localStorage.setItem('financeStamp', txt); }catch(_){} }
+  function getStamp(){ try{ return localStorage.getItem('financeStamp'); }catch(_){ return null; } }
+  function clearStamp(){ try{ localStorage.removeItem('financeStamp'); }catch(_){} }
+
+  function mount(){
+    const card = createCard();
+    addCard(card);
+    const elPrice = card.querySelector('#fw_price');
+    const elSell  = card.querySelector('#fw_sell');
+    const elCost  = card.querySelector('#fw_cost');
+    const elE     = card.querySelector('#fw_energy');
+    const elG     = card.querySelector('#fw_gross');
+    const elC     = card.querySelector('#fw_costAmt');
+    const elN     = card.querySelector('#fw_net');
+    const elNotes = card.querySelector('#fw_notes');
+    const elStamp = card.querySelector('#fw_stampStatus');
+
+    // Restore cfg/notes
+    const cfg = Object.assign({ price:0.18, sell:60, cost:15 }, loadCfg());
+    elPrice.value = cfg.price;
+    elSell.value  = cfg.sell;
+    elCost.value  = cfg.cost;
+    elNotes.value = loadNotes();
+
+    function update(){
+      const E = Number(currentEnergyKWh())||0;
+      const price = Math.max(0, parseFloat(elPrice.value)||0);
+      const sell  = Math.max(0, Math.min(100, parseFloat(elSell.value)||0))/100.0;
+      const costR = Math.max(0, Math.min(100, parseFloat(elCost.value)||0))/100.0;
+      const gross = E * price * sell;
+      const costA = gross * costR;
+      const net   = Math.max(0, gross - costA);
+      elE.textContent = (isFinite(E)? E.toLocaleString('de-DE') : '–') + ' kWh';
+      elG.textContent = fmtEUR(gross) + ' EUR';
+      elC.textContent = fmtEUR(costA) + ' EUR';
+      elN.textContent = fmtEUR(net)   + ' EUR';
+    }
+
+    function persist(){ saveCfg({ price:parseFloat(elPrice.value)||0, sell:parseFloat(elSell.value)||0, cost:parseFloat(elCost.value)||0 }); }
+
+    elPrice.addEventListener('input', ()=>{ persist(); update(); });
+    elSell .addEventListener('input', ()=>{ persist(); update(); });
+    elCost .addEventListener('input', ()=>{ persist(); update(); });
+    elNotes.addEventListener('input', ()=>{ saveNotes(elNotes.value); });
+
+    card.querySelector('#fw_stampBtn').addEventListener('click', ()=>{
+      const ts = new Date();
+      const txt = 'Stempel • '+ts.toLocaleString('de-DE')+' • Preis='+elPrice.value+' EUR/kWh, Verkauf='+elSell.value+'%, Kosten='+elCost.value+'%';
+      setStamp(txt); elStamp.textContent = '🔏 '+txt;
+    });
+    card.querySelector('#fw_unstampBtn').addEventListener('click', ()=>{ clearStamp(); elStamp.textContent = '–'; });
+
+    const s = getStamp(); if (s) elStamp.textContent = '🔏 '+s;
+
+    // periodic refresh
+    update();
+    setInterval(update, 3000);
+
+    // try to hook into energy updates if available
+    try{
+      const old = window.updateEnergyChart;
+      if (typeof old === 'function'){
+        window.updateEnergyChart = function(v){ try{ update(); }catch(_){ } old(v); };
+      }
+    }catch(_){ }
+  }
+
+  window.addEventListener('DOMContentLoaded', ()=>{ try{ mount(); }catch(e){ console.warn('[FinanceWorkspace]', e); } });
+})();
+</script>
+
+
+<!-- SERP Full-page preview overlay helper -->
+<script>
+(function(){
+  const API = window.location.origin + '/api';
+  let overlay;
+  function ensureOverlay(){
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.id='serpOverlay';
+    overlay.style.position='fixed';
+    overlay.style.inset='0';
+    overlay.style.background='rgba(0,0,0,.85)';
+    overlay.style.zIndex='99999';
+    overlay.style.display='none';
+    overlay.innerHTML = '<div style="position:absolute;top:12px;right:12px;display:flex;gap:8px"><button class="btn" id="serpCloseBtn">Schließen</button></div><iframe id="serpFrame" style="width:100%;height:100%;border:0;background:white"></iframe>';
+    document.addEventListener('DOMContentLoaded', ()=> document.body.appendChild(overlay));
+    document.addEventListener('click', (e)=>{ if (e.target && e.target.id==='serpCloseBtn'){ overlay.style.display='none'; } });
+    return overlay;
+  }
+  window.openSerpPreview = async function(url){
+    try{
+      const ov = ensureOverlay();
+      const res = await fetch(API + '/serp/fetch?url=' + encodeURIComponent(url));
+      const j = await res.json();
+      if (!res.ok || !j.html){ alert('❌ Vorschau fehlgeschlagen: ' + (j.error || ('HTTP '+res.status))); return; }
+      const iframe = ov.querySelector('#serpFrame');
+      iframe.srcdoc = j.html;
+      ov.style.display='block';
+    }catch(e){ alert('❌ Vorschau-Fehler: ' + (e.message||e)); }
+  };
+})();
+</script>
+
+
+<!-- Language policy init: enforce German and persist policy -->
+<script>
+(function(){
+  try{
+    var lang = 'de';
+    document.documentElement.setAttribute('lang', lang);
+    try { localStorage.setItem('ui.lang', lang); } catch(_) {}
+    // Inform backend (best-effort)
+    fetch(window.location.origin + '/api/policy/lang', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: lang })
+    }).catch(function(){});
+  } catch(e) { /* no-op */ }
+})();
+</script>
+
+
+<!-- Vision UI Injection: Grafik-„Vision“-Modus (Outlines/Wireframe/FOV/Helligkeit) -->
+<script>
+(function(){
+  function card(html){ const d=document.createElement('div'); d.className='card'; d.innerHTML=html; return d; }
+  function addCard(el){ try{ const grid=document.querySelector('.dashboard-grid'); if(grid) grid.appendChild(el);}catch(e){} }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+  function createVisionCard(){
+    const html = [
+      '<div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">',
+      '  <span>👁️ Vision (Grafik)</span>',
+      '  <button class="btn" id="visPing">🔒 Schnittstellen-Test</button>',
+      '</div>',
+      '<div class="small muted">Steuere die 3D-Visualisierung: Kanten, Wireframe, Sichtkanäle, Sichtfeld & Helligkeit. (Nur Visuals, keine Geheimnisse.)</div>',
+      '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0">',
+      '  <label><input type="checkbox" id="visOutline"> Kanten/Outlines</label>',
+      '  <label><input type="checkbox" id="visWire"> Wireframe</label>',
+      '  <label><input type="checkbox" id="visShowParticles" checked> Partikel</label>',
+      '  <label><input type="checkbox" id="visShowGlobe" checked> Globus</label>',
+      '  <label><input type="checkbox" id="visShowHalo" checked> Halo</label>',
+      '</div>',
+      '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0">',
+      '  <label>FOV (Sichtfeld) <input type="range" id="visFov" min="30" max="100" value="75"></label>',
+      '  <label>Helligkeit <input type="range" id="visAlpha" min="10" max="100" value="85"></label>',
+      '</div>',
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">',
+      '  <button class="btn" id="visPresetNight">🌙 Night</button>',
+      '  <button class="btn" id="visPresetThermal">🔥 Thermal</button>',
+      '  <button class="btn" id="visPresetWire">🧵 Wireframe</button>',
+      '</div>',
+      '<div id="visOut" class="small muted" style="margin-top:8px">Bereit.</div>'
+    ].join('');
+    return card(html);
+  }
+
+  function applyVision(){
+    try{
+      const scene = window.__scene, cam=window.__camera, globe=window.__globe, ring=window.__ring, particles=window.__particles, mats=window.__materials;
+      if (!scene || !cam || !mats) return;
+      // Sichtkanäle
+      const showP = !!document.getElementById('visShowParticles')?.checked;
+      const showG = !!document.getElementById('visShowGlobe')?.checked;
+      const showH = !!document.getElementById('visShowHalo')?.checked;
+      if (particles) particles.visible = showP;
+      if (globe) globe.visible = showG;
+      if (ring) ring.visible = showH;
+      // Wireframe
+      const wire = !!document.getElementById('visWire')?.checked;
+      if (mats.globe && typeof mats.globe.wireframe !== 'undefined') mats.globe.wireframe = wire;
+      if (mats.ring && typeof mats.ring.wireframe !== 'undefined') mats.ring.wireframe = wire;
+      // FOV
+      const fov = clamp(parseInt(document.getElementById('visFov')?.value||'75'), 30, 100);
+      cam.fov = fov; cam.updateProjectionMatrix();
+      // Helligkeit ~ Opazität
+      const alpha = clamp(parseInt(document.getElementById('visAlpha')?.value||'85'),10,100)/100.0;
+      if (mats.particles){ mats.particles.transparent = true; mats.particles.opacity = alpha; }
+      if (mats.globe){ mats.globe.transparent = true; mats.globe.opacity = Math.max(0.1, Math.min(1, alpha*0.9)); }
+      if (mats.ring){ mats.ring.transparent = true; mats.ring.opacity = Math.max(0.1, Math.min(1, alpha)); }
+      // Outlines
+      const wantEdges = !!document.getElementById('visOutline')?.checked;
+      if (wantEdges && !window.__visionEdges){
+        try{
+          const g = new THREE.EdgesGeometry(globe?.geometry||null, 15);
+          const m = new THREE.LineBasicMaterial({ color: 0xa8ffdf, transparent:true, opacity: 0.7 });
+          const linesG = g ? new THREE.LineSegments(g, m) : null;
+          const gr = ring && ring.geometry ? new THREE.EdgesGeometry(ring.geometry, 8) : null;
+          const mr = new THREE.LineBasicMaterial({ color: 0x00ff88, transparent:true, opacity: 0.6 });
+          const linesR = gr ? new THREE.LineSegments(gr, mr) : null;
+          const grp = new THREE.Group(); if (linesG) grp.add(linesG); if (linesR) grp.add(linesR);
+          scene.add(grp); window.__visionEdges = grp;
+        }catch(e){ /* ignore */ }
+      } else if (!wantEdges && window.__visionEdges){
+        try{ scene.remove(window.__visionEdges); window.__visionEdges.traverse(o=>{ if(o.geometry) o.geometry.dispose&&o.geometry.dispose(); if(o.material) o.material.dispose&&o.material.dispose(); }); }catch(_){}
+        window.__visionEdges = null;
+      }
+    }catch(e){ /* no-op */ }
+  }
+
+  function presetNight(){ try{ const mats=window.__materials; if(!mats) return; if(mats.particles&&mats.particles.color) mats.particles.color.set(0x66eeff); if(mats.globe&&mats.globe.color) mats.globe.color.set(0x1a4d9e); if(mats.ring&&mats.ring.color) mats.ring.color.set(0x00aa66); document.getElementById('visAlpha').value='60'; applyVision(); }catch(_){}}
+  function presetThermal(){ try{ const mats=window.__materials; if(!mats) return; if(mats.particles&&mats.particles.color) mats.particles.color.set(0xff8800); if(mats.globe&&mats.globe.color) mats.globe.color.set(0xff2200); if(mats.ring&&mats.ring.color) mats.ring.color.set(0xffff00); document.getElementById('visAlpha').value='90'; applyVision(); }catch(_){}}
+  function presetWire(){ try{ const wire=document.getElementById('visWire'); if (wire){ wire.checked=true; } document.getElementById('visOutline').checked=true; document.getElementById('visAlpha').value='80'; applyVision(); }catch(_){}}
+
+  async function ping(){ const out=document.getElementById('visOut'); try{ out.innerHTML='Prüfe…'; const r=await fetch(window.location.origin + '/api/vision/ping'); const j=await r.json().catch(()=>({})); out.innerHTML = r.ok? ('✅ Vision Ping OK • '+(j.time||'')) : ('❌ Fehler (HTTP '+r.status+')'); }catch(e){ out.innerHTML='❌ Test fehlgeschlagen'; } }
+
+  function mount(){ try{
+      const c = createVisionCard(); addCard(c);
+      const ids=['visOutline','visWire','visShowParticles','visShowGlobe','visShowHalo','visFov','visAlpha'];
+      ids.forEach(id=>{ const el=c.querySelector('#'+id); if (el) el.addEventListener('input', applyVision); });
+      c.querySelector('#visPresetNight').addEventListener('click', presetNight);
+      c.querySelector('#visPresetThermal').addEventListener('click', presetThermal);
+      c.querySelector('#visPresetWire').addEventListener('click', presetWire);
+      c.querySelector('#visPing').addEventListener('click', ping);
+      // initial apply (if scene already ready)
+      setTimeout(applyVision, 500);
+    }catch(e){ /* ignore */ }
+  }
+
+  window.addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+
+
+<script>
+// Kombiniere die letzten 5 Apps zu einer Karte mit Tabs
+(function(){
+  function bySel(root, sel){ return Array.prototype.slice.call(root.querySelectorAll(sel)); }
+  function textOf(el){ return (el && el.textContent || '').trim(); }
+  function makeEl(tag, cls, html){ var e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+
+  function combineLastFive(){
+    try{
+      var grid = document.querySelector('.dashboard-grid');
+      if (!grid) return;
+      var cards = bySel(grid, ':scope > .card');
+      if (!cards || cards.length < 5) return; // zu wenig Karten – nichts tun
+
+      // Nimm die letzten 5 Karten
+      var lastFive = cards.slice(-5);
+      var firstOfFive = lastFive[0];
+
+      // Erzeuge kombinierte Karte
+      var combined = makeEl('div', 'card');
+      combined.id = 'combined-last-five';
+      var titleBar = makeEl('div', 'card-title');
+      titleBar.style.display='flex';
+      titleBar.style.alignItems='center';
+      titleBar.style.justifyContent='space-between';
+
+      var titleLeft = makeEl('div', '', '🔗 Kombinierte Apps (5)');
+      var actions = makeEl('div');
+      var restoreBtn = makeEl('button', 'btn', 'Entkoppeln');
+      restoreBtn.title = 'Apps wieder als einzelne Karten anzeigen';
+      actions.appendChild(restoreBtn);
+      titleBar.appendChild(titleLeft);
+      titleBar.appendChild(actions);
+
+      var tabs = makeEl('div');
+      tabs.style.display='flex';
+      tabs.style.gap='8px';
+      tabs.style.flexWrap='wrap';
+      tabs.style.margin='6px 0 8px 0';
+
+      var panels = makeEl('div');
+      panels.style.borderTop='1px solid rgba(255,255,255,0.08)';
+      panels.style.marginTop='6px';
+      panels.style.paddingTop='8px';
+
+      combined.appendChild(titleBar);
+      combined.appendChild(tabs);
+      combined.appendChild(panels);
+
+      // Erzeuge Tabs und verschiebe die Karten als Panels hinein
+      var originalPositions = [];
+      lastFive.forEach(function(card, idx){
+        // Titel extrahieren
+        var t = textOf(card.querySelector('.card-title')) || ('App '+(idx+1));
+        var btn = makeEl('button', 'btn', t);
+        btn.style.padding='8px 12px';
+        btn.style.fontSize='.9rem';
+        btn.dataset.tab = String(idx);
+        tabs.appendChild(btn);
+
+        var panel = makeEl('div');
+        panel.dataset.panel = String(idx);
+        panel.style.display = idx===0? 'block' : 'none';
+        // Merke ursprüngliche Position, um wiederherstellen zu können
+        originalPositions.push({ parent:grid, next: card.nextSibling });
+        // Karte in Panel verschieben (verschieben erhält Event-Listener)
+        panel.appendChild(card);
+        // Entferne Kartentitel innerhalb des Panels, da Tabs den Titel zeigen
+        var innerTitle = card.querySelector('.card-title');
+        if (innerTitle) innerTitle.style.display='none';
+        // Passe card-in-card Abstände minimal an
+        card.style.margin='0';
+        panels.appendChild(panel);
+      });
+
+      // Aktive Tab Umschaltung
+      function activate(i){
+        bySel(panels,'[data-panel]').forEach(function(p){ p.style.display = (p.dataset.panel===String(i))? 'block':'none'; });
+        bySel(tabs,'button').forEach(function(b){ b.style.opacity = (b.dataset.tab===String(i))? '1':'0.6'; });
+      }
+      tabs.addEventListener('click', function(e){
+        var b = e.target.closest('button'); if(!b) return; activate(b.dataset.tab);
+      });
+
+      // Entkoppeln: Panels zurück ins Grid verschieben
+      restoreBtn.addEventListener('click', function(){
+        try{
+          var toRestore = bySel(panels,'[data-panel] > .card');
+          toRestore.forEach(function(card, i){
+            var pos = originalPositions[i] || { parent:grid, next:null };
+            // Titel wieder einblenden
+            var innerTitle = card.querySelector('.card-title');
+            if (innerTitle) innerTitle.style.display='';
+            card.style.margin='';
+            pos.parent.insertBefore(card, pos.next);
+          });
+          combined.remove();
+        }catch(_){}
+      });
+
+      // Kombinierte Karte im Grid an der Position der ersten Karte einfügen
+      grid.insertBefore(combined, firstOfFive);
+    }catch(e){ /* no-op */ }
+  }
+
+  // Warten bis DOM steht – dann kombinieren
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(combineLastFive, 50); });
+  } else {
+    setTimeout(combineLastFive, 50);
+  }
+})();
+</script>
+
+
+<!-- Dev Badge & Hard Reload Helper (additive) -->
+<script>
+(function(){
+  try{
+    const el = document.createElement('div');
+    el.id = 'devBadge';
+    el.style.position='fixed'; el.style.left='8px'; el.style.bottom='8px'; el.style.zIndex='99999';
+    el.style.background='rgba(0,0,0,.65)'; el.style.border='1px solid rgba(255,255,255,.18)';
+    el.style.borderRadius='10px'; el.style.padding='8px 10px'; el.style.color='#a8ffdf'; el.style.font='12px/1.2 ui-monospace,Consolas,monospace';
+    el.style.boxShadow='0 8px 24px rgba(0,0,0,.35)';
+    const ts = new Date().toLocaleString('de-DE');
+    el.innerHTML = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      + '<span>LineLux UI • ' + ts + '</span>'
+      + '<button id="btnHardReload" style="margin-left:6px;background:#10261e;color:#a8ffdf;border:1px solid rgba(168,255,223,.35);padding:4px 8px;border-radius:8px;cursor:pointer">Cache leeren & neu laden</button>'
+      + '</div>'
+      + '<div class="small" style="opacity:.8;color:#9adfc4;max-width:50vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + location.pathname + '</div>';
+    document.addEventListener('DOMContentLoaded', ()=> document.body.appendChild(el));
+
+    async function hardReload(){
+      try{
+        // Unregister all Service Workers
+        if (navigator.serviceWorker){
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const r of regs){ try{ await r.unregister(); }catch(_){}}
+        }
+        // Clear Cache Storage
+        if (window.caches && caches.keys){
+          const keys = await caches.keys();
+          for (const k of keys){ try{ await caches.delete(k); }catch(_){}}
+        }
+      }catch(e){ console.warn('[HardReload]', e); }
+      // Reload with cache-busting
+      const url = new URL(location.href);
+      url.searchParams.set('v', Date.now().toString());
+      location.replace(url.toString());
+    }
+
+    window.addEventListener('click', (ev)=>{
+      const t = ev.target; if (!t) return;
+      if (t.id === 'btnHardReload'){ ev.preventDefault(); hardReload(); }
+    });
+
+    // Distinct console banner so you can verify the page actually changed
+    console.log('%cLineLux UI reloaded at ' + ts + ' • ' + location.pathname,
+      'background:#10261e;color:#a8ffdf;padding:4px 6px;border-radius:6px');
+  }catch(e){ /* no-op */ }
+})();
+</script>
+
+
+<!-- Ideen & Ergebnisse (ML) – auto‑vorschläge parallel zur Cloud-Erstellung -->
+<script>
+(function(){
+  const API = window.location.origin + '/api';
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function card(title, inner){ const d=document.createElement('div'); d.className='card'; d.innerHTML='<div class="card-title">'+title+'</div>'+inner; return d; }
+  function now(){ try{ return new Date().toLocaleTimeString('de-DE'); }catch(_){ return '';} }
+
+  function mk(){
+    const inner = [
+      '<div class="small muted">Die Seite schlägt fortlaufend Ideen vor (heuristisch) und kann optional ML/Chat nutzen.</div>',
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">',
+      '  <button class="btn" id="btnSuggest">💡 Vorschlagen</button>',
+      '  <button class="btn" id="btnTrain">🧠 Trainieren</button>',
+      '  <button class="btn" id="btnPredict">🔮 Prognose</button>',
+      '  <button class="btn" id="btnAdvise">🤝 Beratung</button>',
+      '</div>',
+      '<div id="mlIdeas" class="small" style="line-height:1.5"></div>'
+    ].join('');
+    const c = card('🧠 Ideen & Ergebnisse (ML)', inner);
+    addCard(c);
+    const out = c.querySelector('#mlIdeas');
+
+    function readNumber(elId, fallback){
+      try{
+        const el = document.getElementById(elId);
+        if (!el) return fallback;
+        const t = String(el.textContent||'').replace(/[^0-9,.-]/g,'').replace('\.', '').replace(',', '.');
+        const n = parseFloat(t);
+        return isFinite(n) ? n : fallback;
+      }catch(_){ return fallback; }
+    }
+
+    function suggest(){
+      // Heuristik basierend auf aktuellen UI‑Werten
+      const energy = readNumber('energy', 2800); // kWh
+      const threats = parseInt((document.getElementById('threats')||{}).textContent||'0')||0;
+      const drones = parseInt((document.getElementById('droneCount')||{}).textContent||'0')||0;
+      const ideas = [];
+      if (energy < 2500) ideas.push('Energie gering: Solarfläche oder Windleistung temporär +10% skalieren.');
+      else ideas.push('Energie stabil: Wartungsfenster für kalte Nodes einplanen (30min).');
+      if (threats > 0) ideas.push('Bedrohungen erkannt: Resonanz‑Absorption verstärken und Swarm‑Segmente härten.');
+      if (drones < 3) ideas.push('Wenig Drohnen aktiv: 2 zusätzliche Aufklärer für Antarktis‑Zonen starten.');
+      if (ideas.length===0) ideas.push('System im grünen Bereich. Monitoring beibehalten.');
+      const ts = now();
+      out.innerHTML = '<div class="muted">'+ts+'</div><ul style="margin:6px 0 0; padding-left:18px">'+ideas.map(x=>'\n<li>'+x+'</li>').join('')+'</ul>';
+    }
+
+    async function train(){
+      out.innerHTML = '<div class="loading">Trainiere…</div>';
+      try{
+        const r = await fetch(API + '/ml/train', { method:'POST' });
+        const j = await r.json();
+        out.innerHTML = '✅ Trainiert • n='+(j.n||0)+', Trend='+(j.slope!=null? Number(j.slope).toFixed(2):'-');
+      }catch(e){ out.innerHTML = '❌ Training fehlgeschlagen'; }
+    }
+
+    async function predict(){
+      out.innerHTML = '<div class="loading">Prognose…</div>';
+      try{
+        const r = await fetch(API + '/ml/predict?steps=10');
+        const j = await r.json();
+        const list = (j.predictions||[]).slice(0,10).map((v,i)=> (i+1)+': '+Number(v).toFixed(0)).join(', ');
+        out.innerHTML = '🔮 Energie‑Prognose: '+list;
+      }catch(e){ out.innerHTML = '❌ Prognose fehlgeschlagen'; }
+    }
+
+    async function advise(){
+      out.innerHTML = '<div class="loading">Beratung…</div>';
+      try{
+        const prompt = 'Gib 3 kurze, positive Maßnahmen zur Energieoptimierung und defensiven Verstärkung.';
+        const r = await fetch(API + '/deepseek/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt }) });
+        const j = await r.json();
+        let text = '';
+        const res = j && (j.response||j);
+        if (res && res.choices && res.choices[0] && res.choices[0].message) text = res.choices[0].message.content||'';
+        out.textContent = text || 'Keine Antwort erhalten (Mock/API)';
+      }catch(e){ out.innerHTML = '❌ Beratung fehlgeschlagen'; }
+    }
+
+    c.querySelector('#btnSuggest').addEventListener('click', suggest);
+    c.querySelector('#btnTrain').addEventListener('click', train);
+    c.querySelector('#btnPredict').addEventListener('click', predict);
+    c.querySelector('#btnAdvise').addEventListener('click', advise);
+
+    // Auto‑Lauf alle 25s parallel (simuliert fortlaufende Intelligenz)
+    try{ suggest(); }catch(_){ }
+    setInterval(()=>{ try{ suggest(); }catch(_){ } }, 25000);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', mk);
+  } else { mk(); }
+})();
+</script>
+
+
+<!-- SaaS client (Azure Functions) -->
+<script src="saas-client.js"></script>
+<script>
+// UI Card: Remote SaaS (Azure Functions) — configure BASE and Token, test /health and wire Remote/Skills
+(function(){
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function card(title, inner){ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<div class="card-title">'+title+'</div>'+inner; return d; }
+  function esc(s){ return String(s||'').replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m])); }
+
+  function mount(){
+    const inner = [
+      '<div class="small muted">Konfiguriere dein Azure Functions Backend. Die Werte werden lokal gespeichert.</div>',
+      '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0">',
+      '  <label>BASE <input id="saasBase" placeholder="https://<deine-function>.azurewebsites.net" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"></label>',
+      '  <label>API Token <input id="saasTok" placeholder="(optional)" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"></label>',
+      '</div>',
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">',
+      '  <button class="btn" id="btnSaasSave">💾 Speichern & Verbinden</button>',
+      '  <button class="btn" id="btnSaasHealth">🩺 Health</button>',
+      '  <button class="btn" id="btnSaasInfer">🤖 Infer‑Demo</button>',
+      '  <button class="btn" id="btnSaasEvent">📤 Event senden</button>',
+      '  <a class="btn" href="docs/saas-oracle.md" target="_blank" rel="noopener">📄 Oracle/DSN Doku</a>',
+      '</div>',
+      '<div id="saasOut" class="small muted" style="margin-top:6px">Bereit.</div>'
+    ].join('');
+
+    const c = card('☁️ Remote SaaS (Azure Functions)', inner);
+    addCard(c);
+    const out = c.querySelector('#saasOut');
+    const elBase = c.querySelector('#saasBase');
+    const elTok  = c.querySelector('#saasTok');
+    try{ elBase.value = (window.SaaS && window.SaaS.base)||localStorage.getItem('saas.base')||''; }catch(_){}
+    try{ elTok.value  = (window.SaaS && window.SaaS.token)||localStorage.getItem('saas.token')||''; }catch(_){}
+
+    c.querySelector('#btnSaasSave').addEventListener('click', async ()=>{
+      try{
+        const base = (elBase.value||'').trim(); const tok = (elTok.value||'').trim();
+        if (!base){ out.textContent = 'Bitte BASE URL eingeben.'; return; }
+        if (window.SaaS){ SaaS.setBase(base); SaaS.setToken(tok); await SaaS.applyRemote(); }
+        out.textContent = '✅ Gespeichert. Remote/Skills verbunden.';
+      }catch(e){ out.innerHTML = '<span style="color:#ff4d6d">❌ Fehler: '+esc(e.message||e)+'</span>'; }
+    });
+
+    c.querySelector('#btnSaasHealth').addEventListener('click', async ()=>{
+      try{ out.innerHTML = '<div class="loading">Teste…</div>'; const j = await SaaS.health(); out.textContent = 'Health: '+JSON.stringify(j); }catch(e){ out.textContent = '❌ Health fehlgeschlagen'; }
+    });
+
+    c.querySelector('#btnSaasInfer').addEventListener('click', async ()=>{
+      try{
+        out.innerHTML = '<div class="loading">Infer…</div>';
+        const demo = { pose:{x:0,y:0,theta:0}, prox:{front:2.0} };
+        const j = await SaaS.inferAssist(demo);
+        out.textContent = 'Infer: '+JSON.stringify(j);
+      }catch(e){ out.textContent = '❌ Infer fehlgeschlagen'; }
+    });
+
+    c.querySelector('#btnSaasEvent').addEventListener('click', async ()=>{
+      try{
+        const ev = { type:'hal', data:{ pose:{x:0.2,y:-0.1,theta:0.7}, prox:{front:1.8} } };
+        await SaaS.sendEvent(ev);
+        out.textContent = '📤 Event gesendet.';
+      }catch(e){ out.textContent = '❌ Event fehlgeschlagen'; }
+    });
+  }
+  window.addEventListener('DOMContentLoaded', ()=>{ try{ if (window.SaaS) mount(); }catch(e){} });
+})();
+</script>
+
+
+<!-- Cloud Ressourcen & Finanzen + Infrastruktur Kapazität (additive) -->
+<script>
+(function(){
+  function addCard(el){ const grid=document.querySelector('.dashboard-grid'); if(!grid) return; grid.appendChild(el); }
+  function card(title, inner){ const d=document.createElement('div'); d.className='card'; d.innerHTML='<div class="card-title">'+title+'</div>'+inner; return d; }
+  function fmtEUR(n){ try{ return Number(n||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}); }catch(e){ return String(n); } }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  // 1) Cloud Ressourcen & Finanzen (Live)
+  function mountFinance(){
+    const inner = [
+      '<div class="small muted">Live‑Überblick deiner virtuellen Cloud: Ressourcen und Geldflüsse. Werte sind lokal konfigurier‑ und simulierbar.</div>',
+      '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px">',
+      '  <div><div class="small muted">Compute</div><div id="cfNodes" class="card-value" style="font-size:1.4rem">–</div><div class="small muted">Knoten</div></div>',
+      '  <div><div class="small muted">Storage</div><div id="cfStorage" class="card-value" style="font-size:1.4rem">–</div><div class="small muted">TB</div></div>',
+      '  <div><div class="small muted">Netz</div><div id="cfNet" class="card-value" style="font-size:1.4rem">–</div><div class="small muted">Gbps</div></div>',
+      '</div>',
+      '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px">',
+      '  <div><div class="small muted">Einnahmen</div><div id="cfIn" class="card-value" style="font-size:1.4rem">–</div><div class="small muted">EUR / h</div></div>',
+      '  <div><div class="small muted">Ausgaben</div><div id="cfOut" class="card-value" style="font-size:1.4rem">–</div><div class="small muted">EUR / h</div></div>',
+      '  <div><div class="small muted">Netto</div><div id="cfNetto" class="card-value" style="font-size:1.4rem">–</div><div class="small muted">EUR / h</div></div>',
+      '</div>',
+      '<div class="small muted" id="cfHint" style="margin-top:8px">Konfiguriere Kapazitäten im Panel "Infrastruktur Kapazität".</div>'
+    ].join('');
+    const c = card('☁️ Cloud Ressourcen & Finanzen (Live)', inner);
+    addCard(c);
+
+    const el = {
+      nodes: c.querySelector('#cfNodes'),
+      storage: c.querySelector('#cfStorage'),
+      net: c.querySelector('#cfNet'),
+      in: c.querySelector('#cfIn'),
+      out: c.querySelector('#cfOut'),
+      netto: c.querySelector('#cfNetto')
+    };
+
+    function readCfg(){
+      const ls = localStorage;
+      return {
+        nodes: parseInt(ls.getItem('infra.nodes')||'24'),
+        storage: parseFloat(ls.getItem('infra.storageTB')||'480'),
+        net: parseFloat(ls.getItem('infra.netGbps')||'320'),
+        income: parseFloat(ls.getItem('infra.incomePerH')||'1250'),
+        expense: parseFloat(ls.getItem('infra.expensePerH')||'860')
+      };
+    }
+
+    async function tick(){
+      // Bevorzugt echte API für Einnahmen/Rückfluss (falls Backend oder SW-Mock vorhanden)
+      try{
+        const r = await fetch(window.location.origin + '/api/finance/flow', { cache:'no-store' });
+        if (r.ok){
+          const f = await r.json();
+          el.in.textContent = fmtEUR(f.incomePerH || 0);
+          el.out.textContent = fmtEUR(f.expensePerH || 0);
+          el.netto.textContent = fmtEUR((f.incomePerH||0) - (f.expensePerH||0));
+        }
+      }catch(_){ /* ignore, fallback below */ }
+
+      const cfg = readCfg();
+      // kleine zufällige Schwankung
+      const j = Math.random()*0.02 - 0.01;
+      const k = Math.random()*0.02 - 0.01;
+      cfg.income = clamp(cfg.income*(1+j), 100, 1_000_000);
+      cfg.expense = clamp(cfg.expense*(1+k), 50, 1_000_000);
+      el.nodes.textContent = String(cfg.nodes);
+      el.storage.textContent = String(cfg.storage);
+      el.net.textContent = String(cfg.net);
+      if (!el.in.textContent || el.in.textContent === '–') el.in.textContent = fmtEUR(cfg.income);
+      if (!el.out.textContent || el.out.textContent === '–') el.out.textContent = fmtEUR(cfg.expense);
+      if (!el.netto.textContent || el.netto.textContent === '–') el.netto.textContent = fmtEUR(cfg.income - cfg.expense);
+    }
+
+    tick();
+    setInterval(tick, 5000);
+  }
+
+  // 2) Infrastruktur Kapazität & Auslastung (steuerbar)
+  function mountInfra(){
+    const inner = [
+      '<div class="small muted">Setze Ziel‑Kapazitäten (Mengen) und beobachte die Auslastung in Echtzeit.</div>',
+      '<div style="display:grid;grid-template-columns:1fr;gap:10px;margin-top:8px">',
+      '  <label>Compute Knoten <input id="ifNodes" type="range" min="1" max="500" step="1" value="24"> <span id="ifNodesV" class="small muted"></span></label>',
+      '  <label>Storage [TB] <input id="ifStorage" type="range" min="10" max="5000" step="10" value="480"> <span id="ifStorageV" class="small muted"></span></label>',
+      '  <label>Netz [Gbps] <input id="ifNet" type="range" min="10" max="10000" step="10" value="320"> <span id="ifNetV" class="small muted"></span></label>',
+      '  <label>Drohnen aktiv <input id="ifDrones" type="range" min="0" max="10000" step="10" value="1200"> <span id="ifDronesV" class="small muted"></span></label>',
+      '  <label>Roboter aktiv <input id="ifRobots" type="range" min="0" max="10000" step="10" value="2"> <span id="ifRobotsV" class="small muted"></span></label>',
+      '</div>',
+      '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px">',
+      '  <div><div class="small muted">Compute‑Auslastung</div><div id="ifU1" class="card-value" style="font-size:1.2rem">–%</div></div>',
+      '  <div><div class="small muted">Storage‑Auslastung</div><div id="ifU2" class="card-value" style="font-size:1.2rem">–%</div></div>',
+      '  <div><div class="small muted">Netz‑Auslastung</div><div id="ifU3" class="card-value" style="font-size:1.2rem">–%</div></div>',
+      '</div>'
+    ].join('');
+
+    const c = card('🏗️ Infrastruktur Kapazität & Auslastung', inner);
+    addCard(c);
+
+    const q = s=>c.querySelector(s);
+    const els = {
+      nodes: q('#ifNodes'), nodesV: q('#ifNodesV'),
+      storage: q('#ifStorage'), storageV: q('#ifStorageV'),
+      net: q('#ifNet'), netV: q('#ifNetV'),
+      drones: q('#ifDrones'), dronesV: q('#ifDronesV'),
+      robots: q('#ifRobots'), robotsV: q('#ifRobotsV'),
+      u1: q('#ifU1'), u2: q('#ifU2'), u3: q('#ifU3')
+    };
+
+    function load(){
+      const ls = localStorage;
+      els.nodes.value = ls.getItem('infra.nodes')||'24';
+      els.storage.value = ls.getItem('infra.storageTB')||'480';
+      els.net.value = ls.getItem('infra.netGbps')||'320';
+      els.drones.value = ls.getItem('infra.drones')|| (document.getElementById('droneCount')?.textContent||'1200');
+      els.robots.value = ls.getItem('infra.robots')|| (document.getElementById('robotCount')?.textContent||'2');
+      updateLabels();
+    }
+    function save(){
+      const ls = localStorage;
+      ls.setItem('infra.nodes', String(els.nodes.value));
+      ls.setItem('infra.storageTB', String(els.storage.value));
+      ls.setItem('infra.netGbps', String(els.net.value));
+      ls.setItem('infra.drones', String(els.drones.value));
+      ls.setItem('infra.robots', String(els.robots.value));
+    }
+    function updateLabels(){
+      els.nodesV.textContent = els.nodes.value + ' Knoten';
+      els.storageV.textContent = els.storage.value + ' TB';
+      els.netV.textContent = els.net.value + ' Gbps';
+      els.dronesV.textContent = els.drones.value;
+      els.robotsV.textContent = els.robots.value;
+    }
+    function utilization(){
+      // Einfach: aktuelle Werte im UI vs. Kapazität (hier als 70% baseline plus Rauschen simuliert)
+      const base = 0.7, r=()=> (base + (Math.random()-0.5)*0.1);
+      els.u1.textContent = Math.round(clamp(r()*100,0,100)) + '%';
+      els.u2.textContent = Math.round(clamp(r()*100,0,100)) + '%';
+      els.u3.textContent = Math.round(clamp(r()*100,0,100)) + '%';
+    }
+
+    ['input','change'].forEach(ev=>{
+      [els.nodes,els.storage,els.net,els.drones,els.robots].forEach(x=> x.addEventListener(ev, ()=>{ updateLabels(); save(); }));
+    });
+
+    load(); utilization(); setInterval(utilization, 4000);
+  }
+
+  // 3) Visual Pack (Glow/Bloom Light) – sanfter Effekt ohne externe Abhängigkeit
+  function mountVisualPack(){
+    const inner = [
+      '<div class="small muted">Ein/Aus: sanfter Leuchteffekt der 3D‑Elemente (emissive/opacity). Vorsicht bei schwachen Geräten.</div>',
+      '<div style="display:flex;gap:8px;align-items:center;margin-top:6px">',
+      '  <label><input type="checkbox" id="vpGlow"> Glow/Bloom</label>',
+      '  <button class="btn" id="vpApply">Anwenden</button>',
+      '</div>',
+      '<div id="vpOut" class="small muted" style="margin-top:6px">Bereit.</div>'
+    ].join('');
+    const c = card('✨ Visual Pack', inner); addCard(c);
+    const cb = c.querySelector('#vpGlow');
+    const out = c.querySelector('#vpOut');
+    cb.checked = localStorage.getItem('visual.glow') === '1';
+
+    function apply(){
+      localStorage.setItem('visual.glow', cb.checked ? '1':'0');
+      try{
+        const mats = window.__materials || {};
+        if (mats.particles && mats.particles.color){
+          mats.particles.color.set(cb.checked? 0x66ffee : 0x00ffcc);
+          mats.particles.opacity = cb.checked? 0.95 : 0.85;
+          mats.particles.size = cb.checked? 2.8 : 2.0;
+        }
+        if (mats.globe){ mats.globe.opacity = cb.checked? 0.28 : 0.18; }
+        if (mats.ring){ mats.ring.opacity = cb.checked? 0.45 : 0.30; }
+        if (window.__scene){ window.__scene.fog && (window.__scene.fog.near = cb.checked? 0.8 : 1.0); }
+        out.textContent = cb.checked? 'Glow aktiviert' : 'Glow deaktiviert';
+      }catch(e){ out.textContent = 'Fehler beim Anwenden'; }
+    }
+    c.querySelector('#vpApply').addEventListener('click', apply);
+    // auto‑apply on mount for persisted pref
+    setTimeout(apply, 500);
+  }
+
+  // mount all
+  window.addEventListener('DOMContentLoaded', ()=>{ try{ mountFinance(); mountInfra(); mountVisualPack(); }catch(e){} });
+})();
+</script>
+
+<!-- Schema.org metadata for the app (static, safe) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "LineLux – Virtuelle 3D Cloud Sandbox",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "description": "3D‑Dashboard mit Cloud‑Architektur, Live‑Metriken, Lernmaschinen und Visual‑Effekten.",
+  "provider": { "@type": "Organization", "name": "LineLux / NurSystem" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+}
+</script>
+
+
+<!-- END OF COMMENTED DUPLICATE DOCUMENT -->
+
+
+<!-- Backend Sync: Realtime Counts (drones/transactions) with graceful fallback -->
+<script>
+(function(){
+  const API = window.location.origin + '/api';
+  async function getNumber(url){
+    try{ const r = await fetch(url, { cache:'no-store' }); if(!r.ok) return null; const ct=r.headers.get('content-type')||''; if (ct.includes('application/json')){ const j=await r.json(); return typeof j==='number'? j : (Array.isArray(j)? j.length : null); } const t=await r.text(); const n = Number(t); return isFinite(n)? n : null; }catch(_){ return null; }
+  }
+  async function tick(){
+    try{
+      const d = await getNumber(API + '/drones/count');
+      if (d != null){ const el = document.getElementById('droneCount'); if (el) el.textContent = d.toLocaleString('de-DE'); }
+    }catch(_){}
+    try{
+      const t = await getNumber(API + '/transactions/count');
+      if (t != null){ const el = document.getElementById('transactionCount'); if (el) el.textContent = t.toLocaleString('de-DE'); }
+    }catch(_){}
+  }
+  // run periodically without being intrusive
+  document.addEventListener('DOMContentLoaded', ()=>{ tick(); setInterval(tick, 8000); });
+})();
+</script>
+
+
+<!-- Entfernen „Instanz‑Föderation“ & „Physik/Mathe/Chemie“ + Labor‑Ersatz -->
+<script>
+(function(){
+  function removeCardsByTitle(matches){
+    try{
+      const cards = Array.from(document.querySelectorAll('.card'));
+      cards.forEach(c=>{
+        const t = (c.querySelector('.card-title')||{}).textContent||'';
+        if (matches.some(m=> t.indexOf(m) !== -1)) { c.remove(); }
+      });
+    }catch(_){}
+  }
+  function addLabCard(){
+    const grid = document.querySelector('.dashboard-grid') || document.querySelector('.features') || document.body;
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = '<div class="card-title">🧪 Labor – Druck & Aggregatzustände</div>'+
+      '<div class="small muted">Einfache Labor‑Simulation: Temperatur & Druck steuern, Phase (Eis/Wasser/Dampf) anzeigen. Rein visuell.</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px">'+
+      '  <label>Temperatur [°C] <input id="labT" type="range" min="-50" max="200" value="22"> <span id="labTval" class="small muted">22°C</span></label>'+
+      '  <label>Druck [atm] <input id="labP" type="range" min="0.2" max="5" step="0.1" value="1"> <span id="labPval" class="small muted">1.0 atm</span></label>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:14px;margin-top:10px">'+
+      '  <div id="labPhase" class="card-value" style="font-size:1.6rem">Wasser (flüssig)</div>'+
+      '  <div id="labHint" class="small muted"></div>'+
+      '</div>'+
+      '<canvas id="labCanvas" style="width:100%;height:120px;margin-top:10px;border-radius:8px;background:rgba(255,255,255,.03)"></canvas>';
+    grid.appendChild(card);
+
+    const tEl = card.querySelector('#labT');
+    const pEl = card.querySelector('#labP');
+    const tv = card.querySelector('#labTval');
+    const pv = card.querySelector('#labPval');
+    const ph = card.querySelector('#labPhase');
+    const hint = card.querySelector('#labHint');
+    const cv = card.querySelector('#labCanvas');
+    const ctx = cv.getContext('2d');
+    function resize(){ cv.width = cv.clientWidth; cv.height = cv.clientHeight; }
+    window.addEventListener('resize', resize); resize();
+
+    function boilPointAtm(atm){ // grobe Annäherung: 100°C bei 1 atm, ~ +10°C je Dekade
+      const a = Math.max(0.1, atm);
+      return 100 + 10 * Math.log10(a);
+    }
+    function freezePoint(atm){ return 0; } // konst.
+    function draw(temp, atm){
+      const w=cv.width, h=cv.height; ctx.clearRect(0,0,w,h);
+      // Hintergrund‑Gradient (kalt→warm)
+      const g = ctx.createLinearGradient(0,0,w,0);
+      g.addColorStop(0,'#66aaff'); g.addColorStop(0.5,'#a8ffdf'); g.addColorStop(1,'#ff7755');
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      // Marker für aktuelle T
+      const x = ((temp+50)/250)*w; ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-2,0,4,h);
+      // Linien für Gefrier- & Siedepunkt
+      const xF = ((freezePoint(atm)+50)/250)*w; const xB = ((boilPointAtm(atm)+50)/250)*w;
+      ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillRect(xF-1,0,2,h); ctx.fillRect(xB-1,0,2,h);
+    }
+    function update(){
+      const T = parseFloat(tEl.value); const P = parseFloat(pEl.value);
+      tv.textContent = T.toFixed(0)+'°C'; pv.textContent = P.toFixed(1)+' atm';
+      const Tb = boilPointAtm(P); const Tf = freezePoint(P);
+      let phase = 'Wasser (flüssig)';
+      if (T <= Tf - 0.1) phase = 'Eis (fest)';
+      else if (T >= Tb + 0.1) phase = 'Dampf (gasförmig)';
+      ph.textContent = phase;
+      hint.textContent = `Gefrierpunkt ≈ ${Tf.toFixed(0)}°C • Siedepunkt ≈ ${Tb.toFixed(0)}°C`;
+      draw(T,P);
+    }
+    tEl.addEventListener('input', update); pEl.addEventListener('input', update);
+    update();
+  }
+  function init(){
+    removeCardsByTitle(['Instanz‑Föderation','Physik/Mathe/Chemie']);
+    addLabCard();
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>

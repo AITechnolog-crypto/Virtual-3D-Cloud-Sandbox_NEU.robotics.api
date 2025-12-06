@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NurXR Hub</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#eee;font-family:system-ui,Arial}
+  header{padding:8px 12px;background:#111;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:16px;margin:0 8px 0 0}
+  header button, header select{background:#181818;color:#eee;border:1px solid #333;border-radius:8px;padding:8px 10px}
+  main{position:fixed;top:48px;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+  iframe{width:100%;height:100%;border:0;background:#000}
+  @media(max-width:900px){ main{grid-template-columns:1fr;grid-template-rows:1fr 1fr} }
+  #log{position:fixed;left:8px;bottom:8px;font-size:12px;opacity:.7;pointer-events:none;max-width:70vw;white-space:pre-line}
+</style>
+</head>
+<body>
+<header>
+  <h1>NurXR Hub</h1>
+  <button id="btnSyncMapToAR">Ziel von Karte → AR</button>
+  <button id="btnSyncARToMap">AR Standort → Karte</button>
+  <button id="btnEco">Eco an</button>
+  <button id="btnVision">Vision</button>
+  <button id="btnLog">Log an</button>
+  <button id="btnDump">Dump</button>
+  <select id="layout">
+    <option value="split">Split</option>
+    <option value="stack">Übereinander</option>
+  </select>
+  <span id="pf" style="margin-left:auto;color:#0f0;font:12px monospace"></span>
+</header>
+<main id="layoutRoot">
+  <iframe id="frameAR" src="ar.html"
+    allow="camera; microphone; accelerometer; gyroscope; magnetometer; fullscreen"
+    referrerpolicy="no-referrer"></iframe>
+  <iframe id="frameMap" src="map.html"
+    allow="geolocation; fullscreen"
+    referrerpolicy="no-referrer"></iframe>
+</main>
+<iframe id="frameVision" src="vision.html" style="display:none; position:fixed; right:8px; bottom:8px; width:320px; height:240px; border:0; z-index:9999" allow="camera; microphone" referrerpolicy="no-referrer"></iframe>
+<div id="log"></div>
+<div id="pf" style="position:fixed;right:8px;top:8px;color:#0f0;font:12px monospace"></div>
+
+<script>
+(function(){
+  const frameAR  = document.getElementById('frameAR');
+  const frameMap = document.getElementById('frameMap');
+  const logEl    = document.getElementById('log');
+
+  let lastMapTarget = null;   // {lat,lng}
+  let lastARPosition = null;  // {lat,lng,acc}
+
+  function log(msg){ logEl.textContent = String(msg) }
+
+  // Nachrichten von Frames entgegennehmen und puffern
+  window.addEventListener('message', ev => {
+    const m = ev.data || {};
+    // Von map.html: Zielpunkt gewählt
+    if (m.type === 'map:setTarget'){
+      lastMapTarget = {lat:m.lat, lng:m.lng};
+      try { frameAR.contentWindow.postMessage({type:'hub:setTarget', lat:m.lat, lng:m.lng}, '*'); } catch(_){}
+      log('Ziel von Karte empfangen und an AR gesendet');
+    }
+    // Von ar.html: aktuelle Position oder Status
+    if (m.type === 'ar:position'){
+      lastARPosition = {lat:m.lat, lng:m.lng, acc:m.acc||null};
+    }
+    if (m.type === 'ar:status'){
+      log('AR Status ' + m.msg);
+    }
+  });
+
+  document.getElementById('btnSyncMapToAR').onclick = ()=>{
+    if (!lastMapTarget){ log('Kein Kartenziel gesetzt'); return; }
+    try { frameAR.contentWindow.postMessage({type:'hub:setTarget', ...lastMapTarget}, '*'); } catch(_){}
+    log('Ziel erneut an AR übergeben');
+  };
+
+  document.getElementById('btnSyncARToMap').onclick = ()=>{
+    if (!lastARPosition){ log('Keine AR Positionsdaten'); return; }
+    try { frameMap.contentWindow.postMessage({type:'hub:centerOn', lat:lastARPosition.lat, lng:lastARPosition.lng}, '*'); } catch(_){}
+    log('AR Position an Karte gesendet');
+  };
+
+  // Layoutumschalter
+  const root = document.getElementById('layoutRoot');
+  document.getElementById('layout').onchange = (e)=>{
+    const v = e.target.value;
+    if (v === 'split'){
+      root.style.gridTemplateColumns = '1fr 1fr';
+      root.style.gridTemplateRows = 'auto';
+    } else {
+      root.style.gridTemplateColumns = '1fr';
+      root.style.gridTemplateRows = '1fr 1fr';
+    }
+  };
+})();
+</script>
+</body>
+</html>
+
+<script>
+// Vision toggle, logging, dump, and FPS meter
+(function(){
+  const frameVision = document.getElementById('frameVision');
+  const btnVision = document.getElementById('btnVision');
+  const btnLog = document.getElementById('btnLog');
+  const btnDump = document.getElementById('btnDump');
+  const pf = document.getElementById('pf');
+
+  let lastVision = null;
+  let logging = false;
+  let logBuf = [];
+  let lastSensorTs = Date.now();
+
+  // Toggle vision iframe visibility
+  if (btnVision){
+    btnVision.onclick = ()=>{
+      if (!frameVision) return;
+      const isHidden = frameVision.style.display === 'none' || !frameVision.style.display;
+      frameVision.style.display = isHidden ? 'block' : 'none';
+    };
+  }
+
+  // Logging controls
+  if (btnLog){
+    btnLog.onclick = ()=>{
+      logging = !logging;
+      logBuf.length = 0;
+      btnLog.textContent = logging ? 'Log aus' : 'Log an';
+    };
+  }
+  if (btnDump){
+    btnDump.onclick = ()=>{
+      try{
+        const blob = new Blob([JSON.stringify(logBuf)], { type:'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'telemetry.json'; a.click(); URL.revokeObjectURL(a.href);
+      }catch(e){ alert('Dump fehlgeschlagen'); }
+    };
+  }
+
+  // Message handling (vision + optional sensors/learn stats)
+  window.addEventListener('message', (ev)=>{
+    const m = ev.data || {};
+    if (m && m.type === 'vision:blob'){
+      lastVision = m.payload || m; // tolerate {payload:{...}} or flat
+    }
+    if (m && m.type === 'hal:sensors'){
+      lastSensorTs = Date.now();
+    }
+    if (logging && m && (m.type === 'hal:sensors' || m.type === 'learn:stats' || m.type === 'vision:blob')){
+      logBuf.push({ t: Date.now(), type: m.type, payload: m.payload ?? m });
+      if (logBuf.length > 10000) logBuf.shift();
+    }
+  });
+
+  // Watchdog (no-op here if no sim frame exists)
+  setInterval(()=>{
+    if (Date.now() - lastSensorTs > 1500){
+      // If a simulation iframe/window is available as simWin, you could reset:
+      // try { bus.post(simWin, 'sim:reset', {}); } catch(_){}
+      lastSensorTs = Date.now();
+    }
+  }, 800);
+
+  // Simple FPS meter (hub-level render loop)
+  try{
+    let fCnt = 0; let t0 = performance.now();
+    (function loop(){
+      fCnt++;
+      const now = performance.now();
+      if (now - t0 > 1000){
+        if (pf) pf.textContent = 'fps ' + fCnt;
+        fCnt = 0; t0 = now;
+      }
+      requestAnimationFrame(loop);
+    })();
+  }catch(_){}
+})();
+</script>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LineLux Variante 05 – Finance Mini</title>
+<link rel="stylesheet" href="../LineLuxSharedStyles.css">
+<style>:root{--h:36} body{background:hsl(var(--h),35%,8%);color:#eef6ff;font-family:system-ui,Segoe UI,Roboto,Arial}.wrap{max-width:880px;margin:0 auto;padding:18px}h1{font-size:24px;margin:8px 0 12px;background:linear-gradient(90deg,hsl(var(--h),90%,60%),#00ccff);-webkit-background-clip:text;color:transparent}.row{display:flex;gap:8px;flex-wrap:wrap}.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px;min-width:240px}</style>
+</head><body>
+<div class="wrap">
+  <h1>LineLux – Variante 05 (Finanzen)</h1>
+  <div class="row">
+    <div class="card"><div class="muted">Umsatz</div><div id="rev" style="font-weight:700;font-size:20px">1.250 € / h</div></div>
+    <div class="card"><div class="muted">Kosten</div><div id="cost" style="font-weight:700;font-size:20px">860 € / h</div></div>
+    <div class="card"><div class="muted">Netto</div><div id="net" style="font-weight:700;font-size:20px">390 € / h</div></div>
+  </div>
+  <p style="margin-top:10px"><a href="../linelux-style.html">Zur Haupt‑UI</a> • <a href="variants-index.html">Varianten</a></p>
+</div>
+<script>
+function n(x){return Number(x).toLocaleString('de-DE',{minimumFractionDigits:0})}
+setInterval(()=>{
+  const r = document.getElementById('rev'), c=document.getElementById('cost'), nEl=document.getElementById('net');
+  let rv = parseInt(r.textContent.replace(/[^0-9]/g,''));
+  let cv = parseInt(c.textContent.replace(/[^0-9]/g,''));
+  rv = Math.max(100, rv + Math.round((Math.random()-.5)*50));
+  cv = Math.max(50,  cv + Math.round((Math.random()-.5)*30));
+  r.textContent = n(rv)+' € / h'; c.textContent = n(cv)+' € / h'; nEl.textContent = n(rv-cv)+' € / h';
+}, 3000);
+</script>
+</body></html>

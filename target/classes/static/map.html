@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NurMap</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  html,body,#map{margin:0;height:100%}
+  #ui{position:fixed;left:10px;top:10px;z-index:5000}
+  button{background:#111;color:#eee;border:1px solid #333;padding:8px 10px;border-radius:8px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="ui">
+  <button id="btnLocate">Zu mir</button>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  const map = L.map('map', {zoomControl:true}).setView([48.137, 11.575], 5);
+  const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  let marker = null;
+
+  function setTarget(lat,lng){
+    if (!marker){ marker = L.marker([lat,lng]).addTo(map); }
+    marker.setLatLng([lat,lng]);
+    map.setView([lat,lng], Math.max(12, map.getZoom()));
+    try { window.parent.postMessage({type:'map:setTarget', lat, lng}, '*'); } catch(_){ }
+  }
+
+  // Klick setzt Ziel und informiert Hub
+  map.on('click', e=> setTarget(e.latlng.lat, e.latlng.lng));
+
+  // Hub kann die Karte zentrieren
+  window.addEventListener('message', ev=>{
+    const m = ev.data || {};
+    if (m.type === 'hub:centerOn'){
+      map.setView([m.lat, m.lng], Math.max(12, map.getZoom()));
+      if (!marker) marker = L.marker([m.lat,m.lng]).addTo(map);
+      marker.setLatLng([m.lat,m.lng]);
+    }
+  });
+
+  // Zu mir
+  document.getElementById('btnLocate').onclick = ()=>{
+    map.locate({setView:true, maxZoom:15, enableHighAccuracy:true});
+  };
+  map.on('locationfound', e=>{
+    if (!marker) marker = L.marker(e.latlng).addTo(map);
+    marker.setLatLng(e.latlng);
+    try { window.parent.postMessage({type:'map:setTarget', lat:e.latlng.lat, lng:e.latlng.lng}, '*'); } catch(_){ }
+  });
+})();
+</script>
+</body>
+</html>

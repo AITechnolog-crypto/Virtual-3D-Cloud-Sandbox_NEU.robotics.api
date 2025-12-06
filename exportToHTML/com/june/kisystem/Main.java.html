@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>Main.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #96be78;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Main.java</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">package </span><span class="s1">com.june.kisystem;</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">java.util.logging.Level;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">import </span><span class="s1">java.util.logging.Logger;</span>
+<a name="l5"><span class="ln">5    </span></a>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">public class </span><span class="s1">Main {</span>
+<a name="l7"><span class="ln">7    </span></a>    <span class="s0">private static final </span><span class="s1">Logger logger = Logger.getLogger(Main.</span><span class="s0">class</span><span class="s1">.getName());</span>
+<a name="l8"><span class="ln">8    </span></a>
+<a name="l9"><span class="ln">9    </span></a>    <span class="s0">public static void </span><span class="s1">main(String[] args) {</span>
+<a name="l10"><span class="ln">10   </span></a>        <a href="KISystem.java.html">KISystem</a> <span class="s1">kiSystem = </span><span class="s0">new <a href="KISystem.java.html">KISystem</a></span><span class="s1">();</span>
+<a name="l11"><span class="ln">11   </span></a>        <span class="s1">kiSystem.addComponent(</span><span class="s2">&quot;SolarPanel&quot;</span><span class="s1">, </span><span class="s0">new <a href="SolarPanel.java.html">SolarPanel</a></span><span class="s1">());</span>
+<a name="l12"><span class="ln">12   </span></a>        <span class="s1">kiSystem.addComponent(</span><span class="s2">&quot;Battery&quot;</span><span class="s1">, </span><span class="s0">new <a href="Battery.java.html">Battery</a></span><span class="s1">());</span>
+<a name="l13"><span class="ln">13   </span></a>        <span class="s1">kiSystem.addComponent(</span><span class="s2">&quot;Drone&quot;</span><span class="s1">, </span><span class="s0">new <a href="Drone.java.html">Drone</a></span><span class="s1">());</span>
+<a name="l14"><span class="ln">14   </span></a>
+<a name="l15"><span class="ln">15   </span></a>        <span class="s1">kiSystem.decideAndAct(<a href="SystemState.java.html">SystemState</a>.SONNIG);</span>
+<a name="l16"><span class="ln">16   </span></a>        <span class="s1">kiSystem.decideAndAct(<a href="SystemState.java.html">SystemState</a>.NACHT);</span>
+<a name="l17"><span class="ln">17   </span></a>        <span class="s1">kiSystem.decideAndAct(<a href="SystemState.java.html">SystemState</a>.UEBERWACHUNG);</span>
+<a name="l18"><span class="ln">18   </span></a>        <span class="s1">kiSystem.decideAndAct(<a href="SystemState.java.html">SystemState</a>.WARTUNG);</span>
+<a name="l19"><span class="ln">19   </span></a>        <span class="s1">kiSystem.decideAndAct(<a href="SystemState.java.html">SystemState</a>.FEHLER);</span>
+<a name="l20"><span class="ln">20   </span></a>        <span class="s1">kiSystem.decideAndAct(<a href="SystemState.java.html">SystemState</a>.valueOf(</span><span class="s2">&quot;SONNIG&quot;</span><span class="s1">));</span>
+<a name="l21"><span class="ln">21   </span></a>        <span class="s0">try </span><span class="s1">{</span>
+<a name="l22"><span class="ln">22   </span></a>            <span class="s1">kiSystem.performComponentFunction(</span><span class="s2">&quot;NichtExistierendeKomponente&quot;</span><span class="s1">);</span>
+<a name="l23"><span class="ln">23   </span></a>        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(<a href="ComponentNotFoundException.java.html">ComponentNotFoundException</a> e) {</span>
+<a name="l24"><span class="ln">24   </span></a>            <span class="s1">logger.log(Level.SEVERE, </span><span class="s2">&quot;Fehler in Main: &quot; </span><span class="s1">+ e.getMessage(), e);</span>
+<a name="l25"><span class="ln">25   </span></a>        <span class="s1">}</span>
+<a name="l26"><span class="ln">26   </span></a>    <span class="s1">}</span>
+<a name="l27"><span class="ln">27   </span></a><span class="s1">}</span>
+<a name="l28"><span class="ln">28   </span></a></pre>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<html>
+<head>
+<title>MlPolicyService.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #808080;}
+.s3 { color: #96be78;}
+.s4 { color: #36beff;}
+.s5 { color: #17bbdd;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MlPolicyService.java</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">package </span><span class="s1">com.june.service.ml;</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">org.springframework.stereotype.Service;</span>
+<a name="l4"><span class="ln">4    </span></a>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">import </span><span class="s1">java.io.IOException;</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">import </span><span class="s1">java.nio.charset.StandardCharsets;</span>
+<a name="l7"><span class="ln">7    </span></a><span class="s0">import </span><span class="s1">java.nio.file.*;</span>
+<a name="l8"><span class="ln">8    </span></a><span class="s0">import </span><span class="s1">java.time.Instant;</span>
+<a name="l9"><span class="ln">9    </span></a><span class="s0">import </span><span class="s1">java.util.*;</span>
+<a name="l10"><span class="ln">10   </span></a><span class="s0">import </span><span class="s1">java.util.concurrent.ConcurrentHashMap;</span>
+<a name="l11"><span class="ln">11   </span></a>
+<a name="l12"><span class="ln">12   </span></a><span class="s2">/**</span>
+<a name="l13"><span class="ln">13   </span></a> <span class="s2">* Very small ML policy and dataset service.</span>
+<a name="l14"><span class="ln">14   </span></a> <span class="s2">* - Stores policy in data/ml/policy.json</span>
+<a name="l15"><span class="ln">15   </span></a> <span class="s2">* - Appends dataset rows to data/ml/dataset.jsonl</span>
+<a name="l16"><span class="ln">16   </span></a> <span class="s2">* - Provides simple in-memory rate limiting for training</span>
+<a name="l17"><span class="ln">17   </span></a> <span class="s2">*/</span>
+<a name="l18"><span class="ln">18   </span></a><span class="s1">@Service</span>
+<a name="l19"><span class="ln">19   </span></a><span class="s0">public class </span><span class="s1">MlPolicyService {</span>
+<a name="l20"><span class="ln">20   </span></a>    <span class="s0">private static final </span><span class="s1">Path ML_DIR = Paths.get(</span><span class="s3">&quot;data&quot;</span><span class="s1">, </span><span class="s3">&quot;ml&quot;</span><span class="s1">);</span>
+<a name="l21"><span class="ln">21   </span></a>    <span class="s0">private static final </span><span class="s1">Path POLICY_FILE = ML_DIR.resolve(</span><span class="s3">&quot;policy.json&quot;</span><span class="s1">);</span>
+<a name="l22"><span class="ln">22   </span></a>    <span class="s0">private static final </span><span class="s1">Path DATASET_FILE = ML_DIR.resolve(</span><span class="s3">&quot;dataset.jsonl&quot;</span><span class="s1">);</span>
+<a name="l23"><span class="ln">23   </span></a>
+<a name="l24"><span class="ln">24   </span></a>    <span class="s0">public </span><span class="s1">MlPolicyService(){</span>
+<a name="l25"><span class="ln">25   </span></a>        <span class="s0">try </span><span class="s1">{ Files.createDirectories(ML_DIR); } </span><span class="s0">catch </span><span class="s1">(Exception ignored) {}</span>
+<a name="l26"><span class="ln">26   </span></a>    <span class="s1">}</span>
+<a name="l27"><span class="ln">27   </span></a>
+<a name="l28"><span class="ln">28   </span></a>    <span class="s0">public static final class </span><span class="s1">Policy {</span>
+<a name="l29"><span class="ln">29   </span></a>        <span class="s0">public boolean </span><span class="s1">trainingEnabled = </span><span class="s0">true</span><span class="s1">;</span>
+<a name="l30"><span class="ln">30   </span></a>        <span class="s0">public boolean </span><span class="s1">ingestEnabled = </span><span class="s0">true</span><span class="s1">;</span>
+<a name="l31"><span class="ln">31   </span></a>        <span class="s0">public boolean </span><span class="s1">mirrorTelemetryToDataset = </span><span class="s0">false</span><span class="s1">;</span>
+<a name="l32"><span class="ln">32   </span></a>        <span class="s0">public int </span><span class="s1">retentionDays = </span><span class="s4">30</span><span class="s1">; </span><span class="s2">// dataset retention advice (not enforced here)</span>
+<a name="l33"><span class="ln">33   </span></a>        <span class="s0">public int </span><span class="s1">maxTrainPerHour = </span><span class="s4">6</span><span class="s1">;</span>
+<a name="l34"><span class="ln">34   </span></a>        <span class="s0">public boolean </span><span class="s1">allowExternalModels = </span><span class="s0">false</span><span class="s1">;</span>
+<a name="l35"><span class="ln">35   </span></a>        <span class="s0">public </span><span class="s1">Map&lt;String,Object&gt; extra = </span><span class="s0">new </span><span class="s1">LinkedHashMap&lt;&gt;();</span>
+<a name="l36"><span class="ln">36   </span></a>    <span class="s1">}</span>
+<a name="l37"><span class="ln">37   </span></a>
+<a name="l38"><span class="ln">38   </span></a>    <span class="s0">public </span><span class="s1">Policy load(){</span>
+<a name="l39"><span class="ln">39   </span></a>        <span class="s0">if </span><span class="s1">(!Files.exists(POLICY_FILE)) </span><span class="s0">return new </span><span class="s1">Policy();</span>
+<a name="l40"><span class="ln">40   </span></a>        <span class="s0">try </span><span class="s1">{</span>
+<a name="l41"><span class="ln">41   </span></a>            <span class="s1">String s = Files.readString(POLICY_FILE, StandardCharsets.UTF_8);</span>
+<a name="l42"><span class="ln">42   </span></a>            <span class="s0">return </span><span class="s1">fromJson(s);</span>
+<a name="l43"><span class="ln">43   </span></a>        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(Exception e){</span>
+<a name="l44"><span class="ln">44   </span></a>            <span class="s0">return new </span><span class="s1">Policy();</span>
+<a name="l45"><span class="ln">45   </span></a>        <span class="s1">}</span>
+<a name="l46"><span class="ln">46   </span></a>    <span class="s1">}</span>
+<a name="l47"><span class="ln">47   </span></a>
+<a name="l48"><span class="ln">48   </span></a>    <span class="s0">public void </span><span class="s1">save(Policy p){</span>
+<a name="l49"><span class="ln">49   </span></a>        <span class="s0">try </span><span class="s1">{</span>
+<a name="l50"><span class="ln">50   </span></a>            <span class="s1">String json = toJson(p);</span>
+<a name="l51"><span class="ln">51   </span></a>            <span class="s1">Files.writeString(POLICY_FILE, json, StandardCharsets.UTF_8,</span>
+<a name="l52"><span class="ln">52   </span></a>                    <span class="s1">StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);</span>
+<a name="l53"><span class="ln">53   </span></a>        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(IOException ignored) {}</span>
+<a name="l54"><span class="ln">54   </span></a>    <span class="s1">}</span>
+<a name="l55"><span class="ln">55   </span></a>
+<a name="l56"><span class="ln">56   </span></a>    <span class="s0">public void </span><span class="s1">appendDatasetRow(Map&lt;String,Object&gt; row) </span><span class="s0">throws </span><span class="s1">IOException {</span>
+<a name="l57"><span class="ln">57   </span></a>        <span class="s0">if </span><span class="s1">(row == </span><span class="s0">null</span><span class="s1">) </span><span class="s0">return</span><span class="s1">;</span>
+<a name="l58"><span class="ln">58   </span></a>        <span class="s1">Map&lt;String,Object&gt; safe = </span><span class="s0">new </span><span class="s1">LinkedHashMap&lt;&gt;(row);</span>
+<a name="l59"><span class="ln">59   </span></a>        <span class="s1">safe.putIfAbsent(</span><span class="s3">&quot;ts&quot;</span><span class="s1">, System.currentTimeMillis());</span>
+<a name="l60"><span class="ln">60   </span></a>        <span class="s1">String line = toJson(safe) + </span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">&quot;</span><span class="s1">;</span>
+<a name="l61"><span class="ln">61   </span></a>        <span class="s1">Files.writeString(DATASET_FILE, line, StandardCharsets.UTF_8,</span>
+<a name="l62"><span class="ln">62   </span></a>                <span class="s1">StandardOpenOption.CREATE, StandardOpenOption.APPEND);</span>
+<a name="l63"><span class="ln">63   </span></a>    <span class="s1">}</span>
+<a name="l64"><span class="ln">64   </span></a>
+<a name="l65"><span class="ln">65   </span></a>    <span class="s2">// --- simple rate limiter for training ---</span>
+<a name="l66"><span class="ln">66   </span></a>    <span class="s0">private final </span><span class="s1">Map&lt;String, Deque&lt;Long&gt;&gt; trainWindows = </span><span class="s0">new </span><span class="s1">ConcurrentHashMap&lt;&gt;();</span>
+<a name="l67"><span class="ln">67   </span></a>
+<a name="l68"><span class="ln">68   </span></a>    <span class="s0">public boolean </span><span class="s1">canTrain(String clientId, </span><span class="s0">int </span><span class="s1">maxPerHour){</span>
+<a name="l69"><span class="ln">69   </span></a>        <span class="s1">String key = clientId == </span><span class="s0">null </span><span class="s1">? </span><span class="s3">&quot;default&quot; </span><span class="s1">: clientId;</span>
+<a name="l70"><span class="ln">70   </span></a>        <span class="s0">long </span><span class="s1">now = System.currentTimeMillis();</span>
+<a name="l71"><span class="ln">71   </span></a>        <span class="s0">long </span><span class="s1">cutoff = now - </span><span class="s4">3600_000L</span><span class="s1">;</span>
+<a name="l72"><span class="ln">72   </span></a>        <span class="s1">Deque&lt;Long&gt; q = trainWindows.computeIfAbsent(key, k -&gt; </span><span class="s0">new </span><span class="s1">ArrayDeque&lt;&gt;());</span>
+<a name="l73"><span class="ln">73   </span></a>        <span class="s0">synchronized </span><span class="s1">(q){</span>
+<a name="l74"><span class="ln">74   </span></a>            <span class="s0">while </span><span class="s1">(!q.isEmpty() &amp;&amp; q.peekFirst() &lt; cutoff) q.pollFirst();</span>
+<a name="l75"><span class="ln">75   </span></a>            <span class="s0">return </span><span class="s1">q.size() &lt; Math.max(</span><span class="s4">1</span><span class="s1">, maxPerHour);</span>
+<a name="l76"><span class="ln">76   </span></a>        <span class="s1">}</span>
+<a name="l77"><span class="ln">77   </span></a>    <span class="s1">}</span>
+<a name="l78"><span class="ln">78   </span></a>    <span class="s0">public void </span><span class="s1">recordTrain(String clientId){</span>
+<a name="l79"><span class="ln">79   </span></a>        <span class="s1">String key = clientId == </span><span class="s0">null </span><span class="s1">? </span><span class="s3">&quot;default&quot; </span><span class="s1">: clientId;</span>
+<a name="l80"><span class="ln">80   </span></a>        <span class="s1">Deque&lt;Long&gt; q = trainWindows.computeIfAbsent(key, k -&gt; </span><span class="s0">new </span><span class="s1">ArrayDeque&lt;&gt;());</span>
+<a name="l81"><span class="ln">81   </span></a>        <span class="s0">synchronized </span><span class="s1">(q){ q.addLast(System.currentTimeMillis()); }</span>
+<a name="l82"><span class="ln">82   </span></a>    <span class="s1">}</span>
+<a name="l83"><span class="ln">83   </span></a>
+<a name="l84"><span class="ln">84   </span></a>    <span class="s2">// --- JSON helpers ---</span>
+<a name="l85"><span class="ln">85   </span></a>    <span class="s0">private static </span><span class="s1">Policy fromJson(String s){</span>
+<a name="l86"><span class="ln">86   </span></a>        <span class="s1">Policy p = </span><span class="s0">new </span><span class="s1">Policy();</span>
+<a name="l87"><span class="ln">87   </span></a>        <span class="s0">try </span><span class="s1">{</span>
+<a name="l88"><span class="ln">88   </span></a>            <span class="s2">// very small/naive parsing by key presence</span>
+<a name="l89"><span class="ln">89   </span></a>            <span class="s1">p.trainingEnabled = getBool(s, </span><span class="s3">&quot;trainingEnabled&quot;</span><span class="s1">, </span><span class="s0">true</span><span class="s1">);</span>
+<a name="l90"><span class="ln">90   </span></a>            <span class="s1">p.ingestEnabled = getBool(s, </span><span class="s3">&quot;ingestEnabled&quot;</span><span class="s1">, </span><span class="s0">true</span><span class="s1">);</span>
+<a name="l91"><span class="ln">91   </span></a>            <span class="s1">p.mirrorTelemetryToDataset = getBool(s, </span><span class="s3">&quot;mirrorTelemetryToDataset&quot;</span><span class="s1">, </span><span class="s0">false</span><span class="s1">);</span>
+<a name="l92"><span class="ln">92   </span></a>            <span class="s1">p.retentionDays = (</span><span class="s0">int</span><span class="s1">)getLong(s, </span><span class="s3">&quot;retentionDays&quot;</span><span class="s1">, </span><span class="s4">30</span><span class="s1">);</span>
+<a name="l93"><span class="ln">93   </span></a>            <span class="s1">p.maxTrainPerHour = (</span><span class="s0">int</span><span class="s1">)getLong(s, </span><span class="s3">&quot;maxTrainPerHour&quot;</span><span class="s1">, </span><span class="s4">6</span><span class="s1">);</span>
+<a name="l94"><span class="ln">94   </span></a>            <span class="s1">p.allowExternalModels = getBool(s, </span><span class="s3">&quot;allowExternalModels&quot;</span><span class="s1">, </span><span class="s0">false</span><span class="s1">);</span>
+<a name="l95"><span class="ln">95   </span></a>        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(Exception ignored) {}</span>
+<a name="l96"><span class="ln">96   </span></a>        <span class="s0">return </span><span class="s1">p;</span>
+<a name="l97"><span class="ln">97   </span></a>    <span class="s1">}</span>
+<a name="l98"><span class="ln">98   </span></a>    <span class="s0">private static boolean </span><span class="s1">getBool(String s, String key, </span><span class="s0">boolean </span><span class="s1">def){</span>
+<a name="l99"><span class="ln">99   </span></a>        <span class="s0">int </span><span class="s1">i = s.indexOf(</span><span class="s3">'&quot;'</span><span class="s1">+key+</span><span class="s3">'&quot;'</span><span class="s1">); </span><span class="s0">if </span><span class="s1">(i&lt;</span><span class="s4">0</span><span class="s1">) </span><span class="s0">return </span><span class="s1">def; </span><span class="s0">int </span><span class="s1">c = s.indexOf(</span><span class="s3">':'</span><span class="s1">, i); </span><span class="s0">if </span><span class="s1">(c&lt;</span><span class="s4">0</span><span class="s1">) </span><span class="s0">return </span><span class="s1">def;</span>
+<a name="l100"><span class="ln">100  </span></a>        <span class="s0">int </span><span class="s1">j=c+</span><span class="s4">1</span><span class="s1">; </span><span class="s0">while </span><span class="s1">(j&lt;s.length() &amp;&amp; Character.isWhitespace(s.charAt(j))) j++;</span>
+<a name="l101"><span class="ln">101  </span></a>        <span class="s0">if </span><span class="s1">(s.startsWith(</span><span class="s3">&quot;true&quot;</span><span class="s1">, j)) </span><span class="s0">return true</span><span class="s1">; </span><span class="s0">if </span><span class="s1">(s.startsWith(</span><span class="s3">&quot;false&quot;</span><span class="s1">, j)) </span><span class="s0">return false</span><span class="s1">; </span><span class="s0">return </span><span class="s1">def;</span>
+<a name="l102"><span class="ln">102  </span></a>    <span class="s1">}</span>
+<a name="l103"><span class="ln">103  </span></a>    <span class="s0">private static long </span><span class="s1">getLong(String s, String key, </span><span class="s0">long </span><span class="s1">def){</span>
+<a name="l104"><span class="ln">104  </span></a>        <span class="s0">int </span><span class="s1">i = s.indexOf(</span><span class="s3">'&quot;'</span><span class="s1">+key+</span><span class="s3">'&quot;'</span><span class="s1">); </span><span class="s0">if </span><span class="s1">(i&lt;</span><span class="s4">0</span><span class="s1">) </span><span class="s0">return </span><span class="s1">def; </span><span class="s0">int </span><span class="s1">c = s.indexOf(</span><span class="s3">':'</span><span class="s1">, i); </span><span class="s0">if </span><span class="s1">(c&lt;</span><span class="s4">0</span><span class="s1">) </span><span class="s0">return </span><span class="s1">def;</span>
+<a name="l105"><span class="ln">105  </span></a>        <span class="s0">int </span><span class="s1">j=c+</span><span class="s4">1</span><span class="s1">; StringBuilder b=</span><span class="s0">new </span><span class="s1">StringBuilder();</span>
+<a name="l106"><span class="ln">106  </span></a>        <span class="s0">while </span><span class="s1">(j&lt;s.length()){</span>
+<a name="l107"><span class="ln">107  </span></a>            <span class="s0">char </span><span class="s1">ch = s.charAt(j++);</span>
+<a name="l108"><span class="ln">108  </span></a>            <span class="s0">if </span><span class="s1">((ch&gt;=</span><span class="s3">'0'</span><span class="s1">&amp;&amp;ch&lt;=</span><span class="s3">'9'</span><span class="s1">)) b.append(ch); </span><span class="s0">else if </span><span class="s1">(b.length()&gt;</span><span class="s4">0</span><span class="s1">) </span><span class="s0">break</span><span class="s1">;</span>
+<a name="l109"><span class="ln">109  </span></a>        <span class="s1">}</span>
+<a name="l110"><span class="ln">110  </span></a>        <span class="s0">try </span><span class="s1">{ </span><span class="s0">return </span><span class="s1">Long.parseLong(b.toString()); } </span><span class="s0">catch </span><span class="s1">(Exception e){ </span><span class="s0">return </span><span class="s1">def; }</span>
+<a name="l111"><span class="ln">111  </span></a>    <span class="s1">}</span>
+<a name="l112"><span class="ln">112  </span></a>
+<a name="l113"><span class="ln">113  </span></a>    <span class="s0">private static </span><span class="s1">String toJson(Policy p){</span>
+<a name="l114"><span class="ln">114  </span></a>        <span class="s1">Map&lt;String,Object&gt; m = </span><span class="s0">new </span><span class="s1">LinkedHashMap&lt;&gt;();</span>
+<a name="l115"><span class="ln">115  </span></a>        <span class="s1">m.put(</span><span class="s3">&quot;trainingEnabled&quot;</span><span class="s1">, p.trainingEnabled);</span>
+<a name="l116"><span class="ln">116  </span></a>        <span class="s1">m.put(</span><span class="s3">&quot;ingestEnabled&quot;</span><span class="s1">, p.ingestEnabled);</span>
+<a name="l117"><span class="ln">117  </span></a>        <span class="s1">m.put(</span><span class="s3">&quot;mirrorTelemetryToDataset&quot;</span><span class="s1">, p.mirrorTelemetryToDataset);</span>
+<a name="l118"><span class="ln">118  </span></a>        <span class="s1">m.put(</span><span class="s3">&quot;retentionDays&quot;</span><span class="s1">, p.retentionDays);</span>
+<a name="l119"><span class="ln">119  </span></a>        <span class="s1">m.put(</span><span class="s3">&quot;maxTrainPerHour&quot;</span><span class="s1">, p.maxTrainPerHour);</span>
+<a name="l120"><span class="ln">120  </span></a>        <span class="s1">m.put(</span><span class="s3">&quot;allowExternalModels&quot;</span><span class="s1">, p.allowExternalModels);</span>
+<a name="l121"><span class="ln">121  </span></a>        <span class="s0">if </span><span class="s1">(p.extra != </span><span class="s0">null </span><span class="s1">&amp;&amp; !p.extra.isEmpty()) m.put(</span><span class="s3">&quot;extra&quot;</span><span class="s1">, p.extra);</span>
+<a name="l122"><span class="ln">122  </span></a>        <span class="s0">return </span><span class="s1">toJson(m);</span>
+<a name="l123"><span class="ln">123  </span></a>    <span class="s1">}</span>
+<a name="l124"><span class="ln">124  </span></a>
+<a name="l125"><span class="ln">125  </span></a>    <span class="s0">private static </span><span class="s1">String toJson(Map&lt;String,Object&gt; m){</span>
+<a name="l126"><span class="ln">126  </span></a>        <span class="s1">StringBuilder sb = </span><span class="s0">new </span><span class="s1">StringBuilder();</span>
+<a name="l127"><span class="ln">127  </span></a>        <span class="s1">appendJson(sb, m); </span><span class="s0">return </span><span class="s1">sb.toString();</span>
+<a name="l128"><span class="ln">128  </span></a>    <span class="s1">}</span>
+<a name="l129"><span class="ln">129  </span></a>    <span class="s1">@SuppressWarnings(</span><span class="s3">&quot;unchecked&quot;</span><span class="s1">)</span>
+<a name="l130"><span class="ln">130  </span></a>    <span class="s0">private static void </span><span class="s1">appendJson(StringBuilder sb, Object obj){</span>
+<a name="l131"><span class="ln">131  </span></a>        <span class="s0">if </span><span class="s1">(obj == </span><span class="s0">null</span><span class="s1">){ sb.append(</span><span class="s3">&quot;null&quot;</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l132"><span class="ln">132  </span></a>        <span class="s0">if </span><span class="s1">(obj </span><span class="s0">instanceof </span><span class="s1">Number || obj </span><span class="s0">instanceof </span><span class="s1">Boolean){ sb.append(String.valueOf(obj)); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l133"><span class="ln">133  </span></a>        <span class="s0">if </span><span class="s1">(obj </span><span class="s0">instanceof </span><span class="s1">String){ sb.append(</span><span class="s3">'&quot;'</span><span class="s1">).append(escape((String)obj)).append(</span><span class="s3">'&quot;'</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l134"><span class="ln">134  </span></a>        <span class="s0">if </span><span class="s1">(obj </span><span class="s0">instanceof </span><span class="s1">Map){ sb.append(</span><span class="s3">'{'</span><span class="s1">); </span><span class="s0">boolean </span><span class="s1">first=</span><span class="s0">true</span><span class="s1">; </span><span class="s0">for </span><span class="s1">(Map.Entry&lt;?,?&gt; e: ((Map&lt;?,?&gt;)obj).entrySet()){ </span><span class="s0">if</span><span class="s1">(!first) sb.append(</span><span class="s3">','</span><span class="s1">); first=</span><span class="s0">false</span><span class="s1">; sb.append(</span><span class="s3">'&quot;'</span><span class="s1">).append(escape(String.valueOf(e.getKey()))).append(</span><span class="s3">'&quot;'</span><span class="s1">).append(</span><span class="s3">':'</span><span class="s1">); appendJson(sb,e.getValue()); } sb.append(</span><span class="s3">'}'</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l135"><span class="ln">135  </span></a>        <span class="s0">if </span><span class="s1">(obj </span><span class="s0">instanceof </span><span class="s1">Iterable){ sb.append(</span><span class="s3">'['</span><span class="s1">); </span><span class="s0">boolean </span><span class="s1">first=</span><span class="s0">true</span><span class="s1">; </span><span class="s0">for </span><span class="s1">(Object v: (Iterable&lt;?&gt;)obj){ </span><span class="s0">if</span><span class="s1">(!first) sb.append(</span><span class="s3">','</span><span class="s1">); first=</span><span class="s0">false</span><span class="s1">; appendJson(sb,v);} sb.append(</span><span class="s3">']'</span><span class="s1">); </span><span class="s0">return</span><span class="s1">; }</span>
+<a name="l136"><span class="ln">136  </span></a>        <span class="s1">sb.append(</span><span class="s3">'&quot;'</span><span class="s1">).append(escape(String.valueOf(obj))).append(</span><span class="s3">'&quot;'</span><span class="s1">);</span>
+<a name="l137"><span class="ln">137  </span></a>    <span class="s1">}</span>
+<a name="l138"><span class="ln">138  </span></a>    <span class="s0">private static </span><span class="s1">String escape(String s){ </span><span class="s0">return </span><span class="s1">s.replace(</span><span class="s3">&quot;</span><span class="s5">\\</span><span class="s3">&quot;</span><span class="s1">,</span><span class="s3">&quot;</span><span class="s5">\\\\</span><span class="s3">&quot;</span><span class="s1">).replace(</span><span class="s3">&quot;</span><span class="s5">\&quot;</span><span class="s3">&quot;</span><span class="s1">,</span><span class="s3">&quot;</span><span class="s5">\\\&quot;</span><span class="s3">&quot;</span><span class="s1">).replace(</span><span class="s3">&quot;</span><span class="s5">\n</span><span class="s3">&quot;</span><span class="s1">,</span><span class="s3">&quot;</span><span class="s5">\\</span><span class="s3">n&quot;</span><span class="s1">); }</span>
+<a name="l139"><span class="ln">139  </span></a><span class="s1">}</span>
+<a name="l140"><span class="ln">140  </span></a></pre>
+</body>
+</html>

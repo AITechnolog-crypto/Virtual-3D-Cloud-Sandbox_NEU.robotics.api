@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛡️ NurSystem - Complete Cloud Infrastructure</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="../line_lux3_d_background_module.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <link rel="stylesheet" href="../LineLuxSharedStyles.css">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#000; color:#fff; overflow-x:hidden }
+    #bg-canvas { position:fixed; inset:0; width:100%; height:100%; z-index:0 }
+    .content { position:relative; z-index:1 }
+    .header { background:rgba(10,14,39,.95); backdrop-filter:blur(20px); border-bottom:2px solid #00ff88; padding:20px; position:sticky; top:0; z-index:1000 }
+    .header h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); background:linear-gradient(135deg,#00ff88,#00ccff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:10px }
+    .status-bar { display:flex; gap:10px; flex-wrap:wrap }
+    .status-pill { background:rgba(0,255,136,.2); padding:5px 15px; border-radius:15px; font-size:.85rem; border:1px solid #00ff88 }
+    .dashboard-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px; padding:20px; max-width:1800px; margin:0 auto }
+    .card { background:rgba(255,255,255,.05); backdrop-filter:blur(20px); border:1px solid rgba(0,255,136,.2); border-radius:15px; padding:20px; transition:.3s ease all }
+    .card:hover { transform: translateY(-5px); border-color:#00ff88; box-shadow:0 10px 40px rgba(0,255,136,.3) }
+    .card-title { font-size:1.2rem; color:#00ff88; margin-bottom:15px; display:flex; align-items:center; gap:10px }
+    .card-value { font-size:2.5rem; font-weight:bold; margin:10px 0 }
+    .card-label { color:#888; font-size:.9rem }
+    .data-table { width:100%; border-collapse:collapse; margin-top:15px }
+    .data-table th { background:rgba(0,255,136,.1); padding:10px; text-align:left; border-bottom:1px solid rgba(0,255,136,.3) }
+    .data-table td { padding:10px; border-bottom:1px solid rgba(255,255,255,.1) }
+    .data-table tr:hover { background:rgba(0,255,136,.05) }
+    .btn { background: linear-gradient(135deg,#00ff88,#00cc6e); color:#000; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; transition:.3s; margin:5px }
+    .btn:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(0,255,136,.4) }
+    .btn-danger { background: linear-gradient(135deg,#ff0044,#cc0033); color:#fff }
+    .loading { text-align:center; padding:40px; color:#00ff88; animation:pulse 2s infinite }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    @media (max-width:768px) { .dashboard-grid { grid-template-columns: 1fr } }
+    a.inline { color:#a8ffdf; text-decoration:none }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="content">
+  <header class="header">
+    <h1>🛡️ NurSystem - Komplette Cloud-Infrastruktur</h1>
+    <div class="status-bar">
+      <div class="status-pill">🟢 Backend: <span id="backendStatus">Verbinde...</span></div>
+      <div class="status-pill">🤖 Roboter: <span id="robotCount">-</span></div>
+      <div class="status-pill">🚁 Drohnen: <span id="droneCount">-</span></div>
+      <div class="status-pill">💰 Wallets: <span id="walletCount">-</span></div>
+      <div class="status-pill">📊 Transactions: <span id="transactionCount">-</span></div>
+    </div>
+    <div class="small muted" style="margin-top:6px">Navigation: <a class="inline" href="../linelux-style.html">Haupt‑UI</a> • <a class="inline" href="variants-index.html">Varianten (50)</a></div>
+  </header>
+  <div class="dashboard-grid">
+    <div class="card">
+      <div class="card-title">🛡️ NurSystem Status</div>
+      <div class="card-value" id="swarmSize">10.0B</div>
+      <div class="card-label">Tarngrillen-Schwarm</div>
+      <div style="margin-top:20px">
+        <div>⚡ Energie: <strong id="energy">2,847 kWh</strong></div>
+        <div>🎯 Bedrohungen: <strong id="threats">0</strong></div>
+        <div>🌡️ System-Temp: <strong>23°C</strong></div>
+        <div>🛡️ Guardian Shield: <strong id="guardianShield">Aktiv</strong></div>
+        <div>🤖 Swarm‑Tech: <strong id="swarmTech">Dual</strong></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">🤖 Roboter (DB)</div><div id="roboterList" class="loading">Lade Daten...</div><button class="btn" onclick="loadRoboter()">🔄 Neu laden</button></div>
+    <div class="card"><div class="card-title">🚁 Drohnen (DB)</div><div id="drohnenList" class="loading">Lade Daten...</div><button class="btn" onclick="loadDrohnen()">🔄 Neu laden</button></div>
+    <div class="card"><div class="card-title">💰 Wallets (DB)</div><div id="walletList" class="loading">Lade Daten...</div><button class="btn" onclick="loadWallets()">🔄 Neu laden</button></div>
+    <div class="card"><div class="card-title">📊 Transactions (DB)</div><div id="transactionList" class="loading">Lade Daten...</div><button class="btn" onclick="loadTransactions()">🔄 Neu laden</button></div>
+    <div class="card"><div class="card-title">📐 Blueprints (DB)</div><div id="blueprintList" class="loading">Lade Daten...</div><button class="btn" onclick="loadBlueprints()">🔄 Neu laden</button></div>
+    <div class="card"><div class="card-title">⚙️ Tech Instances (DB)</div><div id="techList" class="loading">Lade Daten...</div><button class="btn" onclick="loadTechInstances()">🔄 Neu laden</button></div>
+    <div class="card" id="energyCard" style="grid-column: span 1; max-width: 360px; justify-self: start; display: none;">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <span>📈 Echtzeit-Energie-Verlauf</span>
+        <button class="btn" id="toggleEnergySize" style="padding:6px 10px;font-size:.85rem">⬍ Kompakt</button>
+      </div>
+      <canvas id="energyChart" style="height: 120px;"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🎮 Schnell-Aktionen</div>
+      <button class="btn" onclick="deploySwarm()">🚀 Schwarm deployen</button>
+      <button class="btn" onclick="collectEnergy()">⚡ Energie sammeln</button>
+      <button class="btn btn-danger" onclick="simulateThreat()">⚠️ Threat simulieren</button>
+      <button class="btn" onclick="createTestData()">➕ Test-Daten erstellen</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🔎 Web‑Assistent (Chatbot/SERP) – Lexikon/Block‑Modus für SERP</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; align-items:center;">
+        <input id="serpQ" placeholder="Frage oder Suchbegriff eingeben…" style="flex:1; min-width:220px; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;" />
+        <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="serpChatMode" checked/> Chatbot</label>
+        <select id="serpEngine" title="Engine" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)"><option value="google">Google</option><option value="bing">Bing</option><option value="duckduckgo">DuckDuckGo</option><option value="yahoo">Yahoo</option></select>
+        <select id="serpTbm" title="Typ" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)"><option value="">Alle</option><option value="isch">Bilder</option><option value="nws">News</option><option value="vid">Videos</option></select>
+        <select id="serpTime" title="Zeitraum" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)"><option value="">Beliebig</option><option value="d">24h</option><option value="w">Woche</option><option value="m">Monat</option><option value="y">Jahr</option></select>
+        <input id="serpNum" type="number" min="1" max="100" value="20" title="Anzahl" style="width:90px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;" />
+        <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="serpLex"/> Lexikon</label>
+        <label class="small" style="display:flex;align-items:center;gap:6px">Blockgröße <input id="serpBlockSize" type="number" min="1" max="50" value="10" style="width:70px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;"/></label>
+        <label class="small" style="display:flex;align-items:center;gap:6px">Block # <input id="serpBlock" type="number" min="0" value="0" style="width:70px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;"/></label>
+        <button class="btn" onclick="searchSerp()">Suchen</button>
+        <button class="btn" onclick="serpPrevBlock()">◀︎ Zurück</button>
+        <button class="btn" onclick="serpNextBlock()">Weiter ▶︎</button>
+        <button class="btn" onclick="serpTest()">🔒 Schnittstellen‑Test</button>
+      </div>
+      <div id="serpResults" class="small muted">Chatbot ist standardmäßig aktiv. Für echte SERP‑Ergebnisse Chatbot deaktivieren (Checkbox) und optional Lexikon/Block nutzen. Vorschau zeigt komplette Seiten über den Proxy.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🧠 KI-Beratung (DeepSeek / OpenAI)</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+        <textarea id="dsPrompt" placeholder="Frage eingeben… (z. B. Energieoptimierung vorschlagen)" style="flex:1; min-width:260px; min-height:80px; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff;"></textarea>
+        <select id="dsProvider" title="Provider" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)"><option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option></select>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn" onclick="deepSeekChat()">Antwort holen</button>
+          <button class="btn" onclick="deepSeekTokenTest()">🔐 Token‑Test</button>
+        </div>
+      </div>
+      <div id="dsAnswer" class="small muted">Antwort erscheint hier.</div>
+    </div>
+  </div>
+</div>
+<script>
+// Service Worker registrieren (Mock-API für 63342 Preview)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swUrl = '../sw-mock-api.js';
+    navigator.serviceWorker.register(swUrl).catch(console.warn);
+  });
+}
+const API_BASE = window.location.origin + '/api';
+var ENERGY_LIVE_ENABLED = false;
+</script>
+<script>
+// 3D Background (simplified, compatible with LineLux init)
+(function(){
+  function init3D(){
+    const canvas=document.getElementById('bg-canvas'); if(!canvas||!window.THREE) return;
+    const scene=new THREE.Scene(); const camera=new THREE.PerspectiveCamera(75, innerWidth/innerHeight, .1, 2000);
+    const renderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio||1,2)); camera.position.z=420;
+    const geo=new THREE.BufferGeometry(); const N=1000; const pos=new Float32Array(N*3);
+    for(let i=0;i<N;i++){ pos[i*3+0]=(Math.random()-.5)*1600; pos[i*3+1]=(Math.random()-.5)*900; pos[i*3+2]=(Math.random()-.5)*1200; }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    const mat=new THREE.PointsMaterial({ color:0x00ffcc, size:2, transparent:true, opacity:.85 });
+    const pts=new THREE.Points(geo, mat); scene.add(pts);
+    function animate(){ requestAnimationFrame(animate); scene.rotation.y += 0.0009; renderer.render(scene,camera); }
+    animate();
+    window.addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+  }
+  if (window.THREE) init3D(); else {
+    const s=document.createElement('script'); s.src='https://unpkg.com/three@0.156.1/build/three.min.js'; s.defer=true; s.onload=init3D; document.head.appendChild(s);
+  }
+})();
+</script>
+<script>
+// Mocked loaders (match linelux-style behavior, use localStorage overrides)
+async function loadRoboter(){
+  const el=document.getElementById('roboterList'); el.innerHTML='<div class="loading">Lade...</div>';
+  const storedCount = parseInt(localStorage.getItem('ui.robotCount')||'2');
+  const namesCsv = (localStorage.getItem('ui.robotNames')||'Ich,Du').split(',').map(s=>s.trim()).filter(Boolean);
+  const count = isFinite(storedCount) && storedCount>0 ? Math.min(storedCount,50) : 2;
+  const data = Array.from({length:count}).map((_,i)=>({id:i+1,name:namesCsv[i]||`Robot-${String(i+1).padStart(3,'0')}`,status:'ACTIVE',energy:Math.round(60+Math.random()*40*10)/10}));
+  let html='<div class="small muted">Mock-Daten • Roboter: '+data.length+'</div><table class="data-table"><tr><th>ID</th><th>Name</th><th>Status</th><th>Energie</th></tr>';
+  data.forEach(r=> html+=`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.status}</td><td>${r.energy}%</td></tr>`);
+  el.innerHTML=html+'</table>'; const cnt=document.getElementById('robotCount'); if(cnt) cnt.textContent=data.length;
+}
+async function loadDrohnen(){ const el=document.getElementById('drohnenList'); el.innerHTML='<div class="loading">Lade...</div>';
+  const data=[{id:1,name:'Drohne-Alpha',mission:'PATROL',battery:78},{id:2,name:'Drohne-Beta',mission:'RECON',battery:91}];
+  let html='<table class="data-table"><tr><th>Name</th><th>Mission</th><th>Akku</th></tr>';
+  data.forEach(d=> html+=`<tr><td>${d.name}</td><td>${d.mission}</td><td>${d.battery}%</td></tr>`);
+  el.innerHTML=html+'</table>'; const cnt=document.getElementById('droneCount'); if(cnt) cnt.textContent=data.length;
+}
+async function loadWallets(){ const el=document.getElementById('walletList'); el.innerHTML='<div class="loading">Lade...</div>';
+  const data=[{name:'Main Wallet',balance:15420.5,currency:'EUR'},{name:'Backup Wallet',balance:8750.2,currency:'EUR'},{name:'Ops Wallet',balance:2210.0,currency:'EUR'}];
+  const total=data.reduce((s,w)=> s+Number(w.balance||0),0);
+  let html='<table class="data-table"><tr><th>Name</th><th>Balance</th></tr>';
+  data.forEach(w=> html+=`<tr><td>${w.name}</td><td>${Number(w.balance).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} ${w.currency}</td></tr>`);
+  html+=`<tr><td style="font-weight:700">Gesamtsumme</td><td style="font-weight:700">${total.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} EUR</td></tr>`;
+  el.innerHTML=html+'</table>'; const cnt=document.getElementById('walletCount'); if(cnt) cnt.textContent=data.length;
+}
+async function loadTransactions(){
+  const el=document.getElementById('transactionList');
+  el.innerHTML='<div class="loading">Lade...</div>';
+  try {
+    const res = await fetch('/api/transactions');
+    const data = await res.json();
+    let html='<table class="data-table"><tr><th>Typ</th><th>Betrag</th><th>Kategorie</th><th>Datum</th></tr>';
+    data.forEach(t=>{
+      const color = t.transactionType==='INCOME'? '#00ff88':'#ff0044';
+      html+=`<tr><td>${t.transactionType}</td><td style="color:${color}">${Number(t.amount).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} EUR</td><td>${t.category||''}</td><td>${t.transactionDate?new Date(t.transactionDate).toLocaleString('de-DE'):''}</td></tr>`;
+    });
+    el.innerHTML=html+'</table>';
+    const cnt=document.getElementById('transactionCount');
+    if(cnt) cnt.textContent=data.length;
+  } catch(e) {
+    el.innerHTML='<div class="loading">Fehler beim Laden der Transaktionen.</div>';
+  }
+}
+async function loadBlueprints(){ const el=document.getElementById('blueprintList'); el.innerHTML='<div class="loading">Lade...</div>';
+  const data=[{name:'Defense Grid Alpha',version:'2.1.0'},{name:'Energy Harvester',version:'1.5.3'}];
+  let html='<table class="data-table"><tr><th>Name</th><th>Version</th></tr>';
+  data.forEach(b=> html+=`<tr><td>${b.name}</td><td>${b.version}</td></tr>`);
+  el.innerHTML=html+'</table>';
+}
+async function loadTechInstances(){ const el=document.getElementById('techList'); el.innerHTML='<div class="loading">Lade...</div>';
+  const data=[{type:'SERVER',status:'RUNNING',cpu:45},{type:'DATABASE',status:'RUNNING',cpu:23}];
+  let html='<table class="data-table"><tr><th>Typ</th><th>Status</th><th>CPU</th></tr>';
+  data.forEach(t=> html+=`<tr><td>${t.type}</td><td>${t.status}</td><td>${t.cpu}%</td></tr>`);
+  el.innerHTML=html+'</table>';
+}
+</script>
+<script>
+// SERP + DeepSeek excerpt (minimal to function with mock endpoints)
+const serpState={q:'',block:0,blockSize:10};
+async function searchSerp(){ const qEl=document.getElementById('serpQ'); const out=document.getElementById('serpResults'); const q=(qEl&&qEl.value||'').trim(); if(!q){ out.textContent='Bitte eine Frage oder einen Suchbegriff eingeben.'; return; }
+  const chatMode=!!(document.getElementById('serpChatMode')||{}).checked; const engine=(document.getElementById('serpEngine')||{}).value||'google'; const tbm=(document.getElementById('serpTbm')||{}).value||''; const time=(document.getElementById('serpTime')||{}).value||''; const num=Math.max(1,Math.min(100, parseInt((document.getElementById('serpNum')||{}).value||20)));
+  const lex=!!(document.getElementById('serpLex')||{}).checked; const bsEl=document.getElementById('serpBlockSize'); const bEl=document.getElementById('serpBlock'); serpState.blockSize=Math.max(1,Math.min(50, parseInt((bsEl&&bsEl.value)||10))); serpState.block=Math.max(0, parseInt((bEl&&bEl.value)||0)); out.innerHTML='<div class="loading">Wird verarbeitet…</div>';
+  try{
+    if (chatMode){ const res=await fetch(API_BASE+'/deepseek/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:q})}); const j=await res.json().catch(()=>({})); if(!res.ok){ out.innerHTML='❌ '+(j&&j.error||('HTTP '+res.status)); return; } const r=j&&(j.response||j); let text=''; if(r&&r.choices&&r.choices[0]&&r.choices[0].message){ text=r.choices[0].message.content||''; } else if(typeof j.text==='string'){ text=j.text; } out.innerHTML='<div style="white-space:pre-wrap;line-height:1.4">'+(text||'Keine Antwort erhalten.')+'</div>'; return; }
+    if (lex){ let url=API_BASE+'/serp/lexicon?q='+encodeURIComponent(q)+'&engine='+encodeURIComponent(engine)+'&block='+serpState.block+'&block_size='+serpState.blockSize; if(tbm) url+='&tbm='+encodeURIComponent(tbm); if(time) url+='&time_period='+encodeURIComponent(time); const res=await fetch(url); const j=await res.json(); if(!res.ok){ out.innerHTML='❌ '+(j&&j.error||('HTTP '+res.status)); return; } const groups=j.groups||{}; let html=''; Object.keys(groups).forEach(L=>{ html+='<div style="margin-top:10px"><div style="font-weight:800;color:#a8ffdf">'+L+'</div><ul style="list-style:none;padding:0;margin:6px 0;display:flex;flex-direction:column;gap:6px">'; (groups[L]||[]).forEach(it=>{ const t=it.title||it.term||'Eintrag'; const link=it.url||'#'; const sn=it.snippet||''; const dom=it.domain||''; html+=`<li style="padding:8px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03)"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%"><a href="${link}" target="_blank">${t}</a></div><div class="small muted" style="opacity:.8">${dom}</div></div><div class="small muted" style="margin-top:4px">${sn}</div></li>`; }); html+='</ul></div>'; }); out.innerHTML=html||'<span class="muted">Keine Ergebnisse.</span>'; }
+    else { let url=API_BASE+'/serp/search?q='+encodeURIComponent(q)+'&engine='+encodeURIComponent(engine)+'&num='+num; if(tbm) url+='&tbm='+encodeURIComponent(tbm); if(time) url+='&time_period='+encodeURIComponent(time); const res=await fetch(url); const j=await res.json(); if(!res.ok){ out.innerHTML='❌ '+(j&&j.error||('HTTP '+res.status)); return; } const items=[]; if (j.organic_results) items.push(...j.organic_results); if (Array.isArray(j.results)) items.push(...j.results); if(items.length===0){ out.innerHTML='<span class="muted">Keine Ergebnisse.</span>'; return; } let html='<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px">'; items.slice(0,num).forEach(it=>{ const title=it.title||it.name||it.snippet||'Ergebnis'; const link=it.link||it.url||'#'; const snippet=it.snippet||it.description||''; const domain=(link||'').replace(/^https?:\/\//,'').split('/')[0]; html+=`<li style="padding:8px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03)"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%"><a href="${link}" target="_blank">${title}</a></div><div class="small muted" style="opacity:.8">${domain}</div></div><div class="small muted" style="margin-top:4px">${snippet}</div></li>`; }); html+='</ul>'; out.innerHTML=html; }
+  }catch(e){ out.innerHTML='❌ Fehler: '+(e.message||e); }
+}
+function serpPrevBlock(){ const chat=!!(document.getElementById('serpChatMode')||{}).checked; const lex=!!(document.getElementById('serpLex')||{}).checked; if(chat||!lex) return; const el=document.getElementById('serpBlock'); el.value=Math.max(0, parseInt((el&&el.value)||0)-1); searchSerp(); }
+function serpNextBlock(){ const chat=!!(document.getElementById('serpChatMode')||{}).checked; const lex=!!(document.getElementById('serpLex')||{}).checked; if(chat||!lex) return; const el=document.getElementById('serpBlock'); el.value=Math.max(0, parseInt((el&&el.value)||0)+1); searchSerp(); }
+async function serpTest(){ const out=document.getElementById('serpResults'); const chat=!!(document.getElementById('serpChatMode')||{}).checked; try{ if(chat){ const r=await fetch(API_BASE+'/deepseek/chat',{method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt:'PING'})}); out.textContent = r.ok? '✅ Chatbot OK' : ('❌ HTTP '+r.status); } else { const r=await fetch(API_BASE+'/serp/ping'); const j=await r.json(); out.textContent = (j.ok?'✅ ':'❌ ')+'SERP '+(j.ok?'OK':'Fehler')+' • Key: '+(j.hasKey?'gesetzt':'FEHLT'); } }catch(e){ out.textContent='❌ Test fehlgeschlagen'; } }
+</script>
+<script>
+function deploySwarm(){ alert('🚀 Schwarm-Deployment gestartet!'); document.getElementById('swarmSize').textContent='10.1B'; }
+function collectEnergy(){ alert('⚡ Energie-Sammlung aktiv!'); const c=parseInt(document.getElementById('energy').textContent.replace(/[^0-9]/g,'')); document.getElementById('energy').textContent=(c+150).toLocaleString('de-DE')+' kWh'; }
+function simulateThreat(){ alert('⚠️ Bedrohung simuliert!'); const c=parseInt(document.getElementById('threats').textContent)||0; document.getElementById('threats').textContent=c+1; }
+function createTestData(){ alert('➕ Test-Daten werden erstellt!'); loadRoboter(); loadDrohnen(); loadWallets(); loadTransactions(); }
+</script>
+<script>
+// Init
+document.addEventListener('DOMContentLoaded', ()=>{
+  try{ loadRoboter(); loadDrohnen(); loadWallets(); loadTransactions(); loadBlueprints(); loadTechInstances(); }catch(e){}
+  const be = document.getElementById('backendStatus'); if (be){ be.textContent='Mock-Daten (Backend offline)'; be.style.color='#ffaa00'; }
+});
+</script>
+</body>
+</html>

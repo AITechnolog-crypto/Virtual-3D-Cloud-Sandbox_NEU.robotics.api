@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LineLux Variante 06 – Controls</title>
+<link rel="stylesheet" href="../LineLuxSharedStyles.css">
+<style>:root{--h:43} body{background:hsl(var(--h),35%,8%);color:#eef6ff;font-family:system-ui,Segoe UI,Roboto,Arial}.wrap{max-width:980px;margin:0 auto;padding:18px}h1{font-size:24px;margin:8px 0 12px;background:linear-gradient(90deg,hsl(var(--h),90%,60%),#00ccff);-webkit-background-clip:text;color:transparent}.row{display:flex;gap:8px;flex-wrap:wrap}.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px;min-width:260px}input,button{border-radius:8px;border:1px solid rgba(255,255,255,.14);padding:8px;background:rgba(255,255,255,.06);color:#eef6ff}button{background:linear-gradient(135deg,#00ff88,#00ccff);border:0;color:#001a12;cursor:pointer}</style>
+</head><body>
+<div class="wrap">
+  <h1>LineLux – Variante 06 (Controls)</h1>
+  <div class="row">
+    <div class="card">
+      <div class="muted">Preis [EUR/kWh]</div>
+      <input id="p" type="number" step="0.01" value="0.18">
+      <div class="muted" style="margin-top:6px">Verkauf [%]</div>
+      <input id="s" type="number" step="1" value="60">
+      <div class="muted" style="margin-top:6px">Kosten [%]</div>
+      <input id="c" type="number" step="1" value="15">
+      <div style="margin-top:8px"><button onclick="calc()">Berechnen</button></div>
+      <div id="out" style="margin-top:8px;font-weight:700">Netto: 0 €</div>
+    </div>
+  </div>
+  <p style="margin-top:10px"><a href="../linelux-style.html">Zur Haupt‑UI</a> • <a href="variants-index.html">Varianten</a></p>
+</div>
+<script>
+function calc(){
+  const E = 3000; // Beispiel kWh
+  const p = parseFloat(document.getElementById('p').value||0);
+  const s = (parseFloat(document.getElementById('s').value||0))/100;
+  const c = (parseFloat(document.getElementById('c').value||0))/100;
+  const gross = E*p*s; const cost=gross*c; const net=gross-cost;
+  document.getElementById('out').textContent = 'Netto: '+net.toLocaleString('de-DE',{minimumFractionDigits:2})+' €';
+}
+</script>
+</body></html>

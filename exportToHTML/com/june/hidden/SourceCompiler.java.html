@@ -1,0 +1,90 @@
+<html>
+<head>
+<title>SourceCompiler.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #808080;}
+.s3 { color: #96be78;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+SourceCompiler.java</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">package </span><span class="s1">com.june.hidden;</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">javax.tools.*;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">import </span><span class="s1">java.net.URI;</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">import </span><span class="s1">java.nio.charset.StandardCharsets;</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">import </span><span class="s1">java.util.*;</span>
+<a name="l7"><span class="ln">7    </span></a>
+<a name="l8"><span class="ln">8    </span></a><span class="s2">/**</span>
+<a name="l9"><span class="ln">9    </span></a> <span class="s2">* In‑Memory Java Source Compiler util.</span>
+<a name="l10"><span class="ln">10   </span></a> <span class="s2">*/</span>
+<a name="l11"><span class="ln">11   </span></a><span class="s0">public final class </span><span class="s1">SourceCompiler {</span>
+<a name="l12"><span class="ln">12   </span></a>    <span class="s0">private </span><span class="s1">SourceCompiler() {}</span>
+<a name="l13"><span class="ln">13   </span></a>
+<a name="l14"><span class="ln">14   </span></a>    <span class="s0">public static </span><span class="s1">Map&lt;String, </span><span class="s0">byte</span><span class="s1">[]&gt; compileInMemory(String className, String source) </span><span class="s0">throws </span><span class="s1">Exception {</span>
+<a name="l15"><span class="ln">15   </span></a>        <span class="s1">JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();</span>
+<a name="l16"><span class="ln">16   </span></a>        <span class="s0">if </span><span class="s1">(compiler == </span><span class="s0">null</span><span class="s1">) </span><span class="s0">throw new </span><span class="s1">IllegalStateException(</span><span class="s3">&quot;Kein InMemory Compiler verfuegbar JDK erforderlich&quot;</span><span class="s1">);</span>
+<a name="l17"><span class="ln">17   </span></a>        <span class="s1">StandardJavaFileManager std = compiler.getStandardFileManager(</span><span class="s0">null</span><span class="s1">, </span><span class="s0">null</span><span class="s1">, StandardCharsets.UTF_8);</span>
+<a name="l18"><span class="ln">18   </span></a>        <span class="s1">InMemoryFileManager mem = </span><span class="s0">new </span><span class="s1">InMemoryFileManager(std);</span>
+<a name="l19"><span class="ln">19   </span></a>        <span class="s1">List&lt;JavaFileObject&gt; units = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;();</span>
+<a name="l20"><span class="ln">20   </span></a>        <span class="s1">units.add(</span><span class="s0">new </span><span class="s1">StringJavaFileObject(className, source));</span>
+<a name="l21"><span class="ln">21   </span></a>        <span class="s1">List&lt;String&gt; opts = Arrays.asList(</span><span class="s3">&quot;-encoding&quot;</span><span class="s1">,</span><span class="s3">&quot;UTF-8&quot;</span><span class="s1">,</span><span class="s3">&quot;-Xlint:deprecation&quot;</span><span class="s1">,</span><span class="s3">&quot;-Xlint:unchecked&quot;</span><span class="s1">);</span>
+<a name="l22"><span class="ln">22   </span></a>        <span class="s1">JavaCompiler.CompilationTask task = compiler.getTask(</span><span class="s0">null</span><span class="s1">, mem, </span><span class="s0">null</span><span class="s1">, opts, </span><span class="s0">null</span><span class="s1">, units);</span>
+<a name="l23"><span class="ln">23   </span></a>        <span class="s0">boolean </span><span class="s1">ok = task.call();</span>
+<a name="l24"><span class="ln">24   </span></a>        <span class="s0">if </span><span class="s1">(!ok) </span><span class="s0">throw new </span><span class="s1">IllegalStateException(</span><span class="s3">&quot;Kompilierung fehlgeschlagen&quot;</span><span class="s1">);</span>
+<a name="l25"><span class="ln">25   </span></a>        <span class="s0">return </span><span class="s1">mem.getClassBytes();</span>
+<a name="l26"><span class="ln">26   </span></a>    <span class="s1">}</span>
+<a name="l27"><span class="ln">27   </span></a><span class="s1">}</span>
+<a name="l28"><span class="ln">28   </span></a>
+<a name="l29"><span class="ln">29   </span></a><span class="s2">/** String‑backed JavaFileObject */</span>
+<a name="l30"><span class="ln">30   </span></a><span class="s0">class </span><span class="s1">StringJavaFileObject </span><span class="s0">extends </span><span class="s1">SimpleJavaFileObject {</span>
+<a name="l31"><span class="ln">31   </span></a>    <span class="s0">private final </span><span class="s1">String code;</span>
+<a name="l32"><span class="ln">32   </span></a>    <span class="s1">StringJavaFileObject(String className, String code) {</span>
+<a name="l33"><span class="ln">33   </span></a>        <span class="s0">super</span><span class="s1">(uriForClass(className), Kind.SOURCE);</span>
+<a name="l34"><span class="ln">34   </span></a>        <span class="s0">this</span><span class="s1">.code = code;</span>
+<a name="l35"><span class="ln">35   </span></a>    <span class="s1">}</span>
+<a name="l36"><span class="ln">36   </span></a>    <span class="s1">@Override </span><span class="s0">public </span><span class="s1">CharSequence getCharContent(</span><span class="s0">boolean </span><span class="s1">ignoreEncodingErrors){ </span><span class="s0">return </span><span class="s1">code; }</span>
+<a name="l37"><span class="ln">37   </span></a>    <span class="s0">private static </span><span class="s1">URI uriForClass(String className) {</span>
+<a name="l38"><span class="ln">38   </span></a>        <span class="s0">return </span><span class="s1">URI.create(</span><span class="s3">&quot;string:///&quot; </span><span class="s1">+ className.replace(</span><span class="s3">'.'</span><span class="s1">,</span><span class="s3">'/'</span><span class="s1">) + Kind.SOURCE.extension);</span>
+<a name="l39"><span class="ln">39   </span></a>    <span class="s1">}</span>
+<a name="l40"><span class="ln">40   </span></a><span class="s1">}</span>
+<a name="l41"><span class="ln">41   </span></a>
+<a name="l42"><span class="ln">42   </span></a><span class="s2">/** Captures compiled class bytes */</span>
+<a name="l43"><span class="ln">43   </span></a><span class="s0">class </span><span class="s1">ByteArrayJavaFileObject </span><span class="s0">extends </span><span class="s1">SimpleJavaFileObject {</span>
+<a name="l44"><span class="ln">44   </span></a>    <span class="s0">private final </span><span class="s1">java.io.ByteArrayOutputStream bos = </span><span class="s0">new </span><span class="s1">java.io.ByteArrayOutputStream();</span>
+<a name="l45"><span class="ln">45   </span></a>    <span class="s1">ByteArrayJavaFileObject(String name, Kind kind) {</span>
+<a name="l46"><span class="ln">46   </span></a>        <span class="s0">super</span><span class="s1">(URI.create(</span><span class="s3">&quot;mem:///&quot; </span><span class="s1">+ name.replace(</span><span class="s3">'.'</span><span class="s1">,</span><span class="s3">'/'</span><span class="s1">) + kind.extension), kind);</span>
+<a name="l47"><span class="ln">47   </span></a>    <span class="s1">}</span>
+<a name="l48"><span class="ln">48   </span></a>    <span class="s1">@Override </span><span class="s0">public </span><span class="s1">java.io.OutputStream openOutputStream() { </span><span class="s0">return </span><span class="s1">bos; }</span>
+<a name="l49"><span class="ln">49   </span></a>    <span class="s0">byte</span><span class="s1">[] toByteArray(){ </span><span class="s0">return </span><span class="s1">bos.toByteArray(); }</span>
+<a name="l50"><span class="ln">50   </span></a><span class="s1">}</span>
+<a name="l51"><span class="ln">51   </span></a>
+<a name="l52"><span class="ln">52   </span></a><span class="s2">/** FileManager storing compiled classes in memory */</span>
+<a name="l53"><span class="ln">53   </span></a><span class="s0">class </span><span class="s1">InMemoryFileManager </span><span class="s0">extends </span><span class="s1">ForwardingJavaFileManager&lt;JavaFileManager&gt; {</span>
+<a name="l54"><span class="ln">54   </span></a>    <span class="s0">private final </span><span class="s1">Map&lt;String, ByteArrayJavaFileObject&gt; compiled = </span><span class="s0">new </span><span class="s1">HashMap&lt;&gt;();</span>
+<a name="l55"><span class="ln">55   </span></a>    <span class="s1">InMemoryFileManager(JavaFileManager fileManager) { </span><span class="s0">super</span><span class="s1">(fileManager); }</span>
+<a name="l56"><span class="ln">56   </span></a>    <span class="s1">@Override</span>
+<a name="l57"><span class="ln">57   </span></a>    <span class="s0">public </span><span class="s1">JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind, FileObject sibling){</span>
+<a name="l58"><span class="ln">58   </span></a>        <span class="s1">ByteArrayJavaFileObject out = </span><span class="s0">new </span><span class="s1">ByteArrayJavaFileObject(className, kind);</span>
+<a name="l59"><span class="ln">59   </span></a>        <span class="s1">compiled.put(className, out);</span>
+<a name="l60"><span class="ln">60   </span></a>        <span class="s0">return </span><span class="s1">out;</span>
+<a name="l61"><span class="ln">61   </span></a>    <span class="s1">}</span>
+<a name="l62"><span class="ln">62   </span></a>    <span class="s1">Map&lt;String, </span><span class="s0">byte</span><span class="s1">[]&gt; getClassBytes(){</span>
+<a name="l63"><span class="ln">63   </span></a>        <span class="s1">Map&lt;String, </span><span class="s0">byte</span><span class="s1">[]&gt; m = </span><span class="s0">new </span><span class="s1">HashMap&lt;&gt;();</span>
+<a name="l64"><span class="ln">64   </span></a>        <span class="s0">for </span><span class="s1">(Map.Entry&lt;String, ByteArrayJavaFileObject&gt; e : compiled.entrySet()) {</span>
+<a name="l65"><span class="ln">65   </span></a>            <span class="s1">m.put(e.getKey(), e.getValue().toByteArray());</span>
+<a name="l66"><span class="ln">66   </span></a>        <span class="s1">}</span>
+<a name="l67"><span class="ln">67   </span></a>        <span class="s0">return </span><span class="s1">m;</span>
+<a name="l68"><span class="ln">68   </span></a>    <span class="s1">}</span>
+<a name="l69"><span class="ln">69   </span></a><span class="s1">}</span>
+<a name="l70"><span class="ln">70   </span></a></pre>
+</body>
+</html>

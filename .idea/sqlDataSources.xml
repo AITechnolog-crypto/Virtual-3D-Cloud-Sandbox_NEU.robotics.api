@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DdlMappings">
+    <mapping uuid="b02f173b-0622-4786-80c4-1de764ecef1f" name="DynamoDB99 Mapping">
+      <data-sources db="f650584b-2542-42cc-b886-323e4681f18a" ddl="9b9dca13-51fa-4b0c-9ff9-31ef22fa2af9" />
+      <scope>
+        <node negative="1">
+          <node kind="schema" qname="schema" />
+          <node kind="database" negative="1" />
+        </node>
+      </scope>
+    </mapping>
+    <mapping uuid="dda06d74-1327-4147-a1fb-c8f6bf12ff4d" name="Azure Cosmos DB API for MongoDB 2 [2] Mapping">
+      <data-sources db="2026c12f-f867-4f0f-9e6c-4b1071a4c6e9" ddl="9b9dca13-51fa-4b0c-9ff9-31ef22fa2af9" />
+    </mapping>
+  </component>
+</project>

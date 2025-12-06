@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 Infrastructure Management 3D VR</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>🚀 Loading 3D Infrastructure...</p>
+    </div>
+    
+    <div id="canvas-container"></div>
+    
+    <div id="info-panel">
+        <h2>📊 System Info</h2>
+        <div id="metadata">
+            <div class="stat">
+                <span class="stat-label">Selected:</span>
+                <span class="stat-value" id="selected-name">None</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Type:</span>
+                <span class="stat-value" id="selected-type">-</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Status:</span>
+                <span class="stat-value" id="selected-status">-</span>
+            </div>
+            <div id="extra-metadata"></div>
+        </div>
+    </div>
+    
+    <div id="stats-overlay">
+        <div>FPS: <span id="fps">60</span></div>
+        <div>Objects: <span id="object-count">0</span></div>
+        <div>Live Data: <span id="live-status">🔴 Disconnected</span></div>
+        <div>Backend: <span id="backend-status">⏳ Checking...</span></div>
+    </div>
+    
+    <div id="controls">
+        <button class="btn" onclick="resetCamera()">🔄 Reset</button>
+        <button class="btn" onclick="toggleAutoRotate()">🔁 Auto Rotate</button>
+        <button class="btn btn-live" onclick="toggleLiveData()">📡 Live Data</button>
+        <button class="btn btn-vr" onclick="enterVR()">🥽 Enter VR</button>
+    </div>
+    
+    <div id="vr-indicator">🥽 VR MODE ACTIVE</div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

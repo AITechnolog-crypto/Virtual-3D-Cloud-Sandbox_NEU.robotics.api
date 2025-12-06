@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌐 Cloud-Architektur & Projekt-URLs – Virtuelle 3D CLOUD Sandbox</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#131a33; --text:#e9eefc; --muted:#98a2c6; --accent:#00ff88; --accent2:#00ccff; --bad:#ff4d6d;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif;background:linear-gradient(135deg,#0b1020,#0e1430);color:var(--text)}
+    header{padding:22px 20px;border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter: blur(6px);position:sticky;top:0;z-index:5;background:rgba(11,16,32,.75)}
+    header h1{margin:0;font-weight:800;font-size:clamp(1.3rem,2.2vw,1.8rem);letter-spacing:.2px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    header .base{margin-top:4px;font-size:.95rem;color:var(--muted)}
+    .wrap{max-width:1100px;margin:0 auto;padding:20px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+    .panel{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+    .panel h2{margin:0 0 8px 0;font-size:1.05rem;letter-spacing:.2px}
+    .panel p{margin:6px 0;color:var(--muted);font-size:.95rem}
+    .list{margin-top:10px}
+    .item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin:8px 0}
+    .badge{font-size:.75rem;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+    a{color:#bfe9ff;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .tag{font-size:.72rem;padding:2px 8px;border-radius:999px;background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.35);color:#a8ffdf}
+    .warn{color:var(--bad)}
+    .muted{color:var(--muted)}
+    .small{font-size:.86rem}
+    .code{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;background:rgba(255,255,255,.06);padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.1)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    button{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#001a12;font-weight:700;padding:10px 14px;border-radius:10px;cursor:pointer}
+    button.secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.14)}
+    .changelog{max-height:260px;overflow:auto;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}
+    .ts{font-size:.75rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Cloud-Architektur & Projekt-URLs</h1>
+  <div class="base">Basis: <span id="baseUrl" class="code"></span> • App: Virtuelle 3D CLOUD Sandbox</div>
+</header>
+<div class="wrap">
+  <div class="grid">
+    <section class="panel">
+      <h2>1) Statische Ressourcen</h2>
+      <p>Direkt über den integrierten Webserver erreichbar:</p>
+      <div id="staticList" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2) API Endpunkte</h2>
+      <p>Von den vorhandenen Spring REST-Controllern abgeleitete Basisrouten:</p>
+      <div id="apiList" class="list"></div>
+      <p class="small muted">Hinweis: Einige Endpunkte können weitere Unterrouten (GET/POST) besitzen. Sensible Routen (DeepSeek, SERP) können optional per <span class="code">X-API-KEY</span> geschützt sein.</p>
+    </section>
+
+    <section class="panel">
+      <h2>KI‑Web‑Assistent (Chatbot)</h2>
+      <p class="small muted">Fragen an den Chatbot‑Proxy (/api/deepseek/chat). API‑Key bitte nur lokal hinterlegen (nicht ins Repo).</p>
+      <div class="toolbar">
+        <input id="caChatQ" placeholder="Frage eingeben…" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"/>
+        <button id="caChatAsk">Antwort holen</button>
+        <button id="caChatTest" class="secondary">Schnittstellen‑Test</button>
+      </div>
+      <div id="caChatOut" class="changelog" style="min-height:90px">Antwort erscheint hier…</div>
+    </section>
+
+    <section class="panel">
+      <h2>3) Technologien</h2>
+      <div class="item"><span class="tag">Spring Boot</span> <span class="muted">– Backend/API • Starter: <span class="code">com.june.JuneApplication</span></span></div>
+      <div class="item"><span class="tag">WebSocket</span> <span class="muted">– Konfig: <span class="code">WebSocketConfig.java</span></span></div>
+      <div class="item"><span class="tag">Three.js</span> <span class="muted">– 3D Rendering in <span class="code">linelux-style.html</span></span></div>
+      <div class="item"><span class="tag">Chart.js</span> <span class="muted">– Mobile KPIs in <span class="code">mobile.html</span></span></div>
+      <div class="item"><span class="tag">Java</span> <span class="muted">– Simulationen wie <span class="code">NurSystemGlobal(v7/v8).java</span></span></div>
+    </section>
+
+    <section class="panel">
+      <h2>4) Projektressourcen (Auszug)</h2>
+      <div class="item"><span class="badge">config</span> <span class="muted">src/main/resources/application.properties</span></div>
+      <div class="item"><span class="badge">static</span> <span class="muted">src/main/resources/static/linelux-style.html</span></div>
+      <div class="item"><span class="badge">static</span> <span class="muted">src/main/resources/static/mobile.html</span></div>
+      <div class="item"><span class="badge">java</span> <span class="muted">src/main/java/com/june/controller/api/v1/simulation/…</span></div>
+      <div class="item"><span class="badge">java</span> <span class="muted">src/NurSystemGlobal.java, src/NurSystemGlobalV8.java</span></div>
+    </section>
+
+    <section class="panel">
+      <h2>5) Schritt-für-Schritt Änderungsverfolgung</h2>
+      <p class="small">Nutze diese Tools, um HTML-/Architektur-Änderungen lokal zu dokumentieren (wird in <span class="code">localStorage</span> gespeichert).</p>
+      <div class="toolbar">
+        <input id="logText" placeholder="Kurzbeschreibung der Änderung…" style="flex:1;min-width:200px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"/>
+        <button id="addEntryBtn">Eintrag speichern</button>
+        <button id="clearLogBtn" class="secondary">Verlauf löschen</button>
+      </div>
+      <div id="log" class="changelog"></div>
+    </section>
+
+    <!-- Neu: KI‑Verbund & Lernmaschinen – Diagnose -->
+    <section class="panel">
+      <h2>6) KI‑Verbund & Lernmaschinen – Diagnose</h2>
+      <p class="small muted">Prüft wichtige Dienste Block für Block und zeigt den Verbindungsstatus an. Ziel: Alles arbeitet auf dasselbe Ziel hin.</p>
+      <div class="toolbar">
+        <button id="meshDiagBtn">🔍 Diagnose starten</button>
+        <button id="meshDiagQuick" class="secondary">Schnelltest</button>
+      </div>
+      <div id="meshDiagOut" class="changelog" style="min-height:96px"></div>
+    </section>
+
+    <!-- Neu: Gemeinsames Cloud‑Ziel setzen (Policy/Plan) -->
+    <section class="panel">
+      <h2>7) Gemeinsames Cloud‑Ziel</h2>
+      <p class="small muted">Definiere das gemeinsame Ziel für alle Lern‑/Federations‑Module. Wird lokal gespeichert und (falls verfügbar) an die ML‑Plan‑API gemeldet.</p>
+      <div class="toolbar">
+        <input id="goalText" placeholder="z. B. Energie‑Effizienz +20% bei stabilen Kosten" style="flex:2;min-width:240px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <input id="goalHorizon" type="number" min="1" max="365" value="30" title="Horizont (Tage)" style="width:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <button id="goalSave">💾 Speichern & Anwenden</button>
+        <button id="goalClear" class="secondary">♻️ Löschen</button>
+      </div>
+      <div id="goalOut" class="small muted">Noch kein Ziel gesetzt.</div>
+    </section>
+
+    <!-- Neu: Verbinden & Schlüssel (nur lokal gespeichert) -->
+    <section class="panel">
+      <h2>8) Verbinden & Schlüssel (nur lokal)</h2>
+      <p class="small muted">Diese Schlüssel bleiben im Browser (localStorage). Für Backend‑Aufrufe nutzt die App die dort konfigurierten Keys. Test prüft die Schnittstellen.</p>
+      <div class="toolbar">
+        <input id="keyDeepseek" placeholder="DEEPSEEK_API_KEY (nur lokal)" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <input id="keySerp" placeholder="SERPAPI_KEY (nur lokal)" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff" />
+        <button id="saveKeys">🔏 Lokal speichern</button>
+        <button id="testKeys" class="secondary">🔒 Schnittstellen‑Test</button>
+      </div>
+      <div id="keysOut" class="small muted">Bereit.</div>
+    </section>
+
+    <!-- Neu: Schnellnavigation → Seiten -->
+    <section class="panel">
+      <h2>9) Schnellnavigation</h2>
+      <div class="toolbar">
+        <a class="code" href="linelux-style.html" target="_blank">LineLux Dashboard</a>
+        <a class="code" href="infrastruktur_management_dashboard.html" target="_blank">Infrastruktur Dashboard</a>
+        <a class="code" href="mobile.html" target="_blank">Mobile KPIs</a>
+      </div>
+      <p class="small muted">Alle Seiten nutzen <span class="code">window.location.origin</span> für API‑Aufrufe und arbeiten auf das gemeinsame Ziel hin.</p>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:16px">
+    <h2>6) Hinweise zur Cloud-URL Nutzung</h2>
+    <ul class="small">
+      <li>Beim Start via Spring Boot: Öffne <span class="code">/cloud-architecture.html</span>, <span class="code">/linelux-style.html</span> oder <span class="code">/mobile.html</span>.</li>
+      <li>Die hier gelisteten API-Pfade bauen auf den Controllern im Projekt auf und nutzen <span class="code">window.location.origin</span>, damit sie lokal und in der Cloud funktionieren.</li>
+      <li>Du kannst die Liste unten bei Bedarf erweitern – diese Seite ist statisch und bewusst minimal-invasiv.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  // Service Worker registrieren (Mock-API für 63342 Preview)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      const swUrl = 'sw-mock-api.js';
+      navigator.serviceWorker.register(swUrl).catch(console.warn);
+    });
+  }
+
+  const base = window.location.origin;
+  document.getElementById('baseUrl').textContent = base;
+
+  // 1) Statische Seiten aus der Projektstruktur (relative Links für 63342 & 8080)
+  const staticPages = [
+    { name: 'Cloud-Architektur Übersicht', path: 'cloud-architecture.html' },
+    { name: 'LineLux Dashboard (3D)', path: 'linelux-style.html' },
+    { name: 'Mobile Dashboard', path: 'mobile.html' },
+    { name: 'Index (falls vorhanden)', path: 'index.html' }
+  ];
+  const staticList = document.getElementById('staticList');
+  const currentDir = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  staticPages.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    const href = new URL(p.path, currentDir).href;
+    el.innerHTML = `<span class="badge">static</span> <a href="${href}" target="_blank">${p.name}</a> <span class="muted">(${p.path})</span>`;
+    staticList.appendChild(el);
+  });
+
+  // 2) API-Routen, aus den Controllern abgeleitet (siehe src/main/java/...)
+  const apiRoutes = [
+    { name: 'Health', path: '/api/health', method: 'GET' },
+    { name: 'Dashboard Status', path: '/api/dashboard/status', method: 'GET' },
+    { name: 'Telemetry Status', path: '/api/telemetry/status', method: 'GET' },
+    { name: 'Telemetry Push', path: '/api/telemetry/push', method: 'POST' },
+    { name: 'Telemetry Stream (SSE)', path: '/api/telemetry/stream', method: 'GET' },
+    { name: 'History Summary', path: '/api/history/summary', method: 'GET' },
+    { name: 'Learn Train', path: '/api/learn/train', method: 'POST' },
+    { name: 'Learn Status', path: '/api/learn/status', method: 'GET' },
+    { name: 'Learn Predict', path: '/api/learn/predict?steps=10', method: 'GET' },
+    { name: 'ML Policy (GET)', path: '/api/ml/policy', method: 'GET' },
+    { name: 'ML Policy (POST)', path: '/api/ml/policy', method: 'POST' },
+    { name: 'ML Status', path: '/api/ml/status', method: 'GET' },
+    { name: 'ML Ingest', path: '/api/ml/ingest', method: 'POST' },
+    { name: 'ML Train', path: '/api/ml/train', method: 'POST' },
+    { name: 'ML Predict', path: '/api/ml/predict?steps=10', method: 'GET' },
+    { name: 'ML Plan (GET)', path: '/api/ml/plan', method: 'GET' },
+    { name: 'ML Plan (POST)', path: '/api/ml/plan', method: 'POST' },
+    { name: 'Azure Prediction', path: '/api/azure/predict', method: 'POST' },
+    { name: 'Federation Submit', path: '/api/federation/submitModel', method: 'POST' },
+    { name: 'Federation Aggregate', path: '/api/federation/aggregate', method: 'GET' },
+    { name: 'Federation Adopt', path: '/api/federation/adoptAggregate', method: 'POST' },
+    { name: 'SERP Suche', path: '/api/serp/search?q=NurSystem', method: 'GET' },
+    { name: 'Vision Ping', path: '/api/vision/ping', method: 'GET' },
+    { name: 'DeepSeek Chat', path: '/api/deepseek/chat', method: 'POST' },
+    { name: 'OpenAI Chat', path: '/api/openai/chat', method: 'POST' },
+    { name: 'Chat: History', path: '/api/chat/history?channel=customer', method: 'GET' },
+    { name: 'Chat: Send', path: '/api/chat/send', method: 'POST' },
+    { name: 'Chat: Assist', path: '/api/chat/assist', method: 'POST' },
+    { name: 'Chat: Stream', path: '/api/chat/stream?channel=customer', method: 'GET' },
+    { name: 'Chat: Verify', path: '/api/chat/verify?channel=customer', method: 'GET' },
+    { name: 'Robots API', path: '/api/robots', method: 'var' },
+    { name: 'Drones API', path: '/api/drones', method: 'var' },
+    { name: 'Transactions API', path: '/api/transactions', method: 'var' },
+    { name: 'Wallets API', path: '/api/wallets', method: 'var' },
+    { name: '3D Render API', path: '/api/v1/simulation', method: 'var' }
+  ];
+  const apiList = document.getElementById('apiList');
+  apiRoutes.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = `<span class="badge">API</span> <a href="${base + r.path}" target="_blank">${r.name}</a> <span class="muted">(${r.method})</span> <span class="code">${r.path}</span>`;
+    apiList.appendChild(el);
+  });
+
+  // 5) Änderungsverlauf (localStorage)
+  const KEY = 'cloud_arch_changelog_v1';
+  const logDiv = document.getElementById('log');
+  const addBtn = document.getElementById('addEntryBtn');
+  const clearBtn = document.getElementById('clearLogBtn');
+  const input = document.getElementById('logText');
+
+  function loadLog(){
+    const data = JSON.parse(localStorage.getItem(KEY) || '[]');
+    renderLog(data);
+  }
+  function renderLog(items){
+    logDiv.innerHTML = '';
+    if(items.length === 0){
+      logDiv.innerHTML = '<div class="muted small">Noch keine Änderungen erfasst.</div>';
+      return;
+    }
+    items.forEach(i => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<div><div>${i.text}</div><div class="ts">${new Date(i.ts).toLocaleString()}</div></div>`;
+      logDiv.appendChild(row);
+    });
+  }
+  function saveLog(items){
+    localStorage.setItem(KEY, JSON.stringify(items));
+  }
+
+  addBtn.addEventListener('click', () => {
+    const text = (input.value || '').trim();
+    if(!text){
+      input.focus();
+      return;
+    }
+    const items = JSON.parse(localStorage.getItem(KEY) || '[]');
+    items.unshift({ ts: Date.now(), text });
+    saveLog(items);
+    input.value='';
+    renderLog(items);
+  });
+  clearBtn.addEventListener('click', () => {
+    if(confirm('Verlauf wirklich löschen?')){
+      saveLog([]);
+      renderLog([]);
+    }
+  });
+
+  loadLog();
+
+  // 7) Chatbot‑Panel (KI‑Web‑Assistent) – Logik
+  (function(){
+    const API = window.location.origin + '/api';
+    const askBtn = document.getElementById('caChatAsk');
+    const testBtn = document.getElementById('caChatTest');
+    const input = document.getElementById('caChatQ');
+    const out = document.getElementById('caChatOut');
+    if (!askBtn || !testBtn || !input || !out) return;
+
+    askBtn.addEventListener('click', async ()=>{
+      const q = (input.value||'').trim();
+      if (!q){ input.focus(); return; }
+      out.innerHTML = '<div class="small muted">Frage wird gesendet…</div>';
+      try{
+        const r = await fetch(API + '/deepseek/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: q }) });
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok){ out.innerHTML = '<span class="warn">❌ '+(j && j.error || ('HTTP '+r.status))+'</span>'; return; }
+        let text = '';
+        const resp = j && (j.response || j);
+        if (resp && resp.choices && resp.choices[0] && resp.choices[0].message){ text = resp.choices[0].message.content || ''; }
+        else if (typeof j.text === 'string'){ text = j.text; }
+        out.innerHTML = '<div style="white-space:pre-wrap">'+(text || 'Keine Antwort erhalten.')+'</div>';
+      } catch(e){ out.innerHTML = '<span class="warn">❌ Fehler: '+(e.message||e)+'</span>'; }
+    });
+
+    testBtn.addEventListener('click', async ()=>{
+      out.innerHTML = '<div class="small muted">Teste Chatbot‑Schnittstelle…</div>';
+      try{
+        const r = await fetch(API + '/deepseek/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: 'PING' }) });
+        out.innerHTML = r.ok ? '✅ Chatbot OK' : ('❌ Fehler (HTTP '+r.status+')');
+      } catch(e){ out.innerHTML = '❌ Test fehlgeschlagen'; }
+    });
+  })();
+</script>
+
+<!-- Zusatz: KI‑Verbund Diagnose & Ziel‑/Schlüssel‑Handling -->
+<script>
+(function(){
+  const API = window.location.origin + '/api';
+  const LS = {
+    goal: 'cloud_goal_v1', horizon: 'cloud_goal_horizon_v1',
+    ds: 'DEEPSEEK_API_KEY_UI', serp: 'SERPAPI_KEY_UI'
+  };
+
+  function byId(id){ return document.getElementById(id); }
+  function setText(id, txt){ const el = byId(id); if (el) el.innerHTML = txt; }
+  function badge(txt, color){
+    const c = color||'#98a2c6';
+    return '<span style="display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);margin:2px;color:'+c+'">'+txt+'</span>';
+  }
+  function fmt(ms){ try{ return (ms>=1000? (ms/1000).toFixed(1)+'s' : ms+'ms'); }catch(_){ return ms+'ms'; } }
+
+  async function fetchJson(url, opts){
+    const ctl = new AbortController();
+    const t = setTimeout(()=> ctl.abort(), (opts && opts.timeout) || 8000);
+    try {
+      const r = await fetch(url, { ...(opts||{}), signal: ctl.signal });
+      clearTimeout(t);
+      const ct = (r.headers.get('content-type')||'').toLowerCase();
+      const isJson = ct.includes('application/json');
+      const data = isJson ? await r.json().catch(()=>({})) : await r.text();
+      return { ok:r.ok, status:r.status, data };
+    } catch(e){ clearTimeout(t); return { ok:false, status:0, data:{ error: String(e&&e.message||e) } }; }
+  }
+
+  async function diagnose(kind){
+    const out = byId('meshDiagOut'); if (!out) return;
+    out.innerHTML = '<div class="small muted">Starte Diagnose…</div>';
+    const start = Date.now();
+    const tasks = [
+      { name:'Health', url: API+'/health' },
+      { name:'Telemetry', url: API+'/telemetry/status' },
+      { name:'ML Status', url: API+'/ml/status' },
+      { name:'Federation', url: API+'/federation/aggregate' },
+      { name:'Chat Verify', url: API+'/chat/verify?channel=customer' },
+      { name:'SERP Ping', url: API+'/serp/ping' }
+    ];
+    if (kind === 'quick') {
+      // Smaller subset
+      tasks.splice(2,2); // remove ML Status + Federation for quick
+    }
+    const results = [];
+    for (const t of tasks){
+      const t0 = Date.now();
+      const r = await fetchJson(t.url);
+      const dt = Date.now()-t0;
+      let statusTxt = r.ok ? 'OK' : ('ERR '+r.status);
+      let color = r.ok ? '#00ff88' : (r.status===503||r.status===502? '#ffaa00' : '#ff4d6d');
+      let extra = '';
+      try {
+        if (t.name==='SERP Ping'){ extra = (r.data && (r.data.hasKey===true || r.data.hasKey==='true')) ? 'Key auf Server: gesetzt' : 'Key auf Server: fehlt'; }
+        if (t.name==='Chat Verify'){ extra = (r.data && r.data.valid===true)? 'Chain ok' : 'Chain n/v'; }
+      } catch(_){ }
+      results.push({ name:t.name, ms:dt, ok:r.ok, color, statusTxt, extra });
+    }
+    const okCount = results.filter(x=>x.ok).length;
+    const total = results.length;
+    let html = '<div class="small">Ergebnis: '+badge(okCount+'/'+total+' OK', okCount===total?'#00ff88':(okCount? '#ffaa00':'#ff4d6d'))+'</div>';
+    html += '<div style="margin-top:6px">';
+    results.forEach(r=>{
+      html += '<div style="margin:4px 0;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+           + '<div>'+badge(r.name, r.color)+' '+(r.extra? '<span class="small muted">'+r.extra+'</span>':'')+'</div>'
+           + '<div class="small muted">'+r.statusTxt+' • '+fmt(r.ms)+'</div>'
+           + '</div>';
+    });
+    html += '</div>';
+    out.innerHTML = html;
+  }
+
+  function loadLocal(){
+    try{ const g = localStorage.getItem(LS.goal)||''; const h = localStorage.getItem(LS.horizon)||''; if (byId('goalText')) byId('goalText').value=g; if (byId('goalHorizon')) byId('goalHorizon').value=h||30; }catch(_){ }
+    try{ if (byId('keyDeepseek')) byId('keyDeepseek').value = localStorage.getItem(LS.ds)||''; if (byId('keySerp')) byId('keySerp').value = localStorage.getItem(LS.serp)||''; }catch(_){ }
+  }
+
+  async function saveGoal(){
+    const goal = (byId('goalText')&&byId('goalText').value||'').trim();
+    const horizon = parseInt((byId('goalHorizon')&&byId('goalHorizon').value)||'30');
+    if (!goal){ setText('goalOut','Bitte ein Ziel eingeben.'); return; }
+    try{ localStorage.setItem(LS.goal, goal); localStorage.setItem(LS.horizon, String(horizon)); }catch(_){ }
+    setText('goalOut', '📌 Ziel gespeichert (lokal): '+goal+' • Horizont '+horizon+' Tage – verbinde…');
+    // Try POST to ML Plan (if available)
+    try{
+      const r = await fetch(API + '/ml/plan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ goal, horizon, source:'cloud-architecture' }) });
+      const ok = r.ok; const j = await r.json().catch(()=>({}));
+      if (ok) setText('goalOut', '✅ Server übernommen: '+(j && (j.ok||'OK')));
+      else setText('goalOut', '⚠️ Server antwortete mit '+r.status+' – Ziel bleibt lokal gespeichert.');
+    } catch(e){ setText('goalOut', 'ℹ️ Offline: Ziel lokal gespeichert.'); }
+  }
+  function clearGoal(){ try{ localStorage.removeItem(LS.goal); localStorage.removeItem(LS.horizon); }catch(_){ } setText('goalOut','♻️ Ziel gelöscht (lokal).'); if (byId('goalText')) byId('goalText').value=''; }
+
+  function saveKeys(){
+    try{ const ds = (byId('keyDeepseek')&&byId('keyDeepseek').value||'').trim(); const sp = (byId('keySerp')&&byId('keySerp').value||'').trim(); localStorage.setItem(LS.ds, ds); localStorage.setItem(LS.serp, sp); setText('keysOut','🔏 Gespeichert (nur lokal).'); }catch(_){ }
+  }
+  async function testKeys(){
+    setText('keysOut','Teste Schnittstellen…');
+    const c1 = await fetchJson(API + '/deepseek/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt:'PING' }) });
+    const c2 = await fetchJson(API + '/serp/ping');
+    const ok1 = c1.ok; const ok2 = c2.ok;
+    const hasSerp = c2.ok && c2.data && (c2.data.hasKey===true || c2.data.hasKey==='true');
+    let msg = (ok1? '✅ Chatbot ':'❌ Chatbot ')+ (ok1? 'OK':'Fehler') + ' • ';
+    msg += (ok2? 'SERP ':'SERP ') + (ok2? (hasSerp? 'OK (Key gesetzt)':'OK (Key fehlt)') : 'Fehler');
+    setText('keysOut', msg);
+  }
+
+  window.addEventListener('DOMContentLoaded', function(){
+    loadLocal();
+    const b1 = byId('meshDiagBtn'); if (b1) b1.addEventListener('click', ()=> diagnose('full'));
+    const b2 = byId('meshDiagQuick'); if (b2) b2.addEventListener('click', ()=> diagnose('quick'));
+    const s1 = byId('goalSave'); if (s1) s1.addEventListener('click', saveGoal);
+    const s2 = byId('goalClear'); if (s2) s2.addEventListener('click', clearGoal);
+    const k1 = byId('saveKeys'); if (k1) k1.addEventListener('click', saveKeys);
+    const k2 = byId('testKeys'); if (k2) k2.addEventListener('click', testKeys);
+  });
+})();
+</script>
+</body>
+</html>
+
+
+<!-- SaaS client (Azure Functions) for Cloud-Architecture page -->
+<script src="saas-client.js"></script>
+<script>
+// Azure Functions – Funktions‑App Interface (Cloud-Architecture)
+(function(){
+  function addPanel(el){ try{ const grid=document.querySelector('.grid'); if(grid) grid.appendChild(el); }catch(e){} }
+  function panel(title, inner){ const s=document.createElement('section'); s.className='panel'; s.innerHTML='<h2>'+title+'</h2>'+inner; return s; }
+  function esc(s){ return String(s||'').replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m])); }
+
+  function mount(){
+    if (!window.SaaS){ return; }
+    const inner = [
+      '<p class="small muted">Verbinde deine Azure Functions Funktions‑App (HTTP Trigger). BASE/Token werden nur lokal gespeichert.</p>',
+      '<div class="toolbar" style="gap:8px;flex-wrap:wrap">',
+      '  <input id="fxBase" placeholder="https://<deine-function>.azurewebsites.net" style="flex:1;min-width:260px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"/>',
+      '  <input id="fxTok"  placeholder="X-Functions-Key (optional)" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff"/>',
+      '</div>',
+      '<div class="toolbar">',
+      '  <button id="fxSave">💾 Speichern & Verbinden</button>',
+      '  <button id="fxHealth" class="secondary">🩺 Health</button>',
+      '  <button id="fxInfer"  class="secondary">🤖 Infer‑Demo</button>',
+      '  <button id="fxEvent"  class="secondary">📤 Event senden</button>',
+      '  <button id="fxHelp"   class="secondary">❓ Hilfe</button>',
+      '</div>',
+      '<div id="fxOut" class="changelog" style="min-height:80px"></div>'
+    ].join('');
+
+    const sec = panel('Azure Functions – Funktions‑App Interface', inner);
+    addPanel(sec);
+
+    const out = sec.querySelector('#fxOut');
+    const elBase = sec.querySelector('#fxBase');
+    const elTok  = sec.querySelector('#fxTok');
+    try{ elBase.value = (SaaS.getBase && SaaS.getBase()) || localStorage.getItem('saas.base') || ''; }catch(_){}
+    try{ elTok.value  = (SaaS.getToken && SaaS.getToken()) || localStorage.getItem('saas.token') || ''; }catch(_){ }
+
+    sec.querySelector('#fxSave').addEventListener('click', async ()=>{
+      try{
+        const b = (elBase.value||'').trim(); const t = (elTok.value||'').trim();
+        if (!b){ out.textContent='Bitte BASE URL eingeben.'; return; }
+        SaaS.setBase && SaaS.setBase(b);
+        SaaS.setToken && SaaS.setToken(t);
+        if (SaaS.applyRemote) await SaaS.applyRemote();
+        out.textContent = '✅ Gespeichert. Verbunden.';
+        // einmalige Telemetrie zur Validierung
+        try{ await SaaS.events({ type:'ca-visit', data:{ page:'cloud-architecture', ts:Date.now() } }); }catch(_){ }
+      }catch(e){ out.innerHTML = '<span class="warn">❌ Fehler: '+esc(e.message||e)+'</span>'; }
+    });
+
+    sec.querySelector('#fxHealth').addEventListener('click', async ()=>{
+      try{ out.innerHTML='<div class="small muted">Teste…</div>'; const j = await (SaaS.health? SaaS.health(): Promise.resolve({ok:false})); out.textContent = 'Health: '+JSON.stringify(j); }catch(e){ out.textContent='❌ Health fehlgeschlagen'; }
+    });
+
+    sec.querySelector('#fxInfer').addEventListener('click', async ()=>{
+      try{ out.innerHTML='<div class="small muted">Infer…</div>'; const demo={ pose:{x:0,y:0,theta:0}, prox:{front:2.0} }; const j = await (SaaS.inferAssist? SaaS.inferAssist(demo): Promise.resolve({})); out.textContent='Infer: '+JSON.stringify(j); }catch(e){ out.textContent='❌ Infer fehlgeschlagen'; }
+    });
+
+    sec.querySelector('#fxEvent').addEventListener('click', async ()=>{
+      try{ await (SaaS.events? SaaS.events({type:'test', data:{ hello:true, ts:Date.now() }}): Promise.resolve()); out.textContent='📤 Event gesendet.'; }catch(e){ out.textContent='❌ Event fehlgeschlagen'; }
+    });
+
+    sec.querySelector('#fxHelp').addEventListener('click', ()=>{
+      const msg = [
+        'So verbindest du deine Funktions‑App:',
+        '1) Öffne Azure Portal → Deine Function App → Overview. Kopiere die URL (https://<name>.azurewebsites.net).',
+        '2) Falls Funktionen gesichert sind, hole unter Functions → Funktion → Get Function URL den Key und trage ihn als Token ein (wird als Authorization/Function Key genutzt).',
+        '3) CORS: Erlaube deine Herkunft (Origin) unter CORS Einstellungen der Function App.',
+        '4) Klicke "Health" oder sende ein Demo‑Event.'] .join('\n');
+      alert(msg);
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', ()=>{ try{ mount(); }catch(e){} });
+})();
+</script>

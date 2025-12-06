@@ -1,0 +1,112 @@
+<html>
+<head>
+<title>saas-oracle.md</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c88cdc;}
+.s1 { color: #afb9c3;}
+.s2 { color: #afb9c3;}
+.s3 { color: #96be78;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+saas-oracle.md</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0"># </span><span class="s2">SaaS Integration – Oracle Events &amp; Node DSN</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s2">This note summarizes the backend pieces referenced by the dashboard’s SaaS card.</span>
+<a name="l4"><span class="ln">4    </span></a>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">## </span><span class="s2">Azure Functions base</span>
+<a name="l6"><span class="ln">6    </span></a>
+<a name="l7"><span class="ln">7    </span></a><span class="s2">Use your Azure Functions URL as BASE </span><span class="s1">(</span><span class="s2">example</span><span class="s1">):</span>
+<a name="l8"><span class="ln">8    </span></a>
+<a name="l9"><span class="ln">9    </span></a><span class="s0">```</span>
+<a name="l10"><span class="ln">10   </span></a><span class="s3">https://&lt;deine-function&gt;.azurewebsites.net</span>
+<a name="l11"><span class="ln">11   </span></a><span class="s0">```</span>
+<a name="l12"><span class="ln">12   </span></a>
+<a name="l13"><span class="ln">13   </span></a><span class="s0">### </span><span class="s2">Quick tests</span>
+<a name="l14"><span class="ln">14   </span></a>
+<a name="l15"><span class="ln">15   </span></a><span class="s0">```</span><span class="s3">js</span>
+<a name="l16"><span class="ln">16   </span></a><span class="s3">fetch(&quot;https://&lt;deine-function&gt;.azurewebsites.net/health&quot;)</span>
+<a name="l17"><span class="ln">17   </span></a>  <span class="s3">.then(r=&gt;r.json()).then(console.log);</span>
+<a name="l18"><span class="ln">18   </span></a>
+<a name="l19"><span class="ln">19   </span></a><span class="s3">fetch(&quot;https://&lt;deine-function&gt;.azurewebsites.net/infer&quot;,{</span>
+<a name="l20"><span class="ln">20   </span></a>  <span class="s3">method: &quot;POST&quot;,</span>
+<a name="l21"><span class="ln">21   </span></a>  <span class="s3">headers: { 'Content-Type':'application/json' },</span>
+<a name="l22"><span class="ln">22   </span></a>  <span class="s3">body: JSON.stringify({ pose:{x:0,y:0,theta:0}, prox:{front:2.0} })</span>
+<a name="l23"><span class="ln">23   </span></a><span class="s3">}).then(r=&gt;r.json()).then(console.log);</span>
+<a name="l24"><span class="ln">24   </span></a><span class="s0">```</span>
+<a name="l25"><span class="ln">25   </span></a>
+<a name="l26"><span class="ln">26   </span></a><span class="s2">If your function requires a token, add `Authorization</span><span class="s1">: </span><span class="s2">Bearer </span><span class="s1">&lt;</span><span class="s2">API_TOKEN</span><span class="s1">&gt;</span><span class="s2">`.</span>
+<a name="l27"><span class="ln">27   </span></a>
+<a name="l28"><span class="ln">28   </span></a><span class="s0">---</span>
+<a name="l29"><span class="ln">29   </span></a>
+<a name="l30"><span class="ln">30   </span></a><span class="s0">## </span><span class="s2">Oracle table for events</span>
+<a name="l31"><span class="ln">31   </span></a>
+<a name="l32"><span class="ln">32   </span></a><span class="s2">Example DDL </span><span class="s1">(</span><span class="s2">Oracle</span><span class="s1">):</span>
+<a name="l33"><span class="ln">33   </span></a>
+<a name="l34"><span class="ln">34   </span></a><span class="s0">```</span><span class="s3">sql</span>
+<a name="l35"><span class="ln">35   </span></a><span class="s3">CREATE TABLE NUR_EVENTS (</span>
+<a name="l36"><span class="ln">36   </span></a>  <span class="s3">ID        NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,</span>
+<a name="l37"><span class="ln">37   </span></a>  <span class="s3">TS_MS     NUMBER(13),</span>
+<a name="l38"><span class="ln">38   </span></a>  <span class="s3">KIND      VARCHAR2(16),</span>
+<a name="l39"><span class="ln">39   </span></a>  <span class="s3">PAYLOAD   CLOB</span>
+<a name="l40"><span class="ln">40   </span></a><span class="s3">);</span>
+<a name="l41"><span class="ln">41   </span></a><span class="s0">```</span>
+<a name="l42"><span class="ln">42   </span></a>
+<a name="l43"><span class="ln">43   </span></a><span class="s2">Example event payloads your `/events` endpoint may receive</span><span class="s1">:</span>
+<a name="l44"><span class="ln">44   </span></a>
+<a name="l45"><span class="ln">45   </span></a><span class="s0">```</span><span class="s3">json</span>
+<a name="l46"><span class="ln">46   </span></a><span class="s3">{ &quot;type&quot;: &quot;hal&quot;, &quot;data&quot;: { &quot;pose&quot;: {&quot;x&quot;:0.2,&quot;y&quot;:-0.1,&quot;theta&quot;:0.7}, &quot;prox&quot;: {&quot;front&quot;:1.8} } }</span>
+<a name="l47"><span class="ln">47   </span></a><span class="s0">```</span>
+<a name="l48"><span class="ln">48   </span></a>
+<a name="l49"><span class="ln">49   </span></a><span class="s0">```</span><span class="s3">json</span>
+<a name="l50"><span class="ln">50   </span></a><span class="s3">{ &quot;pose&quot;: {&quot;x&quot;:0.2,&quot;y&quot;:-0.1,&quot;theta&quot;:0.7}, &quot;prox&quot;: {&quot;front&quot;:1.8}, &quot;vision&quot;: {&quot;x&quot;:-0.15,&quot;size&quot;:0.04} }</span>
+<a name="l51"><span class="ln">51   </span></a><span class="s0">```</span>
+<a name="l52"><span class="ln">52   </span></a>
+<a name="l53"><span class="ln">53   </span></a><span class="s2">Persist as-is in PAYLOAD; store a millisecond timestamp in TS_MS.</span>
+<a name="l54"><span class="ln">54   </span></a>
+<a name="l55"><span class="ln">55   </span></a><span class="s0">---</span>
+<a name="l56"><span class="ln">56   </span></a>
+<a name="l57"><span class="ln">57   </span></a><span class="s0">## </span><span class="s2">Node oracledb – classic DSN</span>
+<a name="l58"><span class="ln">58   </span></a>
+<a name="l59"><span class="ln">59   </span></a><span class="s0">```</span><span class="s3">js</span>
+<a name="l60"><span class="ln">60   </span></a><span class="s3">const dsn = &quot;(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=&lt;host&gt;)(PORT=1521))\n&quot;+</span>
+<a name="l61"><span class="ln">61   </span></a>            <span class="s3">&quot;(CONNECT_DATA=(SERVICE_NAME=&lt;service&gt;)))&quot;;</span>
+<a name="l62"><span class="ln">62   </span></a><span class="s0">```</span>
+<a name="l63"><span class="ln">63   </span></a>
+<a name="l64"><span class="ln">64   </span></a><span class="s2">Use with `oracledb.getConnection</span><span class="s1">(</span><span class="s2">{ user, password, connectString</span><span class="s1">: </span><span class="s2">dsn }</span><span class="s1">)</span><span class="s2">`.</span>
+<a name="l65"><span class="ln">65   </span></a>
+<a name="l66"><span class="ln">66   </span></a><span class="s0">---</span>
+<a name="l67"><span class="ln">67   </span></a>
+<a name="l68"><span class="ln">68   </span></a><span class="s0">## </span><span class="s2">Infer response shape</span>
+<a name="l69"><span class="ln">69   </span></a>
+<a name="l70"><span class="ln">70   </span></a><span class="s2">Example response from `/infer` your front-end expects</span><span class="s1">:</span>
+<a name="l71"><span class="ln">71   </span></a>
+<a name="l72"><span class="ln">72   </span></a><span class="s0">```</span><span class="s3">json</span>
+<a name="l73"><span class="ln">73   </span></a><span class="s3">{ &quot;left&quot;: 0.46, &quot;right&quot;: 0.72, &quot;device&quot;: &quot;cpu|cuda&quot; }</span>
+<a name="l74"><span class="ln">74   </span></a><span class="s0">```</span>
+<a name="l75"><span class="ln">75   </span></a>
+<a name="l76"><span class="ln">76   </span></a><span class="s2">The dashboard’s `saas-client.js` uses</span><span class="s1">:</span>
+<a name="l77"><span class="ln">77   </span></a>
+<a name="l78"><span class="ln">78   </span></a><span class="s0">```</span><span class="s3">js</span>
+<a name="l79"><span class="ln">79   </span></a><span class="s3">const BASE = &quot;https://&lt;deine-function&gt;.azurewebsites.net&quot;;</span>
+<a name="l80"><span class="ln">80   </span></a><span class="s3">const HEAD = { &quot;Content-Type&quot;:&quot;application/json&quot;, &quot;Authorization&quot;:&quot;Bearer &lt;API_TOKEN&gt;&quot; };</span>
+<a name="l81"><span class="ln">81   </span></a>
+<a name="l82"><span class="ln">82   </span></a><span class="s3">async function inferAssist(state){</span>
+<a name="l83"><span class="ln">83   </span></a>  <span class="s3">const r = await fetch(BASE+&quot;/infer&quot;, { method:&quot;POST&quot;, headers: HEAD, body: JSON.stringify(state) });</span>
+<a name="l84"><span class="ln">84   </span></a>  <span class="s3">return r.json();</span>
+<a name="l85"><span class="ln">85   </span></a><span class="s3">}</span>
+<a name="l86"><span class="ln">86   </span></a><span class="s3">async function sendEvent(ev){</span>
+<a name="l87"><span class="ln">87   </span></a>  <span class="s3">await fetch(BASE+&quot;/events&quot;, { method:&quot;POST&quot;, headers: HEAD, body: JSON.stringify(ev) });</span>
+<a name="l88"><span class="ln">88   </span></a><span class="s3">}</span>
+<a name="l89"><span class="ln">89   </span></a><span class="s0">```</span>
+<a name="l90"><span class="ln">90   </span></a>
+<a name="l91"><span class="ln">91   </span></a><span class="s2">These helpers are also exposed by the UI via the SaaS card.</span>
+<a name="l92"><span class="ln">92   </span></a></pre>
+</body>
+</html>

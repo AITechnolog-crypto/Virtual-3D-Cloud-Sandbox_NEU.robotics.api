@@ -1,0 +1,88 @@
+<html>
+<head>
+<title>map.html</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #afb9c3;}
+.s1 { color: #ffc86e;}
+.s2 { color: #ff9696;}
+.s3 { color: #96be78;}
+.s4 { color: #61afe1;}
+.s5 { color: #36beff;}
+.s6 { color: #17bbdd;}
+.s7 { color: #c88cdc;}
+.s8 { color: #808080;}
+.ln { color: #555555; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1a2426">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+map.html</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">&lt;!doctype </span><span class="s1">html</span><span class="s0">&gt;</span>
+<a name="l2"><span class="ln">2    </span></a><span class="s0">&lt;</span><span class="s2">html </span><span class="s1">lang</span><span class="s3">=&quot;de&quot;</span><span class="s0">&gt;</span>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">&lt;</span><span class="s2">head</span><span class="s0">&gt;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">&lt;</span><span class="s2">meta </span><span class="s1">charset</span><span class="s3">=&quot;utf-8&quot;</span><span class="s0">&gt;</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">&lt;</span><span class="s2">meta </span><span class="s1">name</span><span class="s3">=&quot;viewport&quot; </span><span class="s1">content</span><span class="s3">=&quot;width=device-width,initial-scale=1&quot;</span><span class="s0">&gt;</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">&lt;</span><span class="s2">title</span><span class="s0">&gt;NurMap&lt;/</span><span class="s2">title</span><span class="s0">&gt;</span>
+<a name="l7"><span class="ln">7    </span></a><span class="s0">&lt;</span><span class="s2">link </span><span class="s1">rel</span><span class="s3">=&quot;stylesheet&quot; </span><span class="s1">href</span><span class="s3">=&quot;https://unpkg.com/leaflet@1.9.4/dist/leaflet.css&quot;</span><span class="s0">&gt;</span>
+<a name="l8"><span class="ln">8    </span></a><span class="s0">&lt;</span><span class="s2">style</span><span class="s0">&gt;</span>
+<a name="l9"><span class="ln">9    </span></a>  <span class="s2">html</span><span class="s0">,</span><span class="s2">body</span><span class="s0">,</span><span class="s4">#map</span><span class="s0">{</span><span class="s1">margin</span><span class="s0">:</span><span class="s5">0</span><span class="s0">;</span><span class="s1">height</span><span class="s0">:</span><span class="s5">100</span><span class="s0">%}</span>
+<a name="l10"><span class="ln">10   </span></a>  <span class="s4">#ui</span><span class="s0">{</span><span class="s1">position</span><span class="s0">:fixed;</span><span class="s1">left</span><span class="s0">:</span><span class="s5">10</span><span class="s0">px;</span><span class="s1">top</span><span class="s0">:</span><span class="s5">10</span><span class="s0">px;</span><span class="s1">z-index</span><span class="s0">:</span><span class="s5">5000</span><span class="s0">}</span>
+<a name="l11"><span class="ln">11   </span></a>  <span class="s2">button</span><span class="s0">{</span><span class="s1">background</span><span class="s0">:</span><span class="s6">#111</span><span class="s0">;</span><span class="s1">color</span><span class="s0">:</span><span class="s6">#eee</span><span class="s0">;</span><span class="s1">border</span><span class="s0">:</span><span class="s5">1</span><span class="s0">px solid </span><span class="s6">#333</span><span class="s0">;</span><span class="s1">padding</span><span class="s0">:</span><span class="s5">8</span><span class="s0">px </span><span class="s5">10</span><span class="s0">px;</span><span class="s1">border-radius</span><span class="s0">:</span><span class="s5">8</span><span class="s0">px}</span>
+<a name="l12"><span class="ln">12   </span></a><span class="s0">&lt;/</span><span class="s2">style</span><span class="s0">&gt;</span>
+<a name="l13"><span class="ln">13   </span></a><span class="s0">&lt;/</span><span class="s2">head</span><span class="s0">&gt;</span>
+<a name="l14"><span class="ln">14   </span></a><span class="s0">&lt;</span><span class="s2">body</span><span class="s0">&gt;</span>
+<a name="l15"><span class="ln">15   </span></a><span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;map&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l16"><span class="ln">16   </span></a><span class="s0">&lt;</span><span class="s2">div </span><span class="s1">id</span><span class="s3">=&quot;ui&quot;</span><span class="s0">&gt;</span>
+<a name="l17"><span class="ln">17   </span></a>  <span class="s0">&lt;</span><span class="s2">button </span><span class="s1">id</span><span class="s3">=&quot;btnLocate&quot;</span><span class="s0">&gt;Zu mir&lt;/</span><span class="s2">button</span><span class="s0">&gt;</span>
+<a name="l18"><span class="ln">18   </span></a><span class="s0">&lt;/</span><span class="s2">div</span><span class="s0">&gt;</span>
+<a name="l19"><span class="ln">19   </span></a><span class="s0">&lt;</span><span class="s2">script </span><span class="s1">src</span><span class="s3">=&quot;https://unpkg.com/leaflet@1.9.4/dist/leaflet.js&quot;</span><span class="s0">&gt;&lt;/</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l20"><span class="ln">20   </span></a><span class="s0">&lt;</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l21"><span class="ln">21   </span></a><span class="s0">(</span><span class="s7">function</span><span class="s0">(){</span>
+<a name="l22"><span class="ln">22   </span></a>  <span class="s7">const </span><span class="s0">map = L.map(</span><span class="s3">'map'</span><span class="s0">, {zoomControl:</span><span class="s7">true</span><span class="s0">}).setView([</span><span class="s5">48.137</span><span class="s0">, </span><span class="s5">11.575</span><span class="s0">], </span><span class="s5">5</span><span class="s0">);</span>
+<a name="l23"><span class="ln">23   </span></a>  <span class="s7">const </span><span class="s0">tiles = L.tileLayer(</span><span class="s3">'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'</span><span class="s0">,{</span>
+<a name="l24"><span class="ln">24   </span></a>    <span class="s0">maxZoom: </span><span class="s5">19</span><span class="s0">,</span>
+<a name="l25"><span class="ln">25   </span></a>    <span class="s0">attribution: </span><span class="s3">'&amp;copy; OpenStreetMap'</span>
+<a name="l26"><span class="ln">26   </span></a>  <span class="s0">}).addTo(map);</span>
+<a name="l27"><span class="ln">27   </span></a>
+<a name="l28"><span class="ln">28   </span></a>  <span class="s7">let </span><span class="s0">marker = </span><span class="s7">null</span><span class="s0">;</span>
+<a name="l29"><span class="ln">29   </span></a>
+<a name="l30"><span class="ln">30   </span></a>  <span class="s7">function </span><span class="s0">setTarget(lat,lng){</span>
+<a name="l31"><span class="ln">31   </span></a>    <span class="s7">if </span><span class="s0">(!marker){ marker = L.marker([lat,lng]).addTo(map); }</span>
+<a name="l32"><span class="ln">32   </span></a>    <span class="s0">marker.setLatLng([lat,lng]);</span>
+<a name="l33"><span class="ln">33   </span></a>    <span class="s0">map.setView([lat,lng], Math.max(</span><span class="s5">12</span><span class="s0">, map.getZoom()));</span>
+<a name="l34"><span class="ln">34   </span></a>    <span class="s7">try </span><span class="s0">{ window.parent.postMessage({type:</span><span class="s3">'map:setTarget'</span><span class="s0">, lat, lng}, </span><span class="s3">'*'</span><span class="s0">); } </span><span class="s7">catch</span><span class="s0">(_){ }</span>
+<a name="l35"><span class="ln">35   </span></a>  <span class="s0">}</span>
+<a name="l36"><span class="ln">36   </span></a>
+<a name="l37"><span class="ln">37   </span></a>  <span class="s8">// Klick setzt Ziel und informiert Hub</span>
+<a name="l38"><span class="ln">38   </span></a>  <span class="s0">map.on(</span><span class="s3">'click'</span><span class="s0">, e=&gt; setTarget(e.latlng.lat, e.latlng.lng));</span>
+<a name="l39"><span class="ln">39   </span></a>
+<a name="l40"><span class="ln">40   </span></a>  <span class="s8">// Hub kann die Karte zentrieren</span>
+<a name="l41"><span class="ln">41   </span></a>  <span class="s0">window.addEventListener(</span><span class="s3">'message'</span><span class="s0">, ev=&gt;{</span>
+<a name="l42"><span class="ln">42   </span></a>    <span class="s7">const </span><span class="s0">m = ev.data || {};</span>
+<a name="l43"><span class="ln">43   </span></a>    <span class="s7">if </span><span class="s0">(m.type === </span><span class="s3">'hub:centerOn'</span><span class="s0">){</span>
+<a name="l44"><span class="ln">44   </span></a>      <span class="s0">map.setView([m.lat, m.lng], Math.max(</span><span class="s5">12</span><span class="s0">, map.getZoom()));</span>
+<a name="l45"><span class="ln">45   </span></a>      <span class="s7">if </span><span class="s0">(!marker) marker = L.marker([m.lat,m.lng]).addTo(map);</span>
+<a name="l46"><span class="ln">46   </span></a>      <span class="s0">marker.setLatLng([m.lat,m.lng]);</span>
+<a name="l47"><span class="ln">47   </span></a>    <span class="s0">}</span>
+<a name="l48"><span class="ln">48   </span></a>  <span class="s0">});</span>
+<a name="l49"><span class="ln">49   </span></a>
+<a name="l50"><span class="ln">50   </span></a>  <span class="s8">// Zu mir</span>
+<a name="l51"><span class="ln">51   </span></a>  <span class="s0">document.getElementById(</span><span class="s3">'btnLocate'</span><span class="s0">).onclick = ()=&gt;{</span>
+<a name="l52"><span class="ln">52   </span></a>    <span class="s0">map.locate({setView:</span><span class="s7">true</span><span class="s0">, maxZoom:</span><span class="s5">15</span><span class="s0">, enableHighAccuracy:</span><span class="s7">true</span><span class="s0">});</span>
+<a name="l53"><span class="ln">53   </span></a>  <span class="s0">};</span>
+<a name="l54"><span class="ln">54   </span></a>  <span class="s0">map.on(</span><span class="s3">'locationfound'</span><span class="s0">, e=&gt;{</span>
+<a name="l55"><span class="ln">55   </span></a>    <span class="s7">if </span><span class="s0">(!marker) marker = L.marker(e.latlng).addTo(map);</span>
+<a name="l56"><span class="ln">56   </span></a>    <span class="s0">marker.setLatLng(e.latlng);</span>
+<a name="l57"><span class="ln">57   </span></a>    <span class="s7">try </span><span class="s0">{ window.parent.postMessage({type:</span><span class="s3">'map:setTarget'</span><span class="s0">, lat:e.latlng.lat, lng:e.latlng.lng}, </span><span class="s3">'*'</span><span class="s0">); } </span><span class="s7">catch</span><span class="s0">(_){ }</span>
+<a name="l58"><span class="ln">58   </span></a>  <span class="s0">});</span>
+<a name="l59"><span class="ln">59   </span></a><span class="s0">})();</span>
+<a name="l60"><span class="ln">60   </span></a><span class="s0">&lt;/</span><span class="s2">script</span><span class="s0">&gt;</span>
+<a name="l61"><span class="ln">61   </span></a><span class="s0">&lt;/</span><span class="s2">body</span><span class="s0">&gt;</span>
+<a name="l62"><span class="ln">62   </span></a><span class="s0">&lt;/</span><span class="s2">html</span><span class="s0">&gt;</span>
+<a name="l63"><span class="ln">63   </span></a></pre>
+</body>
+</html>

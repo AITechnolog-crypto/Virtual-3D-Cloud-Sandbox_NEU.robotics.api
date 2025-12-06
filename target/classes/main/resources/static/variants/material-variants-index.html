@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Material – Varianten‑Index (120)</title>
+<link rel="stylesheet" href="../LineLuxSharedStyles.css">
+<style>
+  body{background:#0b0f18;color:#e8f2ff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  h1{font-size:22px;margin:10px 0 14px;background:linear-gradient(90deg,#00ff88,#00ccff);-webkit-background-clip:text;color:transparent}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+  a{color:#a8ffdf;text-decoration:none}
+  .muted{color:#a9b4c6;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Material‑Varianten (120) – HTML‑Materialsammlung</h1>
+  <p class="muted">Diese Übersicht verlinkt 120 automatisch generierte Material‑Seiten (<code>mat‑01.html</code> … <code>mat‑120.html</code>). 
+  Falls eine Seite nicht als Datei existiert, erzeugt der Service Worker die Seite on‑the‑fly. 
+  Navigation: <a href="../linelux-style.html">Haupt‑UI</a> • <a href="variants-index.html">Varianten‑Index</a></p>
+  <div id="list" class="grid"></div>
+</div>
+<script>
+(function(){
+  const list = document.getElementById('list');
+  for(let i=1;i<=120;i++){
+    const n = String(i).padStart(2,'0');
+    const hue = Math.round((i/120)*360);
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = '<div style="font-weight:700;margin-bottom:6px;color:hsl('+hue+',85%,70%)">Material '+n+'</div>'+
+      '<div class="muted">Thema '+hue+'° • Auto‑Seite</div>'+
+      '<div style="margin-top:8px"><a href="mat-'+n+'.html">Öffnen</a></div>';
+    list.appendChild(div);
+  }
+})();
+</script>
+</body>
+</html>

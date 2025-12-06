@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <title>NurAR Mirror — Kamera → 3D Overlay</title>
+  <style>
+    html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:system-ui,Arial}
+    .wrap{position:fixed;inset:0}
+    /* Kamera-Hintergrund vollflächig */
+    #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+    /* 3D-Canvas oben drüber */
+    #stage{position:absolute;inset:0}
+    /* UI */
+    #ui{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:auto}
+    button,select{background:#111;color:#eee;border:1px solid #333;padding:10px 12px;border-radius:8px}
+    #gate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#000 0,#111 100%);z-index:10}
+    #gate > div{max-width:560px;padding:18px 20px;color:#eee;border:1px solid #333;border-radius:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px)}
+    #log{position:absolute;top:8px;left:8px;color:#bbb;font-size:12px;max-width:70vw;white-space:pre-line}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <video id="cam" autoplay playsinline muted></video>
+  <canvas id="stage"></canvas>
+  <div id="log"></div>
+
+  <div id="gate">
+    <div>
+      <h3 style="margin:0 0 8px 0">NurAR Mirror</h3>
+      <p style="margin:0 0 12px 0">Start drückt Kamera erlauben danach erscheint die reale Welt als Hintergrund und das 3D-Overlay oben drauf</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="start">Start</button>
+        <button id="flip">Kamera wechseln</button>
+      </div>
+      <p style="margin:12px 0 0 0;font-size:12px;opacity:.8">Hinweis iPhone benötigt Nutzer-Geste für Kamera und Gerätesensoren</p>
+    </div>
+  </div>
+
+  <div id="ui">
+    <button id="reset">Ausrichtung nullen</button>
+    <button id="cube">Würfel</button>
+    <button id="ring">Ring</button>
+    <button id="axis">Achsen</button>
+    <select id="quality">
+      <option value="low">Qualität niedrig</option>
+      <option value="med" selected>Qualität mittel</option>
+      <option value="high">Qualität hoch</option>
+    </select>
+  </div>
+</div>
+
+<!-- Three.js CDN -->
+<script src="https://unpkg.com/three@0.156.1/build/three.min.js"></script>
+
+<script>
+(() => {
+  const log = (m)=>{ document.getElementById('log').textContent = String(m) }
+
+  const video = document.getElementById('cam')
+  const canvas = document.getElementById('stage')
+  const gate = document.getElementById('gate')
+  const btnStart = document.getElementById('start')
+  const btnFlip = document.getElementById('flip')
+  const btnReset = document.getElementById('reset')
+  const btnCube = document.getElementById('cube')
+  const btnRing = document.getElementById('ring')
+  const btnAxis = document.getElementById('axis')
+  const selQ = document.getElementById('quality')
+
+  let facing = 'environment'
+  let stream = null
+
+  // Three.js Grundsetup
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:'high-performance' })
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.01, 1000)
+  camera.position.set(0,0,2)
+
+  // Licht
+  const amb = new THREE.AmbientLight(0xffffff, 0.8); scene.add(amb)
+  const dir = new THREE.DirectionalLight(0xffffff, 0.6); dir.position.set(1,1,1); scene.add(dir)
+
+  // Objekte
+  const group = new THREE.Group(); scene.add(group)
+  let mesh = null
+  let axes = null
+
+  function makeCube(){
+    if (mesh) group.remove(mesh)
+    const g = new THREE.BoxGeometry(0.5,0.5,0.5)
+    const m = new THREE.MeshStandardMaterial({ color:0x55ccff, roughness:0.4, metalness:0.2 })
+    mesh = new THREE.Mesh(g,m)
+    group.add(mesh)
+  }
+  function makeRing(){
+    if (mesh) group.remove(mesh)
+    const g = new THREE.TorusGeometry(0.5,0.18,24,64)
+    const m = new THREE.MeshStandardMaterial({ color:0xffaa33, roughness:0.2, metalness:0.6 })
+    mesh = new THREE.Mesh(g,m)
+    group.add(mesh)
+  }
+  function toggleAxes(){
+    if (axes) { scene.remove(axes); axes = null; return }
+    axes = new THREE.AxesHelper(1); scene.add(axes)
+  }
+
+  makeCube()
+
+  // Resize
+  function fit(){
+    const w = window.innerWidth, h = window.innerHeight
+    let scale = 1
+    if (selQ.value === 'low') scale = 0.7
+    if (selQ.value === 'high') scale = 1
+    renderer.setSize(w*scale, h*scale, false)
+    renderer.setPixelRatio(Math.min(devicePixelRatio, selQ.value==='high'?2:1.5))
+    camera.aspect = w/h
+    camera.updateProjectionMatrix()
+    canvas.style.width = '100%'; canvas.style.height = '100%'
+  }
+  window.addEventListener('resize', fit)
+  selQ.addEventListener('change', fit)
+
+  // Device Orientation Steuerung
+  let baseQuat = new THREE.Quaternion()
+  let currentQuat = new THREE.Quaternion()
+  let havePermissionAsked = false
+
+  function requestMotionPermissionIfNeeded(){
+    const doE = window.DeviceOrientationEvent
+    if (doE && typeof doE.requestPermission === 'function' && !havePermissionAsked){
+      havePermissionAsked = true
+      return doE.requestPermission().catch(()=>null)
+    }
+    return Promise.resolve()
+  }
+
+  function eulerToQuat(alpha, beta, gamma){
+    const deg2rad = Math.PI/180
+    const e = new THREE.Euler(beta*deg2rad, alpha*deg2rad, -gamma*deg2rad, 'YXZ')
+    const q = new THREE.Quaternion(); q.setFromEuler(e)
+    return q
+  }
+
+  function onOrientation(ev){
+    if (ev.absolute === null && ev.alpha === null) return
+    const q = eulerToQuat(ev.alpha||0, ev.beta||0, ev.gamma||0)
+    currentQuat.copy(q).premultiply(baseQuat)
+    group.setRotationFromQuaternion(currentQuat)
+  }
+
+  function resetOrientation(){
+    baseQuat.copy(group.quaternion.clone().invert())
+  }
+
+  // Kamera starten
+  async function startCamera(){
+    try {
+      if (stream) stream.getTracks().forEach(t=>t.stop())
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width:{ideal:1920}, height:{ideal:1080} },
+        audio: false
+      })
+      video.srcObject = stream
+      await video.play()
+      fit()
+      gate.style.display = 'none'
+      log('')
+    } catch(e){
+      log('Kamera Fehler ' + e)
+    }
+  }
+
+  // Render-Loop
+  let tPrev = performance.now()
+  function tick(){
+    const t = performance.now()
+    const dt = (t - tPrev) / 1000
+    tPrev = t
+    if (mesh){
+      mesh.rotation.y += dt * 0.5
+    }
+    renderer.render(scene, camera)
+    requestAnimationFrame(tick)
+  }
+  tick()
+  fit()
+
+  // UI Events
+  btnStart.addEventListener('click', async ()=>{
+    await requestMotionPermissionIfNeeded()
+    window.addEventListener('deviceorientation', onOrientation)
+    startCamera()
+  })
+  btnFlip.addEventListener('click', ()=>{
+    facing = (facing === 'environment') ? 'user' : 'environment'
+    startCamera()
+    // Spiegelung Frontkamera aktiv, Rückkamera unsichtbar gespiegelt
+    video.style.transform = facing==='user' ? 'scaleX(-1)' : 'scaleX(-1)'
+  })
+  btnReset.addEventListener('click', resetOrientation)
+  btnCube.addEventListener('click', makeCube)
+  btnRing.addEventListener('click', makeRing)
+  btnAxis.addEventListener('click', toggleAxes)
+
+  // Fallback wenn keine Motion Events
+  setTimeout(()=>{ if (!('ondeviceorientation' in window)) log('Hinweis Gerät liefert keine Orientation Events – Rotation per Touch denkbar') }, 2000)
+
+  // Touch-Drag Rotation als Backup
+  let drag=false, lx=0, ly=0
+  canvas.addEventListener('pointerdown', e=>{ drag=true; lx=e.clientX; ly=e.clientY })
+  canvas.addEventListener('pointerup',   ()=> drag=false)
+  canvas.addEventListener('pointermove', e=>{
+    if (!drag) return
+    const dx = (e.clientX - lx)/window.innerWidth
+    const dy = (e.clientY - ly)/window.innerHeight
+    group.rotation.y += dx * Math.PI
+    group.rotation.x += dy * Math.PI
+    lx=e.clientX; ly=e.clientY
+  })
+})();
+</script>
+
+<!-- Optional: Externe App im IFrame (Kamera/Bewegung erlauben) -->
+<div style="position:fixed;left:8px;bottom:8px;z-index:20;display:flex;gap:8px;flex-wrap:wrap">
+  <details style="background:rgba(0,0,0,.6);color:#ddd;border:1px solid #333;border-radius:8px;padding:8px">
+    <summary>Externe App (IFrame)</summary>
+    <iframe
+      src="https://dein-replit-hostname.repl.co"
+      style="width:100%;max-width:640px;height:360px;border:0"
+      allow="camera; microphone; accelerometer; gyroscope; fullscreen; xr-spatial-tracking"
+      referrerpolicy="no-referrer"
+      title="NurAR External"
+    ></iframe>
+  </details>
+</div>
+
+</body>
+</html>

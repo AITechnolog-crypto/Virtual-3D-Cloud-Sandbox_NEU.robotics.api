@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🤖 Tradebot – Live Zähler & HTML‑Hub</title>
+  <link rel="stylesheet" href="LineLuxSharedStyles.css">
+  <style>
+    :root{ --accent:#00ff88; --accent2:#00ccff }
+    body{background:#0b0f18;color:#eaf3ff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
+    header{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:6px 0 14px}
+    h1{font-size:22px;margin:0;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    .links a{display:inline-block;margin-right:10px;color:#a8ffdf;text-decoration:none}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .title{font-weight:800;color:#a8ffdf;margin-bottom:8px}
+    .value{font-size:2rem;font-weight:900;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    .muted{color:#9fb0c9;font-size:13px}
+    .ok{color:#63ffa8}
+    .err{color:#ff6886}
+    .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001;display:inline-block;padding:8px 12px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;font-weight:700}
+    .btn.ghost{background:rgba(255,255,255,.06);color:#eaf3ff;border:1px solid rgba(255,255,255,.12)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🤖 Tradebot — Live‑Zähler & HTML‑Hub</h1>
+    <nav class="links">
+      <a href="linelux-style.html">Haupt‑UI</a>
+      <a href="variants/variants-index.html">Varianten‑Index</a>
+      <a href="tradebot-index.html">Tradebot‑Index</a>
+    </nav>
+  </header>
+
+  <div class="grid" aria-label="Live Metriken">
+    <div class="card" role="status" aria-live="polite">
+      <div class="title">🚁 Drohnen (DB/Mock)</div>
+      <div id="mDrones" class="value">–</div>
+      <div class="muted">Quelle: /api/drones/count</div>
+    </div>
+    <div class="card" role="status" aria-live="polite">
+      <div class="title">🤖 Robotics (Fallback)</div>
+      <div id="mRobotics" class="value">–</div>
+      <div class="muted">Quelle: /api/robots/count (Mock möglich)</div>
+    </div>
+    <div class="card" role="status" aria-live="polite">
+      <div class="title">🦗 Tarngrillen‑Schwarm</div>
+      <div id="mSwarm" class="value">10.0B</div>
+      <div class="muted">Animierter Demo‑Zähler</div>
+    </div>
+    <div class="card" role="status" aria-live="polite">
+      <div class="title">⚡ Energie (kWh)</div>
+      <div id="mEnergy" class="value">–</div>
+      <div class="muted">Quelle: /api/telemetry/status</div>
+    </div>
+    <div class="card">
+      <div class="title">☕ Java‑Programmierungen (Zähler)</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px" id="javaCounts">
+        <div class="muted">Controller</div><div id="jc-ctrl">–</div>
+        <div class="muted">Services</div><div id="jc-svc">–</div>
+        <div class="muted">Repos</div><div id="jc-repo">–</div>
+        <div class="muted">Modelle</div><div id="jc-model">–</div>
+      </div>
+      <div class="muted" style="margin-top:6px">Quelle: /api/meta/java-counts (Mock für Vorschau)</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="title">🔗 Schnellzugriff</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn" href="tradebot-index.html">📚 Tradebot‑Seiten</a>
+      <a class="btn ghost" href="variants/variants-index.html">🔁 Varianten (50)</a>
+      <button id="btnHardReload" class="btn ghost">Cache leeren & neu laden</button>
+    </div>
+    <div id="sysMsg" class="muted" style="margin-top:8px">Bereit…</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const API = location.origin + '/api';
+  const sysMsg = document.getElementById('sysMsg');
+  function setMsg(t,ok){ sysMsg.textContent = t; sysMsg.className = 'muted ' + (ok?'ok':''); }
+  async function fetchNum(url){ try{ const r=await fetch(url,{cache:'no-store'}); if(!r.ok) return null; const ct=r.headers.get('content-type')||''; if(ct.includes('application/json')){ const j=await r.json(); return typeof j==='number'? j : (Array.isArray(j)? j.length : null); } const t=await r.text(); const n=Number(t); return isFinite(n)? n:null; }catch(e){ return null; } }
+  async function tick(){
+    try{ const d = await fetchNum(API+'/drones/count'); if(d!=null) document.getElementById('mDrones').textContent = d.toLocaleString('de-DE'); }catch(e){}
+    try{ const r = await fetchNum(API+'/robots/count'); if(r!=null) document.getElementById('mRobotics').textContent = r.toLocaleString('de-DE'); }catch(e){}
+    try{ const s = await fetch(API+'/telemetry/status').then(r=>r.ok?r.json():null).catch(()=>null); if(s&&s.metrics&&typeof s.metrics.energy==='number'){ document.getElementById('mEnergy').textContent = Number(s.metrics.energy).toLocaleString('de-DE'); }
+    }catch(e){}
+  }
+  function animateSwarm(){
+    const el = document.getElementById('mSwarm');
+    let base = 10_000_000_000; let dir = 1;
+    function step(){ base += dir * (Math.random()*8_000_000); if(base>10.3e9){dir=-1;} if(base<9.9e9){dir=1;} el.textContent = (base/1e9).toFixed(1)+'B'; requestAnimationFrame(step); }
+    step();
+  }
+  async function loadJavaCounts(){
+    try{ const j = await fetch(API+'/meta/java-counts').then(r=>r.json()); if(j){
+      document.getElementById('jc-ctrl').textContent = j.controllers;
+      document.getElementById('jc-svc').textContent  = j.services;
+      document.getElementById('jc-repo').textContent = j.repositories;
+      document.getElementById('jc-model').textContent= j.models;
+    } setMsg('Live‑Abrufe aktiv.', true);
+    }catch(e){ setMsg('Hinweis: Meta‑Zähler als Mock verfügbar (SW).', false); }
+  }
+  // SW registrieren (für Mock‑APIs/Offline‑Vorschau)
+  if ('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw-mock-api.js').catch(()=>{}); }); }
+  // Events
+  document.getElementById('btnHardReload').addEventListener('click', async ()=>{
+    try{
+      if (navigator.serviceWorker){ const regs = await navigator.serviceWorker.getRegistrations(); for(const r of regs){ try{ await r.unregister(); }catch(_){} } }
+      if (window.caches && caches.keys){ const ks = await caches.keys(); for(const k of ks){ try{ await caches.delete(k); }catch(_){} } }
+    }catch(_){}
+    const u = new URL(location.href); u.searchParams.set('v', Date.now()); location.replace(u.toString());
+  });
+  // Start
+  animateSwarm(); loadJavaCounts(); tick(); setInterval(tick, 6000);
+})();
+</script>
+</body>
+</html>

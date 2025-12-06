@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LineLux Variante 02 – Dashboard Mini</title>
+<link rel="stylesheet" href="../LineLuxSharedStyles.css">
+<style>:root{--h:14} body{background:hsl(var(--h),35%,8%);color:#eef6ff;font-family:system-ui,Segoe UI,Roboto,Arial}.wrap{max-width:980px;margin:0 auto;padding:18px}h1{font-size:24px;margin:8px 0 12px;background:linear-gradient(90deg,hsl(var(--h),90%,60%),#00ccff);-webkit-background-clip:text;color:transparent}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}button{background:linear-gradient(135deg,#00ff88,#00ccff);color:#001a12;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LineLux – Variante 02 (Mini‑Dashboard)</h1>
+  <div class="grid">
+    <div class="card"><div class="muted">Energie</div><div id="v2Energy" style="font-weight:700;font-size:20px">2.800 kWh</div><button onclick="collect()">+ Sammeln</button></div>
+    <div class="card"><div class="muted">Drohnen</div><div id="v2Drones" style="font-weight:700;font-size:20px">1.200</div><button onclick="deploy()">Deploy</button></div>
+    <div class="card"><div class="muted">Einnahmen/h</div><div id="v2In" style="font-weight:700;font-size:20px">1.250 €</div><button onclick="boost()">Boost</button></div>
+  </div>
+  <p style="margin-top:10px"><a href="../linelux-style.html">Zur Haupt‑UI</a> • <a href="variants-index.html">Varianten</a></p>
+</div>
+<script>
+const API = location.origin + '/api';
+function n(x){return Number(x).toLocaleString('de-DE')}
+async function collect(){ try{ await fetch(API+'/energy/collect',{method:'POST'}); }catch(e){} const el=document.getElementById('v2Energy'); const v=parseInt(el.textContent.replace(/[^0-9]/g,'')); el.textContent=n(v+150)+' kWh'; }
+async function deploy(){ try{ await fetch(API+'/robots/deploy',{method:'POST'}); }catch(e){} const el=document.getElementById('v2Drones'); const v=parseInt(el.textContent.replace(/[^0-9]/g,'')); el.textContent=n(v+50); }
+function boost(){ const el=document.getElementById('v2In'); const v=parseInt(el.textContent.replace(/[^0-9]/g,'')); el.textContent=n(v+50)+' €'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Aggro Secure – Instanz (Satellit & Echtzeit)</title>
+<link rel="stylesheet" href="LineLuxSharedStyles.css">
+<style>
+  :root{ --accent:#88ffc8; --bg:#07120f; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:#e8fff3;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  header{position:sticky;top:0;z-index:10;background:rgba(7,18,15,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(168,255,223,.2)}
+  .wrap{max-width:1200px;margin:0 auto;padding:12px 16px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand h1{margin:0;font-size:18px;background:linear-gradient(90deg,var(--accent),#00cc88);-webkit-background-clip:text;color:transparent}
+  nav a{color:#88ffc8;margin-right:12px;text-decoration:none}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px}
+  .card{background:rgba(255,255,255,.04);border:1px solid rgba(168,255,223,.22);border-radius:12px;padding:12px}
+  .stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .stat .lbl{color:#a8dfc4;font-size:12px}
+  .stat .val{font-weight:900;font-size:22px;background:linear-gradient(90deg,var(--accent),#00cc88);-webkit-background-clip:text;color:transparent}
+  #map{width:100%;height:420px;border-radius:10px;overflow:hidden}
+  #cam{width:100%;height:420px;border-radius:10px;background:#000;display:block}
+  .muted{color:#a8dfc4;font-size:12px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  .btn{background:linear-gradient(135deg,var(--accent),#00cc88);color:#000;border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+  .ghost{background:rgba(255,255,255,.06);color:#e8fff3;border:1px solid rgba(168,255,223,.25)}
+  .banner{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.35);color:#a8ffdf;border-radius:10px;padding:8px 10px;margin:8px 0}
+  @media (max-width:960px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="brand"><div>🛡️</div><h1>Aggro Secure</h1></div>
+    <nav>
+      <a href="linelux-style.html">Haupt‑UI</a>
+      <a href="instances-index.html">Instanzen‑Index</a>
+      <a href="variants/variants-index.html">Varianten</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="banner">Sicherheitsmodus aktiv — ausschließlich defensive Simulation, keine reale Steuerung. Kamera‑Overlay anonymisiert.</div>
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><div class="lbl">⚡ Energie</div><div class="val" id="stEnergy">–</div></div>
+      <div class="stat"><div class="lbl">🚁 Drohnen</div><div class="val" id="stDrones">–</div></div>
+      <div class="stat"><div class="lbl">🤖 Roboter</div><div class="val" id="stRobots">–</div></div>
+      <div class="stat"><div class="lbl">🦗 Tarngrillen</div><div class="val" id="stGrylls">–</div></div>
+      <div class="stat"><div class="lbl">🎯 Threats</div><div class="val" id="stThreats">0</div></div>
+    </div>
+    <div class="muted" id="providerHint" style="margin-top:6px">Karte wird initialisiert…</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn" id="btnGoogle">Google Maps</button>
+        <button class="btn ghost" id="btnLeaflet">Leaflet</button>
+        <button class="btn ghost" id="btnSat">Satellit</button>
+        <button class="btn ghost" id="btnHybrid">Hybrid</button>
+      </div>
+      <div id="map" aria-label="Karte mit Tracking"></div>
+    </div>
+    <div class="card">
+      <div class="toolbar" style="justify-content:space-between">
+        <div class="muted">Modus:</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn ghost" id="btnCam">Kamera</button>
+          <button class="btn" id="btnRadar">Radar</button>
+        </div>
+      </div>
+      <canvas id="cam" aria-label="Kamera Simulation" style="display:none"></canvas>
+      <canvas id="radar" aria-label="Radar (High-Res)" style="width:100%;height:420px;border-radius:10px;background:#000;display:block"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('sw-mock-api.js').catch(()=>{}) ); }
+const API = location.origin + '/api';
+const LS_GMAPS_KEY = 'gmaps_key';
+let gmKey = localStorage.getItem(LS_GMAPS_KEY) || '';
+let mapProvider = localStorage.getItem('map_provider') || 'auto';
+let gmap, leaflet;
+let droneMarkers=[], gryllMarkers=[];
+let drones=[{id:'D-S1',lat:50.11,lng:8.68},{id:'D-S2',lat:52.52,lng:13.40},{id:'D-S3',lat:48.14,lng:11.58}];
+let grylls=Array.from({length:10},(_,i)=>({id:'G-'+(i+1),lat:49+Math.random()*4,lng:7+Math.random()*8}));
+let threats=0;
+function setText(id, v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+function fmt(n){ try{return Number(n).toLocaleString('de-DE');}catch(e){return String(n);} }
+async function poll(){
+  try{ const r=await fetch(API+'/telemetry/status'); const j=await r.json(); setText('stEnergy', fmt(j.metrics.energy)+' kWh'); }catch(e){}
+  try{ const r=await fetch(API+'/drones/count'); setText('stDrones', fmt(await r.json())); }catch(e){ setText('stDrones', fmt(drones.length)); }
+  try{ const r=await fetch(API+'/robots/count'); setText('stRobots', fmt(await r.json())); }catch(e){ setText('stRobots','2'); }
+  setText('stGrylls', fmt(grylls.length)); if(Math.random()>0.985){ threats++; setText('stThreats', String(threats)); }
+}
+function loadLeaflet(cb){ if(window.L){cb();return;} const link=document.createElement('link'); link.rel='stylesheet'; link.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(link); const s=document.createElement('script'); s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; s.defer=true; s.onload=cb; document.head.appendChild(s); }
+function loadGoogle(cb){ if(window.google&&google.maps){cb();return;} if(!gmKey){ gmKey=prompt('Google Maps API‑Key:','')||''; if(gmKey) localStorage.setItem(LS_GMAPS_KEY, gmKey); } if(!gmKey){ cb(new Error('no-key')); return; } const s=document.createElement('script'); s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(gmKey); s.async=true; s.defer=true; s.onload=()=>cb(); s.onerror=()=>cb(new Error('gmaps-fail')); document.head.appendChild(s); }
+function clearMarkers(){ if(gmap){ droneMarkers.forEach(m=>m.setMap(null)); gryllMarkers.forEach(m=>m.setMap(null)); } if(leaflet){ droneMarkers.forEach(m=>{try{leaflet.removeLayer(m);}catch(_){}}); gryllMarkers.forEach(m=>{try{leaflet.removeLayer(m);}catch(_){}}); } droneMarkers=[]; gryllMarkers=[]; }
+function addMarkers(provider){ clearMarkers(); if(provider==='google'){ drones.forEach(d=>{ droneMarkers.push(new google.maps.Marker({position:{lat:d.lat,lng:d.lng},map:gmap,title:d.id})); }); grylls.forEach(g=>{ gryllMarkers.push(new google.maps.Marker({position:{lat:g.lat,lng:g.lng},map:gmap,title:g.id,icon:{path:google.maps.SymbolPath.CIRCLE,scale:4,fillColor:'#88ffc8',fillOpacity:0.9,strokeColor:'#00aa66',strokeWeight:1}})); }); } else { drones.forEach(d=>{ droneMarkers.push(L.marker([d.lat,d.lng]).addTo(leaflet).bindPopup(d.id)); }); grylls.forEach(g=>{ gryllMarkers.push(L.circleMarker([g.lat,g.lng],{radius:5,color:'#00aa66',fillColor:'#88ffc8',fillOpacity:0.9}).addTo(leaflet).bindPopup(g.id)); }); } }
+function step(){ function j(o){ o.lat+=(Math.random()-0.5)*0.05; o.lng+=(Math.random()-0.5)*0.05; } drones.forEach(j); grylls.forEach(j); if(gmap){ drones.forEach((d,i)=>droneMarkers[i]?.setPosition(new google.maps.LatLng(d.lat,d.lng))); grylls.forEach((g,i)=>gryllMarkers[i]?.setPosition(new google.maps.LatLng(g.lat,g.lng))); } if(leaflet){ drones.forEach((d,i)=>droneMarkers[i]?.setLatLng([d.lat,d.lng])); grylls.forEach((g,i)=>gryllMarkers[i]?.setLatLng([g.lat,g.lng])); } }
+function initCam(){ const c=document.getElementById('cam'); const ctx=c.getContext('2d'); function rs(){ c.width=c.clientWidth; c.height=c.clientHeight; } window.addEventListener('resize',rs); rs(); (function draw(){ const w=c.width,h=c.height; ctx.fillStyle='#000'; ctx.fillRect(0,0,w,h); ctx.strokeStyle='rgba(136,255,200,.16)'; for(let x=0;x<w;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); } for(let y=0;y<h;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); } ctx.fillStyle='#ff6040'; ctx.beginPath(); ctx.arc(18,18,6,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#e8fff3'; ctx.font='12px ui-monospace,monospace'; ctx.fillText('REC',30,22); function proj(lat,lng){ return {x:(lng+180)/360*w,y:(90-lat)/180*h}; } ctx.fillStyle='#66e0ff'; drones.forEach(d=>{ const p=proj(d.lat,d.lng); ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fill(); ctx.fillText(d.id,p.x+6,p.y-6); }); ctx.fillStyle='#88ffc8'; grylls.forEach(g=>{ const p=proj(g.lat,g.lng); ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill(); }); requestAnimationFrame(draw); })(); }
+function useLeaflet(){ const hint=document.getElementById('providerHint'); if(hint) hint.textContent='Leaflet/OSM aktiv (kein Google‑Key)'; loadLeaflet(()=>{ leaflet=L.map('map').setView([50.11,8.68],5); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(leaflet); addMarkers('leaflet'); }); }
+function useGoogle(type){ const hint=document.getElementById('providerHint'); if(hint) hint.textContent='Google Maps aktiv (Satellit)'; loadGoogle((err)=>{ if(err){ useLeaflet(); return; } gmap=new google.maps.Map(document.getElementById('map'),{center:{lat:50.11,lng:8.68},zoom:5,mapTypeId:type||'satellite',tilt:67.5}); addMarkers('google'); }); }
+function init(){ document.getElementById('btnGoogle').addEventListener('click',()=>useGoogle('satellite')); document.getElementById('btnLeaflet').addEventListener('click',useLeaflet); document.getElementById('btnSat').addEventListener('click',()=>{ if(gmap){ gmap.setMapTypeId('satellite'); try{ gmap.setTilt(67.5);}catch(_){} } }); document.getElementById('btnHybrid').addEventListener('click',()=>{ if(gmap){ gmap.setMapTypeId('hybrid'); try{ gmap.setTilt(67.5);}catch(_){} } }); if(gmKey){ useGoogle('satellite'); } else { useLeaflet(); } initCam(); poll(); setInterval(poll,5000); setInterval(step,2500); }
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+
+<script>
+(function(){
+  function initRadar(){
+    try{
+      const cv = document.getElementById('radar'); if(!cv) return;
+      const ctx = cv.getContext('2d');
+      let pxr = Math.min(window.devicePixelRatio||1, 2);
+      function resize(){ const w=cv.clientWidth, h=cv.clientHeight; cv.width=Math.max(1,Math.floor(w*pxr)); cv.height=Math.max(1,Math.floor(h*pxr)); ctx.setTransform(pxr,0,0,pxr,0,0); }
+      window.addEventListener('resize', resize); resize();
+      function center(){ try{ if (window.gmap){ const c=gmap.getCenter(); return {lat:c.lat(), lng:c.lng()}; } if (window.leaflet){ const c=leaflet.getCenter(); return {lat:c.lat, lng:c.lng}; } }catch(_){} return {lat:50.11,lng:8.68}; }
+      let angle = 0; const SCALE_DEG = 2.0;
+      function draw(){
+        const w=cv.clientWidth, h=cv.clientHeight; const cx=w/2, cy=h/2; const r=Math.min(w,h)*0.46;
+        ctx.fillStyle='#000'; ctx.globalAlpha=0.18; ctx.fillRect(0,0,w,h); ctx.globalAlpha=1;
+        ctx.strokeStyle='rgba(136,255,200,.16)'; ctx.lineWidth=1;
+        [0.25,0.5,0.75,1].forEach(k=>{ ctx.beginPath(); ctx.arc(cx,cy,r*k,0,Math.PI*2); ctx.stroke(); });
+        for(let a=0;a<360;a+=30){ const rad=a*Math.PI/180; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(rad)*r, cy+Math.sin(rad)*r); ctx.stroke(); }
+        const sweepAng = angle; const sweepRad = sweepAng*Math.PI/180;
+        const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,r); grad.addColorStop(0,'rgba(0,204,136,.2)'); grad.addColorStop(1,'rgba(0,204,136,0)');
+        ctx.save(); ctx.translate(cx,cy); ctx.rotate(sweepRad); ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,0,Math.PI/36); ctx.closePath(); ctx.fillStyle=grad; ctx.fill(); ctx.restore();
+        function blip(lat,lng,color){ const c=center(); const dlat=lat-c.lat; const dlng=(lng-c.lng)*Math.cos(c.lat*Math.PI/180); const m=Math.hypot(dlng/SCALE_DEG,dlat/SCALE_DEG); const rr=Math.min(1,m); const x=(dlng/SCALE_DEG)/(m||1)*rr*r; const y=(-dlat/SCALE_DEG)/(m||1)*rr*r; const bx=cx+x, by=cy+y; const bearing=(Math.atan2(y,x)*180/Math.PI+360)%360; const diff=Math.min(Math.abs(bearing-sweepAng),360-Math.abs(bearing-sweepAng)); const pulse=diff<6; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(bx,by,pulse?3.8:2.4,0,Math.PI*2); ctx.fill(); if(pulse){ ctx.strokeStyle=color; ctx.globalAlpha=0.6; ctx.beginPath(); ctx.arc(bx,by,8,0,Math.PI*2); ctx.stroke(); ctx.globalAlpha=1; } }
+        try{ (window.drones||[]).forEach(d=> blip(d.lat,d.lng,'#66e0ff')); }catch(_){ }
+        try{ (window.grylls||[]).forEach(g=> blip(g.lat,g.lng,'#88ffc8')); }catch(_){ }
+        ctx.fillStyle='#00cc88'; ctx.globalAlpha=0.8; ctx.beginPath(); ctx.arc(cx,cy,2.2,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+        angle=(angle+1.2)%360; requestAnimationFrame(draw);
+      }
+      draw();
+    }catch(e){ }
+  }
+  function showRadar(flag){ try{ const cam=document.getElementById('cam'); const rad=document.getElementById('radar'); if (cam) cam.style.display = flag? 'none':'block'; if (rad) rad.style.display = flag? 'block':'none'; }catch(_){ } }
+  window.addEventListener('DOMContentLoaded', ()=>{
+    try{
+      initRadar(); showRadar(true);
+      const bCam=document.getElementById('btnCam'), bRad=document.getElementById('btnRadar');
+      if (bCam) bCam.addEventListener('click', ()=> showRadar(false));
+      if (bRad) bRad.addEventListener('click', ()=> showRadar(true));
+    }catch(e){}
+  });
+})();
+</script>

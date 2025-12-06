@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtuelle 3D Cloud Sandbox – Zentrales Dashboard</title>
+  <link rel="stylesheet" href="LineLuxSharedStyles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="line_lux3_d_background_module.js" defer></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    body { background: #000; color: #fff; font-family: 'Inter', system-ui, sans-serif; }
+    #bg-canvas { position:fixed; inset:0; width:100%; height:100%; z-index:0; }
+    .content { position:relative; z-index:1; }
+    .dashboard-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap:24px; padding:24px; max-width:1800px; margin:0 auto; }
+    .card { background:rgba(255,255,255,.05); border:1px solid rgba(0,255,136,.2); border-radius:15px; padding:20px; }
+    .card-title { font-size:1.2rem; color:#00ff88; margin-bottom:15px; }
+    .section-title { font-size:1.4rem; color:#00ccff; margin:30px 0 10px 0; }
+    .map-container { height:340px; border-radius:12px; overflow:hidden; }
+    .btn { background: linear-gradient(135deg,#00ff88,#00cc6e); color:#000; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; margin:5px; }
+    .btn-ar { background: linear-gradient(135deg,#00ccff,#00ff88); color:#000; }
+    .data-table { width:100%; border-collapse:collapse; margin-top:15px; }
+    .data-table th, .data-table td { padding:10px; border-bottom:1px solid rgba(255,255,255,.1); }
+    .data-table th { background:rgba(0,255,136,.1); }
+    .loading { text-align:center; padding:40px; color:#00ff88; }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="content">
+  <h1 style="margin:30px 0 10px 0; background:linear-gradient(135deg,#00ff88,#00ccff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Virtuelle 3D Cloud Sandbox – Zentrales Dashboard</h1>
+  <nav style="margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap">
+    <button class="btn" onclick="showTab('mapTab')">🌍 Karten/Satelliten</button>
+    <button class="btn" onclick="showTab('droneTab')">🚁 Drohnen/Roboter</button>
+    <button class="btn" onclick="showTab('financeTab')">💰 Finanzen/Trading</button>
+    <button class="btn" onclick="showTab('systemTab')">🛡️ Systemstatus</button>
+    <button class="btn" onclick="showTab('arTab')">🕶️ AR/3D</button>
+    <button class="btn" onclick="showTab('kiTab')">🤖 KI/Chat</button>
+    <button class="btn" onclick="showTab('instanzTab')">📦 Instanzen</button>
+    <button class="btn" onclick="showTab('analyseTab')">📈 Echtzeitdaten</button>
+  </nav>
+  <div id="mapTab" class="dashboard-grid tabSection">
+    <div class="card"><div class="card-title">🌍 Karten & Satelliten</div><div id="map" class="map-container"></div><button class="btn" onclick="centerOnMe()">Zu mir</button></div>
+  </div>
+  <div id="droneTab" class="dashboard-grid tabSection" style="display:none">
+    <div class="card"><div class="card-title">🚁 Drohnen & Roboter</div><div id="droneRobotList" class="loading">Lade Daten...</div><button class="btn" onclick="loadDronesRobots()">🔄 Neu laden</button></div>
+  </div>
+  <div id="financeTab" class="dashboard-grid tabSection" style="display:none">
+    <div class="card"><div class="card-title">💰 Finanzen & Transaktionen</div><div id="financeList" class="loading">Lade Daten...</div><button class="btn" onclick="loadFinance()">🔄 Neu laden</button></div>
+    <div class="card"><div class="card-title">📊 Trading</div><iframe src="variants/tradebot-01.html" style="width:100%;height:340px;border:none;border-radius:12px"></iframe></div>
+  </div>
+  <div id="systemTab" class="dashboard-grid tabSection" style="display:none">
+    <div class="card"><div class="card-title">🛡️ Systemstatus & Aktionen</div><div id="systemStatus" class="loading">Lade Daten...</div><button class="btn" onclick="loadSystemStatus()">🔄 Neu laden</button><button class="btn btn-ar" onclick="startAR()">AR-Ansicht starten</button></div>
+  </div>
+  <div id="arTab" class="dashboard-grid tabSection" style="display:none">
+    <div class="card"><div class="card-title">🕶️ AR/3D</div><iframe src="ar.html" style="width:100%;height:340px;border:none;border-radius:12px"></iframe></div>
+    <div class="card"><div class="card-title">3D Hintergrund</div><iframe src="linelux_3DBackgroundPage.html" style="width:100%;height:340px;border:none;border-radius:12px"></iframe></div>
+  </div>
+  <div id="kiTab" class="dashboard-grid tabSection" style="display:none">
+    <div class="card"><div class="card-title">🤖 KI/Chat</div><iframe src="app-manager-chat.html" style="width:100%;height:340px;border:none;border-radius:12px"></iframe></div>
+  </div>
+  <div id="instanzTab" class="dashboard-grid tabSection" style="display:none">
+    <div class="card"><div class="card-title">📦 Instanzen</div><iframe src="instance-aggrokommerz.html" style="width:100%;height:340px;border:none;border-radius:12px"></iframe></div>
+    <div class="card"><div class="card-title">Weitere Instanzen</div><iframe src="instances-index.html" style="width:100%;height:340px;border:none;border-radius:12px"></iframe></div>
+  </div>
+  <div id="analyseTab" class="dashboard-grid tabSection" style="display:none">
+    <div class="card"><div class="card-title">📈 Echtzeit-Analyse</div><canvas id="realtimeChart" style="height:180px;"></canvas></div>
+    <div class="card"><div class="card-title">Cloud-Architektur</div><iframe src="cloud-architecture.html" style="width:100%;height:340px;border:none;border-radius:12px"></iframe></div>
+  </div>
+</div>
+<script>
+function showTab(tabId){
+  document.querySelectorAll('.tabSection').forEach(e=>e.style.display='none');
+  document.getElementById(tabId).style.display='grid';
+}
+// Karten-Integration (Leaflet)
+let map;
+document.addEventListener('DOMContentLoaded', ()=>{
+  map = L.map('map', {zoomControl:true}).setView([48.137, 11.575], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+});
+function centerOnMe(){
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+      L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map);
+    });
+  }
+}
+// Drohnen & Roboter
+async function loadDronesRobots(){
+  const el = document.getElementById('droneRobotList');
+  el.innerHTML = '<div class="loading">Lade...</div>';
+  try {
+    const drones = await fetch('/api/drones').then(r=>r.json());
+    const robots = await fetch('/api/robots').then(r=>r.json());
+    let html = '<table class="data-table"><tr><th>Name</th><th>Typ</th></tr>';
+    drones.forEach(d => html += `<tr><td>${d.name||'Drohne'}</td><td>Drohne</td></tr>`);
+    robots.forEach(r => html += `<tr><td>${r.name||'Roboter'}</td><td>Roboter</td></tr>`);
+    el.innerHTML = html + '</table>';
+  } catch(e) {
+    el.innerHTML = '<div class="loading">Fehler beim Laden.</div>';
+  }
+}
+// Finanzen & Transaktionen
+async function loadFinance(){
+  const el = document.getElementById('financeList');
+  el.innerHTML = '<div class="loading">Lade...</div>';
+  try {
+    const wallets = await fetch('/api/wallets').then(r=>r.json());
+    const transactions = await fetch('/api/transactions').then(r=>r.json());
+    let html = '<table class="data-table"><tr><th>Wallet</th><th>Balance</th></tr>';
+    wallets.forEach(w => html += `<tr><td>${w.walletName}</td><td>${Number(w.balance).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} ${w.currency}</td></tr>`);
+    html += '</table><br><table class="data-table"><tr><th>Typ</th><th>Betrag</th><th>Kategorie</th></tr>';
+    transactions.forEach(t => {
+      const color = t.transactionType==='INCOME'? '#00ff88':'#ff0044';
+      html += `<tr><td>${t.transactionType}</td><td style="color:${color}">${Number(t.amount).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} EUR</td><td>${t.category||''}</td></tr>`;
+    });
+    el.innerHTML = html + '</table>';
+  } catch(e) {
+    el.innerHTML = '<div class="loading">Fehler beim Laden.</div>';
+  }
+}
+// Systemstatus
+async function loadSystemStatus(){
+  const el = document.getElementById('systemStatus');
+  el.innerHTML = '<div class="loading">Lade...</div>';
+  // Beispiel: Statusdaten aus API holen
+  el.innerHTML = '<div>🟢 Backend aktiv<br>🤖 Roboter: <span id="robotCount">-</span><br>🚁 Drohnen: <span id="droneCount">-</span><br>💰 Wallets: <span id="walletCount">-</span><br>📊 Transaktionen: <span id="transactionCount">-</span></div>';
+}
+// Echtzeit-Analyse (Chart.js)
+document.addEventListener('DOMContentLoaded', ()=>{
+  const ctx = document.getElementById('realtimeChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array.from({length:20}, (_,i)=>i+1),
+      datasets: [{
+        label: 'Energieverbrauch',
+        data: Array.from({length:20}, ()=>Math.round(2000+Math.random()*500)),
+        borderColor: '#00ff88',
+        backgroundColor: 'rgba(0,255,136,.1)',
+        fill: true,
+        tension: .3
+      }]
+    },
+    options: { responsive:true, plugins:{legend:{display:false}} }
+  });
+});
+// AR-Ansicht starten
+function startAR(){ window.open('ar.html', '_blank'); }
+</script>
+</body>
+</html>

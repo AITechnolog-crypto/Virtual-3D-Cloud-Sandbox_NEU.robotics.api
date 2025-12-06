@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>🎬 Runway Image→Video – Demo (Mock)</title>
+  <link rel="stylesheet" href="LineLuxSharedStyles.css">
+  <style>
+    :root{ --bg:#0b0f18; --fg:#e8f2ff; --accent:#00ff88; --accent2:#00ccff }
+    body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0}
+    header{position:sticky;top:0;z-index:10;background:rgba(11,15,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1)}
+    .wrap{max-width:1100px;margin:0 auto;padding:12px 16px}
+    h1{margin:0;font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    nav a{color:#a8ffdf;margin-right:12px;text-decoration:none}
+    .grid{display:grid;grid-template-columns:1fr 1.1fr;gap:14px;padding:16px}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .muted{color:#9fb0c6;font-size:12px}
+    label{display:block;margin-bottom:8px}
+    input,select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#e8f2ff}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001;border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+    .ghost{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid rgba(255,255,255,.12)}
+    #viewer{width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    #viewer video,#viewer img{max-width:100%;max-height:100%;display:none}
+    .note{margin-top:8px}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
+    <h1>🎬 Runway Image→Video – Demo</h1>
+    <nav class="muted">
+      <a href="linelux-style.html">Haupt‑UI</a>
+      <a href="variants/variants-index.html">Varianten</a>
+      <a href="aerial-view.html">Aerial‑Demo</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <div class="muted" style="margin-bottom:8px">Diese Seite simuliert den RunwayML‑Ablauf (Image→Video). Sie nutzt Mock‑Endpoints im Service Worker: /api/runway/image-to-video und /api/runway/tasks.</div>
+      <label>
+        Prompt‑Bild URL
+        <input id="imgUrl" placeholder="https://example.com/bild.jpg">
+      </label>
+      <div class="row">
+        <label style="flex:1">Modell
+          <select id="model">
+            <option value="gen4_turbo" selected>gen4_turbo</option>
+            <option value="gen4">gen4</option>
+          </select>
+        </label>
+        <label style="flex:1">Ratio
+          <select id="ratio">
+            <option value="1280:768" selected>1280:768</option>
+            <option value="1024:576">1024:576</option>
+            <option value="1920:1080">1920:1080</option>
+          </select>
+        </label>
+        <label style="flex:1">Seed (optional)
+          <input id="seed" placeholder="z. B. 3">
+        </label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="btnCreate" class="btn">Task erzeugen</button>
+        <button id="btnCancel" class="btn ghost">Abbrechen</button>
+      </div>
+      <div id="msg" class="muted note">Bereit…</div>
+    </div>
+    <div class="card">
+      <div id="viewer" aria-label="Videoanzeige">
+        <video id="vid" controls loop></video>
+        <img id="img" />
+      </div>
+      <div class="muted note">Status: <span id="status">–</span></div>
+    </div>
+  </div>
+</div>
+<script>
+// Service Worker für Mock‑API registrieren
+if ('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('sw-mock-api.js').catch(()=>{}) ); }
+
+(function(){
+  const API_CREATE = location.origin + '/api/runway/image-to-video';
+  const API_TASK   = location.origin + '/api/runway/tasks?id=';
+  const elUrl = document.getElementById('imgUrl');
+  const elModel = document.getElementById('model');
+  const elRatio = document.getElementById('ratio');
+  const elSeed = document.getElementById('seed');
+  const elMsg = document.getElementById('msg');
+  const elStatus = document.getElementById('status');
+  const v = document.getElementById('vid');
+  const i = document.getElementById('img');
+
+  let taskId = null;
+  let pollIv = null;
+
+  function sanitizeUrl(u){
+    if (!u) return '';
+    let x = String(u).trim();
+    x = x.replace(/^htttps:/,'https:').replace(/^htttp:/,'http:');
+    return x;
+  }
+
+  async function create(){
+    try{
+      const payload = {
+        promptImage: sanitizeUrl(elUrl.value) || 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Googleplex_HQ_%28cropped%29.jpg/640px-Googleplex_HQ_%28cropped%29.jpg',
+        model: elModel.value||'gen4_turbo',
+        ratio: elRatio.value||'1280:768'
+      };
+      const s = (elSeed.value||'').trim(); if (s) payload.seed = s;
+      elMsg.textContent = 'Erzeuge Task…';
+      const r = await fetch(API_CREATE, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!r.ok){ elMsg.textContent = '❌ Fehler: ' + (j && j.error || ('HTTP '+r.status)); return; }
+      taskId = j.id; elStatus.textContent = j.status || 'PENDING'; elMsg.textContent = 'Task '+taskId+' erstellt. Starte Polling…';
+      startPolling();
+    }catch(e){ elMsg.textContent = '❌ Fehler: ' + (e.message||e); }
+  }
+
+  async function pollOnce(){
+    if (!taskId) return;
+    try{
+      const r = await fetch(API_TASK + encodeURIComponent(taskId), { cache: 'no-store' });
+      const j = await r.json();
+      if (!r.ok){ elMsg.textContent = '❌ Fehler: ' + (j && j.error || ('HTTP '+r.status)); clearInterval(pollIv); return; }
+      elStatus.textContent = j.status || '-';
+      if (j.status === 'SUCCEEDED' && j.result && j.result.videoUrl){
+        i.style.display='none'; v.style.display='block'; v.src = j.result.videoUrl; try{ await v.play(); }catch(_){}
+        elMsg.textContent = '✅ Fertig.'; clearInterval(pollIv);
+      } else if (j.status === 'FAILED'){
+        elMsg.textContent = '❌ Task fehlgeschlagen.'; clearInterval(pollIv);
+      } else {
+        elMsg.textContent = '⏳ '+(j.status||'Warte…');
+      }
+    }catch(e){ elMsg.textContent = '❌ Fehler beim Abrufen: ' + (e.message||e); clearInterval(pollIv); }
+  }
+
+  function startPolling(){ if (pollIv) clearInterval(pollIv); pollIv = setInterval(pollOnce, 1200); }
+  function cancel(){ if (pollIv) clearInterval(pollIv); pollIv=null; taskId=null; elStatus.textContent='–'; elMsg.textContent='Abgebrochen.'; }
+
+  document.getElementById('btnCreate').addEventListener('click', create);
+  document.getElementById('btnCancel').addEventListener('click', cancel);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtuelle 3D Cloud Sandbox - Infrastruktur Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #00d4ff;
+            --secondary-color: #0066ff;
+            --dark-bg: #0a0e27;
+            --card-bg: #1a1f3a;
+            --text-light: #e0e6ed;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff3366;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #0a0e27, #1a1f3a, #0a0e27);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Header */
+        header {
+            background: rgba(26, 31, 58, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px var(--primary-color)); }
+            to { filter: drop-shadow(0 0 20px var(--primary-color)); }
+        }
+
+        .status-indicator {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online { background: var(--success); }
+        .status-warning { background: var(--warning); }
+        .status-offline { background: var(--danger); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: -1rem auto 0;
+            padding: 0 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .progress-container.active {
+            opacity: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: var(--card-bg);
+            border: 2px solid var(--success);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: bottom 0.3s ease;
+            max-width: 350px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toast.show {
+            bottom: 20px;
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+
+        .toast-message {
+            flex: 1;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 212, 255, 0.3);
+            border-color: var(--primary-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            background: linear-gradient(135deg, var(--success), var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .metric-value.error {
+            font-size: 1.5rem;
+        }
+
+        .metric-label {
+            color: rgba(224, 230, 237, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Drone List */
+        .drone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .drone-item {
+            background: rgba(0, 102, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .drone-item:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .drone-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .drone-id {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .drone-status {
+            font-size: 0.85rem;
+            color: rgba(224, 230, 237, 0.7);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--gradient);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        /* Control Panel */
+        .control-panel {
+            grid-column: 1 / -1;
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 212, 255, 0.3);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .metric-value {
+                font-size: 2rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <header>
+        <div class="header-content">
+            <h1>🚁 Virtuelle 3D Cloud Sandbox - Infrastruktur Management</h1>
+            <div class="status-indicator">
+                <span class="status-dot status-online" id="status-dot"></span>
+                <span id="status-text">System Online</span>
+                <span id="current-time"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- Drone Count Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Aktive Drohnen</span>
+                    <span class="card-icon">🚁</span>
+                </div>
+                <div class="metric-value" id="drone-count">
+                    <span class="loading"></span>
+                </div>
+                <div class="metric-label">Gesamt im System</div>
+            </div>
+
+            <!-- Robots Count Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Roboter</span>
+                    <span class="card-icon">🤖</span>
+                </div>
+                <div class="metric-value" id="robot-count">
+                    <span class="loading"></span>
+                </div>
+                <div class="metric-label">Einsatzbereit</div>
+            </div>
+
+            <!-- Tech Instances Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Tech Instanzen</span>
+                    <span class="card-icon">💻</span>
+                </div>
+                <div class="metric-value" id="tech-count">
+                    <span class="loading"></span>
+                </div>
+                <div class="metric-label">Cloud Instanzen</div>
+            </div>
+
+            <!-- Drone List Card -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <span class="card-title">Drohnen-Übersicht</span>
+                    <button class="btn btn-refresh" onclick="loadAllData()" id="refresh-btn">🔄 Aktualisieren</button>
+                </div>
+                <div class="drone-list" id="drone-list">
+                    <div style="text-align: center; padding: 2rem;">
+                        <span class="loading"></span>
+                        <p style="margin-top: 1rem;">Lade Drohnen-Daten...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <h2 class="card-title">⚡ Schnellzugriff Steuerung</h2>
+                <div class="control-buttons">
+                    <button class="btn" onclick="addNewDrone()">➕ Neue Drohne</button>
+                    <button class="btn" onclick="systemCheck()">🔍 System Check</button>
+                    <button class="btn" onclick="exportData()">📥 Daten Export</button>
+                    <button class="btn" onclick="openCloudArchitecture()">☁️ Cloud Architektur</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toast-icon">✅</span>
+        <span class="toast-message" id="toast-message"></span>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = '/api';
+
+        // Progress tracking
+        let totalTasks = 0;
+        let completedTasks = 0;
+
+        // Load all data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+            updateClock();
+            setInterval(updateClock, 1000);
+            setInterval(checkSystemStatus, 10000); // Check system status every 10s
+            scheduleAutoRefresh();
+        });
+
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = 
+                now.toLocaleTimeString('de-DE');
+        }
+
+        // Progress bar functions
+        function showProgress() {
+            const container = document.getElementById('progress-container');
+            const fill = document.getElementById('progress-fill');
+            container.classList.add('active');
+            fill.style.width = '0%';
+            totalTasks = 4;
+            completedTasks = 0;
+        }
+
+        function updateProgress() {
+            completedTasks++;
+            const percentage = (completedTasks / totalTasks) * 100;
+            const fill = document.getElementById('progress-fill');
+            fill.style.width = percentage + '%';
+            
+            if (completedTasks >= totalTasks) {
+                setTimeout(() => {
+                    document.getElementById('progress-container').classList.remove('active');
+                }, 500);
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const messageEl = document.getElementById('toast-message');
+            
+            const configs = {
+                success: { icon: '✅', color: 'var(--success)' },
+                error: { icon: '❌', color: 'var(--danger)' },
+                warning: { icon: '⚠️', color: 'var(--warning)' },
+                info: { icon: 'ℹ️', color: 'var(--primary-color)' }
+            };
+            
+            const config = configs[type] || configs.success;
+            icon.textContent = config.icon;
+            toast.style.borderColor = config.color;
+            messageEl.textContent = message;
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Check system status
+        async function checkSystemStatus() {
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch(`${API_BASE}/drones/count`, { 
+                    signal: controller.signal 
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    statusDot.className = 'status-dot status-online';
+                    statusText.textContent = 'System Online';
+                } else {
+                    statusDot.className = 'status-dot status-warning';
+                    statusText.textContent = 'System Warnung';
+                }
+            } catch (error) {
+                statusDot.className = 'status-dot status-offline';
+                statusText.textContent = 'System Offline';
+                console.warn('System Status Check failed:', error);
+            }
+        }
+
+        // Load all data with progress tracking
+        async function loadAllData() {
+            showProgress();
+            const refreshBtn = document.getElementById('refresh-btn');
+            refreshBtn.disabled = true;
+            
+            const startTime = Date.now();
+            
+            try {
+                await Promise.allSettled([
+                    loadDroneCount(),
+                    loadDroneList(),
+                    loadRobotCount(),
+                    loadTechCount()
+                ]);
+                
+                const loadTime = Date.now() - startTime;
+                console.log(`✅ Daten geladen in ${loadTime}ms`);
+                
+                showToast(`Daten erfolgreich aktualisiert (${loadTime}ms)`, 'success');
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Daten:', error);
+                showToast('Fehler beim Laden der Daten', 'error');
+            } finally {
+                refreshBtn.disabled = false;
+                scheduleAutoRefresh();
+            }
+        }
+
+        // Load drone count with error handling
+        async function loadDroneCount() {
+            const countElement = document.getElementById('drone-count');
+            try {
+                const response = await fetch(`${API_BASE}/drones/count`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const count = await response.json();
+                countElement.textContent = count;
+                countElement.classList.remove('error');
+                countElement.title = '';
+            } catch (error) {
+                console.error('Fehler beim Laden der Drohnen-Anzahl:', error);
+                countElement.innerHTML = '<span style="font-size: 1.5rem; color: var(--warning);">⚠️</span>';
+                countElement.classList.add('error');
+                countElement.title = 'Verbindungsfehler - API nicht erreichbar';
+            } finally {
+                updateProgress();
+            }
+        }
+
+        // Load drone list with improved rendering
+        async function loadDroneList() {
+            const droneList = document.getElementById('drone-list');
+            
+            try {
+                const response = await fetch(`${API_BASE}/drones`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const drones = await response.json();
+                droneList.innerHTML = '';
+
+                if (drones.length === 0) {
+                    droneList.innerHTML = '<p style="text-align: center; padding: 2rem; color: rgba(224, 230, 237, 0.5);">Keine Drohnen gefunden</p>';
+                    return;
+                }
+
+                drones.forEach((drone, index) => {
+                    const droneItem = document.createElement('div');
+                    droneItem.className = 'drone-item';
+                    droneItem.style.animationDelay = `${index * 0.05}s`;
+                    
+                    const statusColor = getStatusColor(drone.status);
+                    
+                    droneItem.innerHTML = `
+                        <div class="drone-info">
+                            <span class="drone-id">🚁 Drohne #${drone.id || 'N/A'}</span>
+                            <span class="drone-status">
+                                Status: <strong style="color: ${statusColor}">${drone.status || 'Aktiv'}</strong> | 
+                                Typ: ${drone.type || 'Standard'}
+                                ${drone.battery ? ` | Batterie: ${drone.battery}%` : ''}
+                            </span>
+                        </div>
+                        <span style="color: ${statusColor}; font-size: 1.5rem;">●</span>
+                    `;
+                    droneList.appendChild(droneItem);
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Drohnen-Liste:', error);
+                droneList.innerHTML = 
+                    '<p style="text-align: center; padding: 2rem; color: var(--danger);">❌ Fehler beim Laden der Daten</p>';
+            } finally {
+                updateProgress();
+            }
+        }
+
+        function getStatusColor(status) {
+            const statusLower = (status || 'aktiv').toLowerCase();
+            if (statusLower.includes('aktiv')) return 'var(--success)';
+            if (statusLower.includes('wartung')) return 'var(--warning)';
+            return 'var(--danger)';
+        }
+
+        // Load robot count
+        async function loadRobotCount() {
+            const countElement = document.getElementById('robot-count');
+            try {
+                // Wenn Robot-API vorhanden ist, hier einbinden
+                // const response = await fetch(`${API_BASE}/robots/count`);
+                // const count = await response.json();
+                countElement.textContent = '—';
+            } catch (error) {
+                countElement.textContent = 'N/A';
+            } finally {
+                updateProgress();
+            }
+        }
+
+        // Load tech instance count
+        async function loadTechCount() {
+            const countElement = document.getElementById('tech-count');
+            try {
+                // Wenn TechInstance-API vorhanden ist, hier einbinden
+                // const response = await fetch(`${API_BASE}/tech/count`);
+                // const count = await response.json();
+                countElement.textContent = '—';
+            } catch (error) {
+                countElement.textContent = 'N/A';
+            } finally {
+                updateProgress();
+            }
+        }
+
+        // Add new drone with validation
+        async function addNewDrone() {
+            const droneName = prompt('Drohnen-Name eingeben:');
+            if (!droneName || droneName.trim() === '') {
+                showToast('Ungültiger Name', 'warning');
+                return;
+            }
+
+            showToast('Drohne wird hinzugefügt...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/drones`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        name: droneName.trim(),
+                        status: 'Aktiv',
+                        type: 'Standard'
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('✅ Drohne erfolgreich hinzugefügt!', 'success');
+                    await loadAllData();
+                } else {
+                    const errorText = await response.text();
+                    console.error('Server Error:', errorText);
+                    showToast('❌ Fehler beim Hinzufügen der Drohne', 'error');
+                }
+            } catch (error) {
+                console.error('Fehler:', error);
+                showToast('❌ Verbindungsfehler', 'error');
+            }
+        }
+
+        // System check with detailed info
+        async function systemCheck() {
+            showToast('🔍 System Check läuft...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/drones/count`);
+                if (response.ok) {
+                    const count = await response.json();
+                    showToast(`✅ System OK | ${count} Drohnen aktiv`, 'success');
+                } else {
+                    showToast('⚠️ System Check: Probleme erkannt', 'warning');
+                }
+            } catch (error) {
+                showToast('❌ System Check fehlgeschlagen', 'error');
+            }
+        }
+
+        // Export data as JSON
+        async function exportData() {
+            showToast('📥 Export wird vorbereitet...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/drones`);
+                if (!response.ok) throw new Error('Export fehlgeschlagen');
+                
+                const drones = await response.json();
+                
+                const dataStr = JSON.stringify(drones, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `drohnen-export-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                showToast('✅ Daten erfolgreich exportiert!', 'success');
+            } catch (error) {
+                console.error('Export-Fehler:', error);
+                showToast('❌ Fehler beim Export der Daten', 'error');
+            }
+        }
+
+        // Open cloud architecture page (fixed path)
+        function openCloudArchitecture() {
+            window.location.href = 'cloud-architecture.html';
+        }
+
+        // Auto-refresh with debouncing
+        let refreshTimeout;
+
+        function scheduleAutoRefresh() {
+            clearTimeout(refreshTimeout);
+            refreshTimeout = setTimeout(() => {
+                console.log('🔄 Auto-Refresh ausgeführt');
+                loadAllData();
+            }, 30000); // 30 Sekunden
+        }
+    </script>
+</body>
+</html>
+
+
+<!-- Google Maps – Teneriffa Overlay (strict Google-only, no key stored in repo) -->
+<script>
+(function(){
+  const LS_KEY = 'gmapsKey';
+  let gmap = null;
+
+  function ensureLauncher(){
+    if (document.getElementById('gmapsLauncher')) return;
+    const host = document.createElement('div');
+    host.id = 'gmapsLauncher';
+    host.style.position = 'fixed';
+    host.style.bottom = '16px';
+    host.style.right = '16px';
+    host.style.zIndex = '99997';
+    host.innerHTML = '<button id="gmapsOpen" style="padding:10px 14px;border:1px solid rgba(0,255,136,.5);border-radius:10px;background:rgba(0,0,0,.7);color:#a8ffdf;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.35)">🗺️ Google Maps: Teneriffa</button>';
+    document.body.appendChild(host);
+    document.getElementById('gmapsOpen').addEventListener('click', openOverlay);
+  }
+
+  function ensureOverlay(){
+    let ov = document.getElementById('gmapsOverlay');
+    if (ov) return ov;
+    ov = document.createElement('div');
+    ov.id = 'gmapsOverlay';
+    ov.style.position='fixed'; ov.style.inset='0'; ov.style.background='rgba(0,0,0,.85)';
+    ov.style.zIndex='99998'; ov.style.display='none';
+    ov.innerHTML = (
+      '<div style="position:absolute;top:14px;left:14px;right:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+      + '  <input id="gmapsKeyInput" placeholder="Google Maps API‑Key eingeben" '
+      + '     style="flex:1;min-width:280px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff" />'
+      + '  <select id="gmapsType" style="padding:10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.2)">'
+      + '    <option value="roadmap">Roadmap</option>'
+      + '    <option value="satellite">Satellite</option>'
+      + '    <option value="hybrid">Hybrid</option>'
+      + '    <option value="terrain">Terrain</option>'
+      + '  </select>'
+      + '  <button id="gmapsSave" style="padding:10px 14px;border:1px solid rgba(0,255,136,.5);border-radius:8px;background:#0a0; color:#fff">💾 Speichern</button>'
+      + '  <button id="gmapsClose" style="padding:10px 14px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#444;color:#fff">Schließen</button>'
+      + '</div>'
+      + '<div id="gmapsMap" style="position:absolute;top:60px;left:0;right:0;bottom:0;background:#fff"></div>'
+    );
+    document.body.appendChild(ov);
+
+    document.getElementById('gmapsClose').addEventListener('click', ()=>{ ov.style.display='none'; });
+    document.getElementById('gmapsSave').addEventListener('click', ()=>{
+      const k = (document.getElementById('gmapsKeyInput').value||'').trim();
+      if (!k){ alert('Bitte gültigen Google Maps API‑Key eingeben.'); return; }
+      try{ localStorage.setItem(LS_KEY, k); }catch(_){}
+      loadGoogle(k, ()=> initTenerife());
+    });
+    document.getElementById('gmapsType').addEventListener('change', ()=>{
+      try{ if (gmap){ gmap.setMapTypeId(document.getElementById('gmapsType').value); } }catch(_){ }
+    });
+    return ov;
+  }
+
+  function openOverlay(){
+    const ov = ensureOverlay();
+    ov.style.display='block';
+    const saved = getKey();
+    const inp = document.getElementById('gmapsKeyInput');
+    if (saved){ inp.value = saved; loadGoogle(saved, ()=> initTenerife()); }
+  }
+
+  function getKey(){ try{ return localStorage.getItem(LS_KEY)||''; }catch(_){ return ''; } }
+
+  function loadGoogle(key, cb){
+    if (window.google && window.google.maps){ try{ cb&&cb(); }catch(_){ } return; }
+    const id = 'gmaps-loader';
+    if (document.getElementById(id)){
+      // Already loading – wait until available
+      const iv = setInterval(()=>{ if (window.google && window.google.maps){ clearInterval(iv); try{ cb&&cb(); }catch(_){ } } }, 300);
+      return;
+    }
+    const s = document.createElement('script');
+    s.id = id; s.async = true; s.defer = true;
+    // callback uses a trampoline to avoid polluting global state
+    window.__gmapsCb = function(){ try{ cb&&cb(); }catch(_){ } };
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&callback=__gmapsCb';
+    document.head.appendChild(s);
+  }
+
+  function initTenerife(){
+    const el = document.getElementById('gmapsMap'); if (!el) return;
+    const center = { lat: 28.291563, lng: -16.629130 }; // Teneriffa Mitte
+    const type = (document.getElementById('gmapsType')||{}).value || 'roadmap';
+    gmap = new google.maps.Map(el, { center, zoom: 9, mapTypeId: type, disableDefaultUI: false });
+    const pts = [
+      { pos:{ lat:28.2724, lng:-16.6425 }, title:'Teide (Parque Nacional)' },
+      { pos:{ lat:28.4636, lng:-16.2518 }, title:'Santa Cruz de Tenerife' },
+      { pos:{ lat:28.4149, lng:-16.5460 }, title:'Puerto de la Cruz' },
+      { pos:{ lat:28.0500, lng:-16.7167 }, title:'Los Cristianos' },
+      { pos:{ lat:28.0781, lng:-16.7300 }, title:'Costa Adeje' }
+    ];
+    pts.forEach(p=> new google.maps.Marker({ position:p.pos, map:gmap, title:p.title }));
+  }
+
+  window.addEventListener('DOMContentLoaded', ensureLauncher);
+})();
+</script>
+
+
+<!-- Language policy init: enforce German and persist policy (Dashboard) -->
+<script>
+(function(){
+  try{
+    var lang = 'de';
+    document.documentElement.setAttribute('lang', lang);
+    try { localStorage.setItem('ui.lang', lang); } catch(_) {}
+    fetch(window.location.origin + '/api/policy/lang', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: lang })
+    }).catch(function(){});
+  } catch(e) {}
+})();
+</script>
